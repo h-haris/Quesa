@@ -1,9 +1,9 @@
 /*  NAME:
  ControllerDriverCoreOSX.mm
- 
+
  DESCRIPTION:
  Implementation of Quesa controller API calls.
- 
+
     COPYRIGHT:
         Copyright (c) 2013-2021, Quesa Developers. All rights reserved.
 
@@ -14,23 +14,23 @@
         For the current release of Quesa including 3D device support,
         please see: <https://github.com/h-haris/Quesa>
 
-        
+
         Redistribution and use in source and binary forms, with or without
         modification, are permitted provided that the following conditions
         are met:
-        
+
             o Redistributions of source code must retain the above copyright
               notice, this list of conditions and the following disclaimer.
-        
+
             o Redistributions in binary form must reproduce the above
               copyright notice, this list of conditions and the following
               disclaimer in the documentation and/or other materials provided
               with the distribution.
-        
+
             o Neither the name of Quesa nor the names of its contributors
               may be used to endorse or promote products derived from this
               software without specific prior written permission.
-        
+
         THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
         "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
         LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
@@ -46,7 +46,7 @@
  */
 
 
-#include "E3Prefix.h"	
+#include "E3Prefix.h"
 #import "ControllerDriverCoreOSX.h"
 
 @implementation ControllerDriverCoreOSX
@@ -73,32 +73,32 @@
     // let DB check if a Controller is allready present for a signature
     NSString *aSignature = [NSString stringWithCString:controllerData->signature encoding:NSASCIIStringEncoding];
     TQ3Boolean driverSignatureKnown = [proxyDB isKnownSignature:aSignature];
-    
+
     if (!driverSignatureKnown)
     {
         _controllerData = *controllerData;
         _hasSetChannelMethod = (TQ3Boolean)(_controllerData.channelSetMethod!=NULL);
         _hasGetChannelMethod = (TQ3Boolean)(_controllerData.channelGetMethod!=NULL);
         _signature = [NSString stringWithCString:controllerData->signature encoding:NSASCIIStringEncoding];
-        
+
         //create own UUID
         CFUUIDRef DriverUUID = CFUUIDCreate(kCFAllocatorDefault);
         CFStringRef DriverUUIDString = CFUUIDCreateString(kCFAllocatorDefault,DriverUUID);
-        
+
         CFMutableStringRef ControllerDriverName = CFStringCreateMutable (kCFAllocatorDefault,0);
         CFStringAppend(ControllerDriverName,CFSTR(kQuesa3DeviceControllerDriver));
         CFStringAppend(ControllerDriverName,CFSTR("."));
         CFStringAppend(ControllerDriverName,DriverUUIDString);
         _controllerDriverUUID = (NSString*)ControllerDriverName;
         [_controllerDriverUUID retain];
-        
+
         //vend IPCControllerDriver object
         theConnection = [[NSConnection new] autorelease];
         [theConnection setRootObject:self];
         //make name of instance public
         [theConnection registerName:_controllerDriverUUID];
         [theConnection retain]; //vending done!
-        
+
         CFMutableStringRef ControllerName = CFStringCreateMutable (kCFAllocatorDefault,0);
         CFStringAppend(ControllerName,CFSTR(kQuesa3DeviceController));
         CFStringAppend(ControllerName,CFSTR("."));
@@ -108,7 +108,7 @@
         CFRelease(DriverUUIDString);
         CFRelease(DriverUUID);
     }
-    
+
     _nameInDB = [proxyDB reNewCC3ControllerWithUUID:_nameInDB
                                      ctrlDriverUUID:_controllerDriverUUID
                                       controllerRef:(TQ3ControllerRefCast)self
@@ -117,7 +117,8 @@
                                           signature:_signature
                                 hasSetChannelMethod:_hasSetChannelMethod
                                 hasGetChannelMethod:_hasGetChannelMethod];
-    
+
+    //TODO: still needed?
     //fetch vended database object: server name is passed key
     _proxyCTRL = [[NSConnection rootProxyForConnectionWithRegisteredName:_nameInDB host:nil] retain];
     [_proxyCTRL setProtocolForProxy:@protocol(Q3DOController)];
@@ -132,6 +133,9 @@
 
 - (id) idForControllerRef:(TQ3ControllerRef) aControllerRef
 {
+#if Q3_DEBUG
+    NSLog(@"idForControllerRef: hunt for: %@\n",(NSString*)aControllerRef);
+#endif
     if (self==aControllerRef)
         return _proxyCTRL;
     else
@@ -149,20 +153,20 @@
                  ofSize:(TQ3Uns32) dataSize
 {
     TQ3Status			status = kQ3Failure;
-    
+
     if (_hasSetChannelMethod)
     {
         //sanitize channel
         if (channel>=_controllerData.channelCount)
             channel=_controllerData.channelCount-1;
-        
+
         //call method
         if (theData)
             status = _controllerData.channelSetMethod((TQ3ControllerRef)_nameInDB, channel, [theData bytes], dataSize);
         else //theData==NULL is valid!
             status = _controllerData.channelSetMethod((TQ3ControllerRef)_nameInDB, channel, NULL, dataSize);
     }
-    
+
     return status;
 }
 
@@ -179,9 +183,9 @@
 #ifndef QD3D_CONTROLLER_LEGACY_FUNCTIONALITY
     TQ3Status status = kQ3Failure;
 #endif
-    
+
     void *data;
-    
+
     if (_hasGetChannelMethod)
     {
 #ifndef QD3D_CONTROLLER_LEGACY_FUNCTIONALITY
@@ -189,14 +193,14 @@
         if (channel>=_controllerData.channelCount)
             channel=_controllerData.channelCount-1;
 #endif  //QD3D legacy functionality does NOT check if the channel number is out of range of the channelcount
-        
+
         //data
         //TODO: sanity check for dataSize
         data = (void*)malloc(*dataSize);
-        
+
         //call method
         TQ3Status status = _controllerData.channelGetMethod((TQ3ControllerRef)_nameInDB, channel, data, dataSize);
-        
+
         //data
         *theData = [NSData dataWithBytes:data length:*dataSize];
         free(data);
@@ -213,10 +217,10 @@
 -(TQ3Status) newDrvStateWithUUID:(NSString *) stateUUID
 {
     TQ3Status status = kQ3Success /*kQ3Failure*/;//no error handling!
-    
+
     //private allocate new state data; key is passed stateUUID
     [_statesAtUUID setObject:[NSMutableArray arrayWithCapacity:4] forKey:stateUUID];
-    
+
     return(status);
 };
 
@@ -224,9 +228,9 @@
 -(TQ3Status) deleteDrvStateWithUUID:(NSString *) stateUUID
 {
     TQ3Status status = kQ3Success /*kQ3Failure*/;//no error handling!
-    
+
     [_statesAtUUID removeObjectForKey:stateUUID];
-    
+
     return(status);
 };
 
@@ -239,18 +243,18 @@
 -(TQ3Status) saveDrvResetStateWithUUID:(NSString *) stateUUID
 {
     TQ3Status       status = kQ3Failure;	//resulting status after calling driver method
-    
+
     NSData          *dataOfChannel;
     NSMutableArray  *arrayAtUUID;
-    
+
     TQ3Uns32        channel, dataSize;
-    
+
     if (_hasGetChannelMethod)
     {
         arrayAtUUID = [_statesAtUUID objectForKey:stateUUID];
         [arrayAtUUID removeAllObjects];
     }
-    
+
     for (channel=0; channel<_controllerData.channelCount; channel++)
     {
         dataSize = kQ3ControllerSetChannelMaxDataSize;
@@ -258,7 +262,7 @@
         {
             //--get channel data
             status = [self getChannel:channel withData:&dataOfChannel ofSize:&dataSize];
-            
+
             //--store array element in array
 #ifndef __clang_analyzer__
             [arrayAtUUID insertObject:dataOfChannel atIndex:channel];
@@ -266,7 +270,7 @@
 #warning CLANG disabled here
 #endif //CLANG analysis might show a false "Logik error"
         }
-        
+
         if (_hasSetChannelMethod)
         {
             //--set channel data to NULL
@@ -274,7 +278,7 @@
             status = [self setChannel:channel withData:NULL ofSize:dataSize];
         }
     }
-    
+
     return status;
 }
 
@@ -287,17 +291,17 @@
 -(TQ3Status) restoreDrvStateWithUUID:(NSString *) stateUUID
 {
     TQ3Status		status = kQ3Failure;	//resulting status after calling driver method
-    
+
     NSMutableArray  *arrayAtUUID;
     NSData          *dataAtIndex;
-    
+
     TQ3Uns32        channel, dataSize;
-    
+
     if (_hasSetChannelMethod)
     {
         arrayAtUUID = [_statesAtUUID objectForKey:stateUUID];
     }
-    
+
     for (channel=0; channel<_controllerData.channelCount; channel++)
     {
         if (_hasSetChannelMethod)
@@ -307,7 +311,7 @@
             status = [self setChannel:channel withData:dataAtIndex ofSize:dataSize];
         }
     }
-    
+
     return status;
 }
 

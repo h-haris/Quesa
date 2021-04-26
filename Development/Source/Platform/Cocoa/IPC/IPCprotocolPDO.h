@@ -120,7 +120,7 @@ typedef unsigned long long              TQ3ControllerRefCast;
 @end
 
 
-@protocol Q3DOControllerDriver
+@protocol Q3DOControllerDriverState
 -(TQ3Status) setChannel:(TQ3Uns32) channel
                withData:(NSData *) data
                  ofSize:(TQ3Uns32) dataSize;
