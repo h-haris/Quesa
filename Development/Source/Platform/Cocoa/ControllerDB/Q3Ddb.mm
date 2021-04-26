@@ -1,10 +1,10 @@
 /*  NAME:
  Q3Ddb.mm
- 
+
  DESCRIPTION:
     QuesaOSXDeviceServer - acts as registrar of 3D Controller Devices.
     Every 3D Controller Device shall be registered here
- 
+
     COPYRIGHT:
         Copyright (c) 2011-2021, Quesa Developers. All rights reserved.
 
@@ -15,23 +15,23 @@
         For the current release of Quesa including 3D device support,
         please see: <https://github.com/h-haris/Quesa>
 
-        
+
         Redistribution and use in source and binary forms, with or without
         modification, are permitted provided that the following conditions
         are met:
-        
+
             o Redistributions of source code must retain the above copyright
               notice, this list of conditions and the following disclaimer.
-        
+
             o Redistributions in binary form must reproduce the above
               copyright notice, this list of conditions and the following
               disclaimer in the documentation and/or other materials provided
               with the distribution.
-        
+
             o Neither the name of Quesa nor the names of its contributors
               may be used to endorse or promote products derived from this
               software without specific prior written permission.
-        
+
         THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
         "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
         LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
@@ -49,7 +49,9 @@
 #import "Q3Ddb.h"
 #import "Q3DcontrollerPDO.h"
 #import "IPCprotocolPDO.h"
+#if Q3_DEBUG
 #import <AppKit/AppKit.h>
+#endif
 
 #include "E3MacDeviceDbStart.h"
 
@@ -57,9 +59,9 @@
 
 - (id)init {
     if (self = [super init]) {
-		//init my own stuff
-		controllerListSerialNumber = 0;
-	}
+        //init my own stuff
+        controllerListSerialNumber = 0;
+    }
     return self;
 }
 
@@ -72,14 +74,14 @@
 {
     theConnection = [[NSConnection new] autorelease];
     [theConnection setRootObject:self];
-     
+
     //make name of ControllerDB public
     [theConnection registerName:@kQuesa3DeviceServer];
     [theConnection retain];
-    
+
     _controllerPDOs = [NSMutableArray arrayWithCapacity:2];
     [_controllerPDOs retain];
-    
+
 #if Q3_DEBUG
     NSLog(@"-registerVendConnection vended: %@\n",@kQuesa3DeviceServer);
 #endif
@@ -87,16 +89,16 @@
 
 //vend 3D-device database out of startup code
 - (void)applicationDidFinishLaunching:(NSNotification *)notification /*delegation protocol*/
-{   
+{
     [self registerVendConnection];
 #if Q3_DEBUG
-	NSLog(@"-applicationDidFinishLaunching called registerVendConnection\n");
+    NSLog(@"-applicationDidFinishLaunching called registerVendConnection\n");
 #endif
 }
 
 
 - (void)incControllerListSerialNumber {
-	controllerListSerialNumber++;
+    controllerListSerialNumber++;
 }
 
 
@@ -160,9 +162,9 @@
                          hasGetChannelMethod:(TQ3Boolean) hasGCMthd
 {
     Q3DcontrollerPDO    *theControllerObject;
-    
+
     NSUInteger          foundSignatureAt = [self dbIndexOfSignature:sig];
-    
+
     if (foundSignatureAt < NSNotFound)
     {
         //fetch Controller at recently found index
@@ -173,22 +175,22 @@
     {
         theControllerObject = [[[Q3DcontrollerPDO alloc] initWithParametersDB:self
                                                                controllerUUID:aControllerUUID
-                                                               ctrlDriverUUID:aControllerDriverUUID
+                                                              driverStateUUID:aControllerDriverUUID
                                                                 controllerRef:(TQ3ControllerRef)aControllerRef
                                                                    valueCount:valCnt
                                                                  channelCount:chanCnt
                                                                     signature:sig
                                                           hasSetChannelMethod:hasSCMthd
                                                           hasGetChannelMethod:hasGCMthd] autorelease];
-        
+
         //insert at db list end. Peserve order of insertion!
         [_controllerPDOs addObject:theControllerObject];
     }
-    
-	[theControllerObject recommissionController];
+
+    [theControllerObject recommissionController];
     [theControllerObject setActivation:kQ3True];//controllerListSerialNumber++;
-    
-	return [theControllerObject UUID];
+
+    return [theControllerObject UUID];
 }
 
 
@@ -196,7 +198,7 @@
 - (out TQ3ControllerRefCast)nextCC3Controller: (in TQ3ControllerRefCast) currentControllerRef
 {
     NSUInteger idx;
-    
+
     if ((TQ3ControllerRefCast)NULL==currentControllerRef)
     {
         idx = 0;
@@ -208,7 +210,7 @@
             return NULL;
         ++idx;
     }
-    
+
     if (idx>=[_controllerPDOs count])
         return NULL;
     return (TQ3ControllerRefCast)[[_controllerPDOs objectAtIndex:idx] controllerRef];
@@ -216,29 +218,29 @@
 
 
 - (TQ3Status) getListChanged:(inout TQ3Boolean*)listChanged
-				SerialNumber:(inout TQ3Uns32*)serNum
+                SerialNumber:(inout TQ3Uns32*)serNum
 {
- 	TQ3Status status = kQ3Success;
-	
-	if (controllerListSerialNumber!=*serNum)
-	{
-		*listChanged=kQ3True;
-		*serNum=controllerListSerialNumber;
-	}
-	else
-	{
-		*listChanged=kQ3False;
-	}
-	return(status);
+    TQ3Status status = kQ3Success;
+
+    if (controllerListSerialNumber!=*serNum)
+    {
+        *listChanged=kQ3True;
+        *serNum=controllerListSerialNumber;
+    }
+    else
+    {
+        *listChanged=kQ3False;
+    }
+    return(status);
 }
 
 
 - (TQ3Status) trackerDeleted:(NSString *) deletedTrackerUUID
 {
     TQ3Status status = kQ3Failure;
-    
+
     Q3DcontrollerPDO    *theControllerObject;
-    
+
     NSUInteger foundOldTrackerAt = [self dbIndexOfTrackerUUID:deletedTrackerUUID];
 
     if (NSNotFound!=foundOldTrackerAt)
@@ -260,13 +262,13 @@ Q3Ddb* Q3DDeviceDb;
 void startDeviceDB(void)
 {
     bool foundVendedDB = false;
-    
+
     //check if a device server is allready vended
     id   privateProxyDB = nil;
     privateProxyDB = [NSConnection
                       rootProxyForConnectionWithRegisteredName:@kQuesa3DeviceServer
                       host:nil];
-    
+
     //if not, instantiate DB
     foundVendedDB = (privateProxyDB != nil);
     if (!foundVendedDB)

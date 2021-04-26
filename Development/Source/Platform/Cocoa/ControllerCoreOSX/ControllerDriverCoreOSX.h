@@ -1,9 +1,9 @@
 /*  NAME:
  ControllerDriverCoreOSX.h
- 
+
  DESCRIPTION:
  Implementation of Quesa controller API calls.
- 
+
     COPYRIGHT:
         Copyright (c) 2013-2021, Quesa Developers. All rights reserved.
 
@@ -14,23 +14,23 @@
         For the current release of Quesa including 3D device support,
         please see: <https://github.com/h-haris/Quesa>
 
-        
+
         Redistribution and use in source and binary forms, with or without
         modification, are permitted provided that the following conditions
         are met:
-        
+
             o Redistributions of source code must retain the above copyright
               notice, this list of conditions and the following disclaimer.
-        
+
             o Redistributions in binary form must reproduce the above
               copyright notice, this list of conditions and the following
               disclaimer in the documentation and/or other materials provided
               with the distribution.
-        
+
             o Neither the name of Quesa nor the names of its contributors
               may be used to endorse or promote products derived from this
               software without specific prior written permission.
-        
+
         THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
         "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
         LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
@@ -49,21 +49,21 @@
 #import <Cocoa/Cocoa.h>
 #import "IPCprotocolPDO.h"
 
-@interface ControllerDriverCoreOSX : NSObject <Q3DOControllerDriver>
+@interface ControllerDriverCoreOSX : NSObject <Q3DOControllerDriverState>
 {
 @private
     //TODO: change according to coding convention
     TQ3ControllerData       _controllerData;
-    //id					_publicDB;				//set via DB
-    TQ3Boolean              _hasSetChannelMethod;	//set by controller lib
-    TQ3Boolean              _hasGetChannelMethod;	//set by controller lib
+    //id                    _publicDB;              //set via DB
+    TQ3Boolean              _hasSetChannelMethod;   //set by controller lib
+    TQ3Boolean              _hasGetChannelMethod;   //set by controller lib
     NSString *              _signature;
     NSString *              _nameInDB;//controllerUUID
-    id                      _proxyCTRL;//proxy controller with name _nameInDB
-    
+    id                      _proxyCTRL;//proxy controller with name _nameInDB //TODO: still needed?
+
     NSConnection*           theConnection;
     NSString*               _controllerDriverUUID;
-    
+
     NSMutableDictionary*    _statesAtUUID;
 }
 

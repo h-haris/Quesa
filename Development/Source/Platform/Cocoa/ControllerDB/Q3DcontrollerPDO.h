@@ -1,9 +1,9 @@
 /*  NAME:
  Q3DcontrollerPDO.h
- 
+
  DESCRIPTION:
  Implementation of Quesa controller API calls.
- 
+
     COPYRIGHT:
         Copyright (c) 2011-2021, Quesa Developers. All rights reserved.
 
@@ -14,23 +14,23 @@
         For the current release of Quesa including 3D device support,
         please see: <https://github.com/h-haris/Quesa>
 
-        
+
         Redistribution and use in source and binary forms, with or without
         modification, are permitted provided that the following conditions
         are met:
-        
+
             o Redistributions of source code must retain the above copyright
               notice, this list of conditions and the following disclaimer.
-        
+
             o Redistributions in binary form must reproduce the above
               copyright notice, this list of conditions and the following
               disclaimer in the documentation and/or other materials provided
               with the distribution.
-        
+
             o Neither the name of Quesa nor the names of its contributors
               may be used to endorse or promote products derived from this
               software without specific prior written permission.
-        
+
         THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
         "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
         LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
@@ -53,42 +53,42 @@
 @interface Q3DcontrollerPDO : NSObject <Q3DOController>
 {
 @private
-	//TODO: change according to Coding convention
-	//via designated initializer
-	TQ3Uns32			_valueCount;			//set by controller lib
-	TQ3Uns32            _channelCount;			//set by controller lib
-    id					_publicDB;				//set via DB
-	TQ3Boolean			_hasSetChannelMethod;	//set by controller lib
-	TQ3Boolean			_hasGetChannelMethod;	//set by controller lib
-	NSString*           _signature;             //set by controller lib
-    
+    //TODO: change according to Coding convention
+    //via designated initializer
+    TQ3Uns32            _valueCount;            //set by controller lib
+    TQ3Uns32            _channelCount;          //set by controller lib
+    id                  _publicDB;              //set via DB
+    TQ3Boolean          _hasSetChannelMethod;   //set by controller lib
+    TQ3Boolean          _hasGetChannelMethod;   //set by controller lib
+    NSString*           _signature;             //set by controller lib
+
     NSString*           _UUID;
     NSConnection*       _theConnection;//public connection
-    
-    NSString*           _driverUUID;
-	id					_driverProxy;
-    
-	//via accessors
-	TQ3Boolean			isActive;
-	TQ3Boolean			isDecommissioned;
-	TQ3Uns32 			theButtons;
-	TQ3Uns32 			serialNumber;
-	float				*valuesRef;// allocated in designated initializer
-	id					trackerProxy;
-	id					_trackerUUID;
+
+    NSString*           _DriverStateUUID;
+    id                  _proxyDriverState;
+
+    //via accessors
+    TQ3Boolean          isActive;
+    TQ3Boolean          isDecommissioned;
+    TQ3Uns32            theButtons;
+    TQ3Uns32            serialNumber;
+    float               *valuesRef;// allocated in designated initializer
+    id                  trackerProxy;
+    id                  _trackerUUID;
     TQ3ControllerRef    _controllerRef;
 }
 
 - (id)init;
 - (id)initWithParametersDB:(id) aDB
             controllerUUID:(NSString *) aUUID
-            ctrlDriverUUID:(NSString *) aDrvUUID
+           driverStateUUID:(NSString *) aDrvUUID
              controllerRef:(TQ3ControllerRef) aControllerRef
-				valueCount:(TQ3Uns32) valCnt
-			  channelCount:(TQ3Uns32) chanCnt
-				 signature:(NSString *) sig
-	   hasSetChannelMethod:(TQ3Boolean) hasSCMthd
-	   hasGetChannelMethod:(TQ3Boolean) hasGCMthd;
+                valueCount:(TQ3Uns32) valCnt
+              channelCount:(TQ3Uns32) chanCnt
+                 signature:(NSString *) sig
+       hasSetChannelMethod:(TQ3Boolean) hasSCMthd
+       hasGetChannelMethod:(TQ3Boolean) hasGCMthd;
 - (void)dealloc;
 - (TQ3Status) recommissionController;
 - (TQ3Status) deleteTracker;

@@ -52,7 +52,7 @@
 @interface Q3Ddb : NSObject <NSApplicationDelegate, Q3DODeviceDB>
 {
 @private
-	//TODO: change according to Coding convention
+	//TODO: change according to coding convention
 	NSConnection	*theConnection;//public connection for first communication
 	
 	TQ3Uns32		controllerListSerialNumber;
