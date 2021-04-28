@@ -48,6 +48,13 @@
 #ifndef ControllerCoreOSX_ControllerCoreOSXinternals_h
 #define ControllerCoreOSX_ControllerCoreOSXinternals_h
 
+//=============================================================================
+//      C++ preamble
+//-----------------------------------------------------------------------------
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef struct TC3TrackerEvent
 {
     TQ3Uns32        EventTimeStampKey;
@@ -74,5 +81,12 @@ typedef struct TC3ControllerInstanceData
 {
     TQ3ControllerData instanceData;//public instance data from Controller_New
 } TC3ControllerInstanceData, *TC3ControllerInstanceDataPtr;
+
+//=============================================================================
+//        C++ postamble
+//-----------------------------------------------------------------------------
+#ifdef __cplusplus
+}
+#endif
 
 #endif

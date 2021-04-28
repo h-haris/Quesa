@@ -51,6 +51,9 @@
 
 @interface ControllerDriverCoreOSX : NSObject <Q3DOControllerDriverState>
 {
+/*
+ ControllerDriverCoreOSX: holds library local instance data of controller
+ */
 @private
     //TODO: change according to coding convention
     TQ3ControllerData       _controllerData;
