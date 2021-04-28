@@ -49,7 +49,7 @@
 #import "Q3DcontrollerPDO.h"
 
 #if Q3_DEBUG
-#import <AppKit/AppKit.h>
+#import <Foundation/Foundation.h>
 #endif
 
 @implementation Q3DcontrollerPDO

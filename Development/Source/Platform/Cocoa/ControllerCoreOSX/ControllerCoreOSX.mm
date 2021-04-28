@@ -85,7 +85,7 @@
 #include "ControllerCoreOSXinternals.h"
 
 #if Q3_DEBUG
-#import <AppKit/AppKit.h>
+#import <Foundation/Foundation.h>
 #endif
 
 //=============================================================================
@@ -108,15 +108,6 @@
 //-----------------------------------------------------------------------------
 // Internal variables go here
 
-/*
- ControllerInstance:
- -holds library local instance data of controller
- -TBC/TBD:
- --change in a way that the library's local data supports more than one controller
- --Best place to do this is the Controller Driver class ControllerDriverCoreOSX
- */
-//ControllerDriverCoreOSX *ControllerInstances = NULL;
-
 
 /*
  privateDeviceDBProxy:
@@ -134,7 +125,7 @@ id      privateDeviceDBProxy = /*objective C++ !? ->*/ nil;
 #pragma mark -
 
 //proxy object id of Controller DB vended by Device Server App
-static TQ3Status idOfDB(id *theID)
+static TQ3Status proxyOfDeviceDB(id *theID)
 {
     TQ3Status status = kQ3Failure;
     *theID = nil;
@@ -161,19 +152,20 @@ static TQ3Status idOfDB(id *theID)
 
 //proxy object id for key in controllerRef
 static id proxyOfControllerRef(TQ3ControllerRef controllerRef)
+//TODO: proxyOfControllerRef: change in a way that the library's local data supports more than one controller, local or remote
+//TODO: cache the proxy in a dictionary, controllerRef would be the key
 {
     //hunt for the connection name as given by the controllerRef and return the proxy
 #if Q3_DEBUG
-    NSLog(@"proxyOfControllerRef: hunt for: %@\n",(NSString*)controllerRef);
+    NSLog(@"proxyOfControllerRef: hunt for: %@\n",(NSString*)controllerRef);//bad access when different processes!
 #endif
-    //fetch vended database object: server name is passed key
     id proxy = [NSConnection
                 rootProxyForConnectionWithRegisteredName:(NSString*)controllerRef
                 host:nil];
     [proxy setProtocolForProxy:@protocol(Q3DOController)];
-    
+
     return proxy;
-};//TODO: proxyOfControllerRef: change in a way that the library's local data supports more than one controller, local or remote
+};
 
 
 #pragma mark -
@@ -196,7 +188,7 @@ CC3OSXController_New(const TQ3ControllerData *controllerData)
     TQ3ControllerRef        controllerRef = (TQ3ControllerRef)NULL; //TQ3ControllerRef is a *void !!
     id                      proxyDB;
 
-    status = idOfDB(&proxyDB);
+    status = proxyOfDeviceDB(&proxyDB);
 
     if (kQ3Success==status)
     {
@@ -241,7 +233,7 @@ CC3OSXController_GetListChanged(TQ3Boolean *listChanged, TQ3Uns32 *serialNumber)
     TQ3Status   status = kQ3Failure;
     id          proxyDB;
 
-    status = idOfDB(&proxyDB);
+    status = proxyOfDeviceDB(&proxyDB);
 
     if (kQ3Success==status)
         status = [proxyDB getListChanged:listChanged SerialNumber:serialNumber];
@@ -261,7 +253,7 @@ CC3OSXController_Next(TQ3ControllerRef controllerRef, TQ3ControllerRef *nextCont
     TQ3Status   status = kQ3Failure;
     id          proxyDB;
 
-    status = idOfDB(&proxyDB);
+    status = proxyOfDeviceDB(&proxyDB);
 
     if (kQ3Success==status){
         /*next Controller in db; returns string with key (UUID);
@@ -830,7 +822,7 @@ CC3OSXTracker_Delete(TC3TrackerInstanceDataPtr trackerObject)//"un"vend theTrack
     TQ3Status   status = kQ3Failure;
     id          proxyDB;
 
-    status = idOfDB(&proxyDB);
+    status = proxyOfDeviceDB(&proxyDB);
     if (kQ3Success==status)
     {
         (void)[proxyDB trackerDeleted:[trackerObject->instance trackerUUID]];

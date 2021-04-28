@@ -54,14 +54,14 @@
 // compile controller support in
 #ifndef QUESA_SUPPORT_CONTROLLER
     #define QUESA_SUPPORT_CONTROLLER                1
-    #define QD3D_CONTROLLER_LEGACY_FUNCTIONALITY    1
+    #define QD3D_CONTROLLER_LEGACY_FUNCTIONALITY    1 //used for implementing Q3ControllerState_SaveAndReset
 #endif
 
 #if Q3_DEBUG
     #if QUESA_SUPPORT_CONTROLLER
-        #warning QUESA_SUPPORT_CONTROLLER is set
+        #warning QUESA_SUPPORT_CONTROLLER, Q3_DEBUG are set
     #else
-        #warning QUESA_SUPPORT_CONTROLLER not set
+        #warning QUESA_SUPPORT_CONTROLLER, Q3_DEBUG are not set
     #endif
 #endif
 

@@ -49,11 +49,11 @@
 #import "Q3Ddb.h"
 #import "Q3DcontrollerPDO.h"
 #import "IPCprotocolPDO.h"
-#if Q3_DEBUG
-#import <AppKit/AppKit.h>
-#endif
-
 #include "E3MacDeviceDbStart.h"
+
+#if Q3_DEBUG
+#import <Foundation/Foundation.h>
+#endif
 
 @implementation Q3Ddb : NSObject
 
@@ -213,7 +213,8 @@
 
     if (idx>=[_controllerPDOs count])
         return NULL;
-    return (TQ3ControllerRefCast)[[_controllerPDOs objectAtIndex:idx] controllerRef];
+
+    return (TQ3ControllerRefCast)[[_controllerPDOs objectAtIndex:idx] UUID];
 };
 
 
