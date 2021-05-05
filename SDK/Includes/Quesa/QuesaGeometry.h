@@ -1,6 +1,6 @@
 /*! @header QuesaGeometry.h
         Declares the Quesa geometry objects.
-        
+
 	@ignore	_Nullable
 	@ignore _Nonnull
 	@ignore	_Null_unspecified
@@ -12,28 +12,28 @@
         Quesa public header.
 
     COPYRIGHT:
-        Copyright (c) 1999-2019, Quesa Developers. All rights reserved.
+        Copyright (c) 1999-2021, Quesa Developers. All rights reserved.
 
         For the current release of Quesa, please see:
 
             <https://github.com/jwwalker/Quesa>
-        
+
         Redistribution and use in source and binary forms, with or without
         modification, are permitted provided that the following conditions
         are met:
-        
+
             o Redistributions of source code must retain the above copyright
               notice, this list of conditions and the following disclaimer.
-        
+
             o Redistributions in binary form must reproduce the above
               copyright notice, this list of conditions and the following
               disclaimer in the documentation and/or other materials provided
               with the distribution.
-        
+
             o Neither the name of Quesa nor the names of its contributors
               may be used to endorse or promote products derived from this
               software without specific prior written permission.
-        
+
         THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
         "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
         LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
@@ -145,20 +145,20 @@ typedef enum TQ3PolyhedronEdgeMasks {
 
 /*!
 	@enum	Geometry&nbsp;Property&nbsp;Types
-	
+
 	@abstract	Object properties that may be set on geometries.
-	
+
 	@constant	kQ3GeometryPropertyNonCartoon
 						This property indicates to the cartoon renderer or to the
 						quantized per-pixel lighting mode of the OpenGL renderer
 						that this geometry should be rendered normally.
-						
+
 						Data type: TQ3Boolean.  Default value: kQ3False.
 	@constant	kQ3GeometryPropertyLayerShifts
 						This property, attached to the naked geometry within a TriMesh,
 						can be used to provide small shifts toward or away from the
 						camera to a vertex shader.
-						
+
 						Data type: TQ3LayerShifts (variable length).
 */
 enum
@@ -1089,7 +1089,7 @@ typedef struct TQ3TriangleData {
  *										2&times;(<code>numRows</code>-1)&times;(<code>numColumns</code>-1)
  *										attribute sets.
  *	@field		triGridAttributeSet		Set of attributes for the whole TriGrid object.
- *										May be nullptr.	
+ *										May be nullptr.
  */
 typedef struct TQ3TriGridData {
     TQ3Uns32                                    numRows;
@@ -1386,7 +1386,7 @@ typedef struct TQ3LayerShifts
         for ((_v) = Q3Mesh_FirstFaceVertex((_f), (_i));     \
              (_v) != nullptr;                                  \
              (_v) = Q3Mesh_NextFaceVertex((_i)))
-    
+
 /*!
  *	@function		Q3ForEachFaceFace
  *	@discussion
@@ -1399,7 +1399,7 @@ typedef struct TQ3LayerShifts
         for ((_n) = Q3Mesh_FirstFaceFace((_f), (_i));       \
              (_n) != nullptr;                                  \
              (_n) = Q3Mesh_NextFaceFace((_i)))
-          
+
 /*!
  *	@function		Q3ForEachFaceContour
  *	@discussion
@@ -1614,7 +1614,7 @@ Q3Geometry_GetDecomposed (
  */
 Q3_EXTERN_API_C ( TQ3GeometryObject _Nullable  )
 Q3Box_New (
-    const TQ3BoxData              * _Nonnull boxData
+    const TQ3BoxData              * _Nullable boxData
 );
 
 
@@ -2317,7 +2317,7 @@ Q3Cone_EmptyData (
  */
 Q3_EXTERN_API_C ( TQ3GeometryObject _Nullable  )
 Q3Cylinder_New (
-    const TQ3CylinderData         * _Nonnull cylinderData
+    const TQ3CylinderData         * _Nullable cylinderData
 );
 
 
@@ -4139,7 +4139,7 @@ Q3Mesh_New (
  *      Sets the properties of an existing mesh object.
  *
  *      If successful, this function invalidates all preexisting references to mesh parts
- *		(<code>TQ3MeshVertex</code>, <code>TQ3MeshContour</code>, <code>TQ3MeshFace</code>, 
+ *		(<code>TQ3MeshVertex</code>, <code>TQ3MeshContour</code>, <code>TQ3MeshFace</code>,
  *		<code>TQ3MeshCorner</code>, <code>TQ3MeshEdge</code>, <code>TQ3MeshComponent</code>)
  *		and mesh iterators (<code>TQ3MeshIterator</code>).
  *
@@ -7723,7 +7723,7 @@ Q3TriGrid_SetFacetAttributeSet (
  *
  *		If you wish, you can set the <code>isEmpty</code> flag in the <code>bBox</code> field,
  *		and Quesa will compute the bounding box.
- *		
+ *
  *		Edge and face indices will be checked, possibly resulting in an index out
  *		of bounds error or warning.  Also, if Quesa was compiled with the flag
  *		QUESA_NORMALIZE_NORMALS turned on (as it is by default), face and vertex
@@ -7751,15 +7751,15 @@ Q3TriMesh_New (
 				structures, is either nullptr or has been allocated with one of the
 				Quesa memory allocation functions.  Ownership of these pointers
 				is transferred to the TriMesh object.
-				
+
 				Unlike <code>Q3TriMesh_New</code>, this function does not
 				validate edge and face indices.  If Quesa was compiled with the
 				flag <code>QUESA_NORMALIZE_NORMALS</code> turned on (as it is by
 				default), face and vertex normal vectors will be normalized.
-				
+
 				If you wish, you can set the <code>isEmpty</code> flag in the
 				<code>bBox</code> field, and Quesa will compute the bounding box.
-	
+
 	@param triMeshData      Data describing a TriMesh.
 	@result                 Reference to a new TriMesh geometry object, or nullptr on failure.
 */
@@ -7917,7 +7917,7 @@ Q3TriMesh_UnlockData (
  *	@abstract
  *		Modify TriMesh data, if needed, for efficient use by the
  *		interactive renderer.
- *	
+ *
  *	@discussion
  *		This operation modifies TriMesh data so that:
  *				<ol>
@@ -7928,15 +7928,15 @@ Q3TriMesh_UnlockData (
  *		If face normals do not already exist, they will be computed
  *		by cross products of edges.  The orientation will be assumed
  *		to be counterclockwise.
- *				
+ *
  *		If vertex normals do not already exist, they will be derived
  *		from face normals.  When a vertex belongs to faces with
  *		different normals, the vertex will be duplicated.
- *				
+ *
  *		If a color attribute (diffuse, transparent, or specular) exists
  *		on faces but not vertices, it will be converted to a vertex
  *		attribute, duplicating vertices when needed.
- *				
+ *
  *		If no optimization is needed, outDidChange will return kQ3False
  *		and outData will be cleared to zero.  If optimization was
  *		performed, indicated by outDidChange being kQ3True, then you
@@ -7947,7 +7947,7 @@ Q3TriMesh_UnlockData (
  *		of vertices, faces, edges, and attributes in the TriMesh.  However,
  *		determining whether optimization is <em>needed</em> is quick, as it
  *		depends only on the number of attribute types.
- *	
+ *
  *      <em>This function is not available in QD3D.</em>
  *
  *	@param		inData			TriMesh data.
@@ -7973,11 +7973,11 @@ Q3TriMesh_OptimizeData( const TQ3TriMeshData* _Nonnull inData,
  *		Q3TriMesh_Optimize
  *	@abstract
  *		Modify a TriMesh, if needed, for efficient use by the interactive renderer.
- *	
+ *
  *	@discussion
  *		See discussion of Q3TriMesh_OptimizeData for the optimizations
  *		that are performed.  If no optimizations are needed, nullptr is returned.
- *	
+ *
  *      <em>This function is not available in QD3D.</em>
  *
  *	@param		inTriMesh		A TriMesh geometry.
@@ -8001,13 +8001,13 @@ Q3TriMesh_Optimize(
 					parameter, it is grouped with TriMesh functions because
 					Quesa's OpenGL renderer currently only uses triangle strips
 					with TriMeshes.
-					
+
 					Also see the triangle strip element functions in
 					QuesaCustomElements.h.
-					
+
 					When you are finished with the data returned in the
-					outStrip parameter, free it using Q3Memory_Free. 
-					
+					outStrip parameter, free it using Q3Memory_Free.
+
  					<em>This function is not available in QD3D.</em>
  	@param	inNumTriangles	Number of triangles.
  	@param	inTriangles		Point indices for the triangles.  The length of
@@ -8038,24 +8038,24 @@ Q3TriMesh_MakeTriangleStrip(
 				you can have two TriMesh objects with the same geometry but
 				different attribute sets.  This can be helpful in saving
 				memory.  That is, you can make two TriMeshes share geometry by saying:
-				
+
 				<blockquote><pre><code>
 				TQ3Object secondTriMesh = Q3Object_Duplicate( firstTriMesh );
 				TQ3Object firstNaked = Q3TriMesh_GetNakedGeometry( firstTriMesh );
 				Q3TriMesh_SetNakedGeometry( secondTriMesh, firstNaked );
 				Q3Object_Dispose( firstNaked );
 				</code></pre></blockquote>
-				
+
 				Sharing of naked geometry works in a copy-on-write way.  That is, if two
 				TriMeshes share the naked geometry, but then you modify one of the TriMeshes
 				using <code>Q3TriMesh_SetData</code>, <code>Q3TriMesh_Optimize</code>, or
 				<code>Q3TriMesh_LockData</code> with a read-write lock, then the TriMeshes will
 				no longer share naked geometry.
-				
+
 				A naked geometry of a TriMesh is a different type of object than a TriMesh.
 				You can't do anything with it but share it, dispose it, duplicate it, or pass it
 				as the second parameter of <code>Q3TriMesh_SetNakedGeometry</code>.
-				
+
 	@param		inGeom		A TriMesh object.
 	@result		A new reference to the unattributed geometry owned by the
 				given TriMesh.

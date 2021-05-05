@@ -1,6 +1,6 @@
 /*! @header Quesa.h
         Declares the fundamental Quesa types and functions.
-        
+
 	@ignore	_Nullable
 	@ignore _Nonnull
 	@ignore	_Null_unspecified
@@ -17,23 +17,23 @@
         For the current release of Quesa, please see:
 
             <https://github.com/jwwalker/Quesa>
-        
+
         Redistribution and use in source and binary forms, with or without
         modification, are permitted provided that the following conditions
         are met:
-        
+
             o Redistributions of source code must retain the above copyright
               notice, this list of conditions and the following disclaimer.
-        
+
             o Redistributions in binary form must reproduce the above
               copyright notice, this list of conditions and the following
               disclaimer in the documentation and/or other materials provided
               with the distribution.
-        
+
             o Neither the name of Quesa nor the names of its contributors
               may be used to endorse or promote products derived from this
               software without specific prior written permission.
-        
+
         THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
         "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
         LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
@@ -71,7 +71,7 @@
 	!defined(QUESA_OS_WIN32)     && \
     !defined(QUESA_OS_UNIX)      && \
     !defined(QUESA_OS_GENERIC)
-    
+
     #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
     	#define QUESA_OS_WIN32                  		1
 	#elif __APPLE__
@@ -167,12 +167,17 @@
 	#include <AvailabilityMacros.h>
 
     // Build constants
-    #ifdef __LITTLE_ENDIAN__
-    	#define		QUESA_HOST_IS_BIG_ENDIAN			0
-    #else
-    	#define		QUESA_HOST_IS_BIG_ENDIAN			1
+
+    // There have not been any big-endian Macs for a long time, so default to
+    // little-endian.
+    #ifndef QUESA_HOST_IS_BIG_ENDIAN
+		#ifdef __BIG_ENDIAN__
+			#define		QUESA_HOST_IS_BIG_ENDIAN			1
+		#else
+			#define		QUESA_HOST_IS_BIG_ENDIAN			0
+		#endif
     #endif
-    
+
     #if defined(__GNUC__) && (defined(__APPLE_CPP__) || defined(__APPLE_CC__) || defined(__NEXT_CPP__))
         #define QUESA_UH_IN_FRAMEWORKS					1
     #elif defined(__MACH__) &&  __MACH__
@@ -214,7 +219,7 @@
 
 	// Export symbols when building a shared library
     #ifdef Q3_EXPORT_SYMBOLS
-        #define Q3_EXTERN_API_C(_type)					__declspec(dllexport) _type __cdecl  
+        #define Q3_EXTERN_API_C(_type)					__declspec(dllexport) _type __cdecl
     #endif
 #endif // QUESA_OS_WIN32
 
@@ -225,9 +230,25 @@
 //=============================================================================
 //      Platform independent pre-amble
 //-----------------------------------------------------------------------------
-// Default to big endian
+// Try to guess endianness
 #ifndef QUESA_HOST_IS_BIG_ENDIAN
-	#define QUESA_HOST_IS_BIG_ENDIAN					1
+
+	#if defined(__LITTLE_ENDIAN__) || \
+        (defined(__BYTE_ORDER__) && (__BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__))
+
+		#define QUESA_HOST_IS_BIG_ENDIAN					0
+
+	#elif defined(__BIG_ENDIAN__) || \
+		(defined(__BYTE_ORDER__) && (__BYTE_ORDER__ == __ORDER_BIG_ENDIAN__))
+
+		#define QUESA_HOST_IS_BIG_ENDIAN					1
+
+	#else
+
+		#error "Could not detect endianness. Please set QUESA_HOST_IS_BIG_ENDIAN."
+
+	#endif
+
 #endif
 
 
@@ -344,11 +365,11 @@ typedef TQ3Int32                                TQ3ObjectType;
 
 #define Q3_OBJECT_TYPE(_a, _b, _c, _d)                      \
         ((TQ3ObjectType)                                    \
-        Q3_FOUR_CHARACTER_CONSTANT((_a), (_b), (_c), (_d))) 
+        Q3_FOUR_CHARACTER_CONSTANT((_a), (_b), (_c), (_d)))
 
 #define Q3_METHOD_TYPE(_a, _b, _c, _d)                      \
         ((TQ3ObjectType)                                    \
-        Q3_FOUR_CHARACTER_CONSTANT((_a), (_b), (_c), (_d))) 
+        Q3_FOUR_CHARACTER_CONSTANT((_a), (_b), (_c), (_d)))
 
 
 
@@ -779,7 +800,7 @@ typedef TQ3Uns32                                TQ3Size;
         TQ3Uns32                                hi;
         TQ3Uns32                                lo;
     } TQ3Uns64;
-    
+
 /*!
 	@typedef		TQ3Int64
 	@abstract		Signed 64-bit integer.
@@ -794,7 +815,7 @@ typedef TQ3Uns32                                TQ3Size;
         TQ3Uns32                                lo;
         TQ3Uns32                                hi;
     } TQ3Uns64;
-    
+
     typedef struct TQ3Int64 {
         TQ3Uns32                                lo;
         TQ3Int32                                hi;
@@ -1613,18 +1634,18 @@ Q3GetReleaseVersion (
 		Q3LogMessage
 	@discussion
 		Writes a message string to Quesa's log file for debugging.
-		
+
 		The name and location of the log file is platform-dependent.  On the Mac,
 		logging goes to the stderr stream, which normally appears in the console
 		log.  On Windows, log messages go to a file named "Quesa.log" in the
 		user's documents folder.
-		
+
 		An application could, of course, do its own debug logging independent of
 		Quesa.  With this function, you can make application and Quesa log
 		messages interleave in the same log file.
-		
+
 		You must explicitly add linefeed characters to break lines.
-		
+
 	@param	inMessage		A message to write to the log.
 */
 Q3_EXTERN_API_C( void )
@@ -1780,7 +1801,7 @@ Q3ObjectHierarchy_EmptySubClassData (
  *		Most types of TQ3Object are reference-counted.  This function
  *		decrements the reference count of the object. When the reference count
  *		falls to 0, the object is deleted.
- *      
+ *
  *      When used on a non-reference-counted object such as a view or pick,
  *      the object is deleted immediately.
  *
@@ -1812,9 +1833,9 @@ Q3Object_Dispose (
  *          &nbsp;   *theObject = NULL;
  *          }
  *      </code></pre></blockquote>
- *      
+ *
  *      <em>This function is not available in QD3D.</em>
- *      
+ *
  *  @param theObject        Address of a variable holding an object reference to dispose (may be NULL).
  *  @result                 Success or failure of the operation.
  */
@@ -1836,15 +1857,15 @@ Q3Object_CleanDispose (
  *	@discussion
  *					A reference that has been registered using this function
  *					will become zero after the object has been deleted.
- *			
+ *
  *					The object being referenced is not required to be a
  *					reference-counted object.  If it is, getting a zeroing
  *					weak reference does not change the reference count.
- *	
+ *
  *					If you are going to deallocate or reuse the given memory
  *					location before it becomes zero, you MUST first
  *					use <code>Q3Object_ReleaseWeakReference</code>.
- *	
+ *
  *	@param			theRefAddress	Address of an object reference.
 */
 Q3_EXTERN_API_C( void )
@@ -2012,7 +2033,7 @@ Q3Object_IsType (
  *		required to be a shape or set.
  *
  *		If the object is Shared, this operation will increment the object's edit index.
- *      
+ *
  *      <em>This function is not available in QD3D.</em>
  *
  *  @param object           The object to update.
@@ -2040,7 +2061,7 @@ Q3Object_AddElement (
  *      Get an element from an object.
  *		Same as <code>Q3Shape_GetElement</code>, except that the object is not
  *		required to be a shape or set.
- *      
+ *
  *      <em>This function is not available in QD3D.</em>
  *
  *  @param object           The object to query.
@@ -2068,7 +2089,7 @@ Q3Object_GetElement (
  *      Check to see if an object contains an element of a given type.
  *		Same as <code>Q3Shape_ContainsElement</code>, except that the object is not
  *		required to be a shape or set.
- *      
+ *
  *      <em>This function is not available in QD3D.</em>
  *
  *  @param object           The object to query.
@@ -2099,7 +2120,7 @@ Q3Object_ContainsElement (
  *      types in the object, and pass back the returned value to obtain
  *      the next type. The type is set to kQ3ElementTypeNone if there are no more
  *      elements in the shape.
- *      
+ *
  *      <em>This function is not available in QD3D.</em>
  *
  *  @param object           The object to query.
@@ -2127,7 +2148,7 @@ Q3Object_GetNextElementType (
  *		required to be a shape or set.
  *
  *		If the object is Shared, this operation will increment the object's edit index.
- *      
+ *
  *      <em>This function is not available in QD3D.</em>
  *
  *  @param object           The object to update.
@@ -2153,7 +2174,7 @@ Q3Object_EmptyElements (
  *		required to be a shape or set.
  *
  *		If the object is Shared, this operation will increment the object's edit index.
- *      
+ *
  *      <em>This function is not available in QD3D.</em>
  *
  *  @param object           The object to update.
@@ -2181,7 +2202,7 @@ Q3Object_ClearElement (
  *
  *      This function is primarily for the use of file format plug-ins.
  *		Most applications will not need it.
- *      
+ *
  *      <em>This function is not available in QD3D.</em>
  *
  *  @param	object    		The object.
@@ -2212,7 +2233,7 @@ Q3Object_GetSet (
  *		If you do not know the size of the property, you may call Q3Object_GetProperty
  *		passing NULL for the buffer to find the size of the data, then allocate your
  *		buffer and call Q3Object_GetProperty again.
- *      
+ *
  *      <em>This function is not available in QD3D.</em>
  *
  *	@param	object    		The object.
@@ -2242,7 +2263,7 @@ Q3Object_GetProperty(
  *		Q3Object_RemoveProperty
  *	@discussion
  *		Remove a property from an object.
- *      
+ *
  *      <em>This function is not available in QD3D.</em>
  *
  *	@param	object    		The object.
@@ -2275,7 +2296,7 @@ Q3Object_RemoveProperty(
  *
  *		Property type tags consisting of all lowercase ASCII letters are reserved
  *		for Quesa internal use.
- *      
+ *
  *      <em>This function is not available in QD3D.</em>
  *
  *	@param	object    		The object.
@@ -2330,7 +2351,7 @@ Q3Object_IterateProperties(
  *
  *      This function is primarily for the use of file format plug-ins.
  *		Most applications will not need it.
- *      
+ *
  *      <em>This function is not available in QD3D.</em>
  *
  *  @param	object    		The object.
@@ -2442,13 +2463,13 @@ Q3Shared_GetReferenceCount (
 /*!
 	@function
 		Q3Shared_StartLoggingRefs
-	
+
 	@abstract
 		Write to the debug log whenever this object's reference count changes.
-	
+
 	@availability
 		This is only functional when Quesa is built with Q3_DEBUG == 1.
-	
+
 	@param	sharedObject	The object to watch.
 */
 #if QUESA_ALLOW_QD3D_EXTENSIONS
@@ -2462,13 +2483,13 @@ Q3Shared_StartLoggingRefs( TQ3SharedObject _Nonnull sharedObject );
 /*!
 	@function
 		Q3Shared_StopLoggingRefs
-	
+
 	@abstract
 		Stop writing to the debug log whenever this object's reference count changes.
-	
+
 	@availability
 		This is only functional when Quesa is built with Q3_DEBUG == 1.
-	
+
 	@param	sharedObject	The object to stop watching.
 */
 #if QUESA_ALLOW_QD3D_EXTENSIONS
@@ -2482,13 +2503,13 @@ Q3Shared_StopLoggingRefs( TQ3SharedObject _Nonnull sharedObject );
 /*!
 	@function
 		Q3Shared_IsLoggingRefs
-		
+
 	@abstract
 		Test whether we are logging reference count changes for an object.
-	
+
 	@availability
 		This is only functional when Quesa is built with Q3_DEBUG == 1.
-	
+
 	@param	sharedObject	The object to check.
 	@result	kQ3True if we are logging reference changes.
 */
@@ -2527,9 +2548,9 @@ Q3Shared_GetEditIndex (
 				Q3Shared_Edited.  It was added to solve a specific problem:
 				Caching information in a custom element attached to an object
 				without changing the edit index of the object.
-				
+
 				 <em>This function is not available in QD3D.</em>
-	
+
 	@param		inObject		A shared object to update.
 	@param		inEditIndex		New edit index.
 */
@@ -2550,7 +2571,7 @@ Q3Shared_SetEditIndex(
 				cache that is attached to the object.  Doing so with this
 				function is a little safer and easier to debug than doing so
 				using Q3Shared_GetEditIndex and Q3Shared_SetEditIndex.
-				
+
 				 <em>This function is not available in QD3D.</em>
 	@param		inIsLocked		Pass kQ3True to lock, pass kQ3False to unlock.
 */
@@ -2831,9 +2852,9 @@ Q3Bitmap_GetImageSize (
  *      Q3Bitmap_GetBit
  *  @discussion
  *      Get the status of a bit within a bitmap.
- *      
+ *
  *      <em>This function is not available in QD3D.</em>
- *      
+ *
  *  @param theBitMap        The bitmap to query.
  *  @param x                The x coordinate of the pixel to query.
  *  @param y                The y coordinate of the pixel to query.
@@ -2857,9 +2878,9 @@ Q3Bitmap_GetBit (
  *      Q3Bitmap_SetBit
  *  @discussion
  *      Set the status of a bit within a bitmap.
- *      
+ *
  *      <em>This function is not available in QD3D.</em>
- *      
+ *
  *  @param theBitMap        The bitmap to update.
  *  @param x                The x coordinate of the pixel to update.
  *  @param y                The y coordinate of the pixel to update.
