@@ -792,8 +792,8 @@ CC3OSXController_SetValues(TQ3ControllerRef controllerRef, const float *values, 
 TC3TrackerInstanceDataPtr
 CC3OSXTracker_New(TQ3Object theObject, TQ3TrackerNotifyFunc notifyFunc)
 {
-    TC3TrackerInstanceDataPtr theInstanceData;
-    theInstanceData = (TC3TrackerInstanceDataPtr)malloc(sizeof(TC3TrackerInstanceData));
+    TC3TrackerInstanceDataPtr theInstanceData
+        = (TC3TrackerInstanceDataPtr)malloc(sizeof(TC3TrackerInstanceData));
 
     if (theInstanceData==NULL)
         return NULL;

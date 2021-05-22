@@ -1,6 +1,6 @@
 /*! @header QuesaStyle.h
         Declares the Quesa style objects.
-          
+
 	@ignore	_Nullable
 	@ignore _Nonnull
 	@ignore	_Null_unspecified
@@ -12,28 +12,28 @@
         Quesa public header.
 
     COPYRIGHT:
-        Copyright (c) 1999-2019, Quesa Developers. All rights reserved.
+        Copyright (c) 1999-2021, Quesa Developers. All rights reserved.
 
         For the current release of Quesa, please see:
 
             <https://github.com/jwwalker/Quesa>
-        
+
         Redistribution and use in source and binary forms, with or without
         modification, are permitted provided that the following conditions
         are met:
-        
+
             o Redistributions of source code must retain the above copyright
               notice, this list of conditions and the following disclaimer.
-        
+
             o Redistributions in binary form must reproduce the above
               copyright notice, this list of conditions and the following
               disclaimer in the documentation and/or other materials provided
               with the distribution.
-        
+
             o Neither the name of Quesa nor the names of its contributors
               may be used to endorse or promote products derived from this
               software without specific prior written permission.
-        
+
         THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
         "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
         LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
@@ -215,11 +215,24 @@ typedef enum TQ3OrientationStyle {
 typedef enum TQ3AntiAliasModeMasks {
     kQ3AntiAliasModeMaskEdges                   = (1 << 0),
     kQ3AntiAliasModeMaskFilled                  = (1 << 1),
-#if QUESA_ALLOW_QD3D_EXTENSIONS    
+#if QUESA_ALLOW_QD3D_EXTENSIONS
     kQ3AntiAliasModeMaskFullScreen              = (1 << 2),
 #endif // QUESA_ALLOW_QD3D_EXTENSIONS
     kQ3AntiAliasModeSize32                      = 0xFFFFFFFF
 } TQ3AntiAliasModeMasks;
+
+
+/*!
+	@enum	TQ3WriteSwitchMasks
+	@abstract	Write switch style masks.
+	@constant	kQ3WriteSwitchMaskDepth		Write to the depth buffer.
+	@constant	kQ3WriteSwitchMaskColor		Write to the color buffer.
+*/
+typedef enum TQ3WriteSwitchMasks {
+	kQ3WriteSwitchMaskDepth                     = (1 << 0),
+	kQ3WriteSwitchMaskColor                     = (1 << 1),
+	kQ3WriteSwitchSize32                        = 0x7FFFFFFF
+} TQ3WriteSwitchMasks;
 
 
 /*!
@@ -393,6 +406,23 @@ typedef struct TQ3FogStyleExtendedData
 	TQ3RationalPoint4D         halfspaceFogPlane;
 } TQ3FogStyleExtendedData;
 
+
+/*!
+	@struct		TQ3DepthRangeStyleData
+	@abstract	Depth range style data.
+	@discussion	Renderers like OpenGL often use a depth buffer with values ranging from 0,
+				corresponding to the near plane, to 1, corresponding to the far plane.  Using a depth
+				range style, you can map the depths to a subinterval.  This can be used for special
+				effects such as forcing an object to render in front of other objects in spite of being
+				farther away in camera space.
+	@field		near		The depth value to which the near plane should map.  Should be in [0, 1].
+	@field		far		The depth value to which the far plane should map.  Should be in [0, 1].
+*/
+typedef struct TQ3DepthRangeStyleData
+{
+	float	near;
+	float	far;
+} TQ3DepthRangeStyleData;
 
 
 
@@ -663,13 +693,13 @@ Q3PickPartsStyle_Set (
  *      Q3CastShadowsStyle_New
  *  @discussion
  *      Create a cast shadows style.
- *      
+ *
  *      <em>This function is not available in QD3D.</em>
  *
  *  @param castShadows      The cast shadows style data.
  *  @result                 The new cast shadows style.
  */
-#if QUESA_ALLOW_QD3D_EXTENSIONS    
+#if QUESA_ALLOW_QD3D_EXTENSIONS
 
 Q3_EXTERN_API_C ( TQ3StyleObject _Nonnull )
 Q3CastShadowsStyle_New (
@@ -685,14 +715,14 @@ Q3CastShadowsStyle_New (
  *      Q3CastShadowsStyle_Submit
  *  @discussion
  *      Submit a cast shadows style to a view.
- *      
+ *
  *      <em>This function is not available in QD3D.</em>
  *
  *  @param castShadows      The cast shadows style data.
  *  @param view             The view to submit the style to.
  *  @result                 Success or failure of the operation.
  */
-#if QUESA_ALLOW_QD3D_EXTENSIONS    
+#if QUESA_ALLOW_QD3D_EXTENSIONS
 
 Q3_EXTERN_API_C ( TQ3Status  )
 Q3CastShadowsStyle_Submit (
@@ -709,14 +739,14 @@ Q3CastShadowsStyle_Submit (
  *      Q3CastShadowsStyle_Get
  *  @discussion
  *      Get the data from a cast shadows style.
- *      
+ *
  *      <em>This function is not available in QD3D.</em>
  *
  *  @param styleObject      The style to query.
  *  @param castShadows      Receives the data from the style.
  *  @result                 Success or failure of the operation.
  */
-#if QUESA_ALLOW_QD3D_EXTENSIONS    
+#if QUESA_ALLOW_QD3D_EXTENSIONS
 
 Q3_EXTERN_API_C ( TQ3Status  )
 Q3CastShadowsStyle_Get (
@@ -733,14 +763,14 @@ Q3CastShadowsStyle_Get (
  *      Q3CastShadowsStyle_Set
  *  @discussion
  *      Set the data for a cast shadows style.
- *      
+ *
  *      <em>This function is not available in QD3D.</em>
  *
  *  @param styleObject      The style to update.
  *  @param castShadows      The new data for the style.
  *  @result                 Success or failure of the operation.
  */
-#if QUESA_ALLOW_QD3D_EXTENSIONS    
+#if QUESA_ALLOW_QD3D_EXTENSIONS
 
 Q3_EXTERN_API_C ( TQ3Status  )
 Q3CastShadowsStyle_Set (
@@ -1349,11 +1379,11 @@ Q3FogStyle_SetData (
  *      Q3LineWidthStyle_New
  *  @discussion
  *      Create a line width style.
- *      
+ *
  *      <em>This function is not available in QD3D.</em>
  *
  *  @param inWidth          New line width in pixels.
- *  @result                 The new fog style.
+ *  @result                 The new line width style.
  */
 #if QUESA_ALLOW_QD3D_EXTENSIONS
 
@@ -1371,7 +1401,7 @@ Q3LineWidthStyle_New (
  *      Q3LineWidthStyle_Submit
  *  @discussion
  *      Submit a line width style to a view.
- *      
+ *
  *      <em>This function is not available in QD3D.</em>
  *
  *  @param inWidth          New line width in pixels.
@@ -1395,14 +1425,14 @@ Q3LineWidthStyle_Submit (
  *      Q3LineWidthStyle_GetData
  *  @discussion
  *      Get width from a line width style.
- *      
+ *
  *      <em>This function is not available in QD3D.</em>
  *
  *  @param styleObject      The style to query.
  *  @param outWidth         Receives the data from the style.
  *  @result                 Success or failure of the operation.
  */
-#if QUESA_ALLOW_QD3D_EXTENSIONS    
+#if QUESA_ALLOW_QD3D_EXTENSIONS
 
 Q3_EXTERN_API_C ( TQ3Status  )
 Q3LineWidthStyle_GetData (
@@ -1419,20 +1449,131 @@ Q3LineWidthStyle_GetData (
  *      Q3LineWidthStyle_SetData
  *  @discussion
  *      Set the width for a line width style.
- *      
+ *
  *      <em>This function is not available in QD3D.</em>
  *
  *  @param styleObject      The style to update.
  *  @param inWidth          The new line width for the style.
  *  @result                 Success or failure of the operation.
  */
-#if QUESA_ALLOW_QD3D_EXTENSIONS    
+#if QUESA_ALLOW_QD3D_EXTENSIONS
 
 Q3_EXTERN_API_C ( TQ3Status  )
 Q3LineWidthStyle_SetData (
     TQ3StyleObject _Nonnull		styleObject,
     float				inWidth
 );
+
+#endif // QUESA_ALLOW_QD3D_EXTENSIONS
+
+
+
+/*!
+	@functiongroup Depth Range
+*/
+#if QUESA_ALLOW_QD3D_EXTENSIONS
+
+
+/*!
+	@function	Q3DepthRangeStyle_New
+	@abstract	Create a new depth range style object.
+	@discussion	Renderers like OpenGL often use a depth buffer with values ranging from 0,
+				corresponding to the near plane, to 1, corresponding to the far plane.  Using a depth
+				range style, you can map the depths to a subinterval.  This can be used for special
+				effects such as forcing an object to render in front of other objects in spite of being
+				farther away in camera space.
+
+				Some renderers may not support this operation.
+	@param		inData		The depth range data.
+	@result		The new depth range style.
+*/
+Q3_EXTERN_API_C ( TQ3StyleObject _Nonnull )
+Q3DepthRangeStyle_New (
+    const TQ3DepthRangeStyleData* _Nonnull  inData
+);
+
+
+/*!
+	@function	Q3DepthRangeStyle_GetData
+	@abstract	Get the parameters of a depth range style.
+	@param		inStyle		A depth range style.
+	@param		outData		Receives the data.
+	@result		Success or failure of the operation.
+*/
+Q3_EXTERN_API_C( TQ3Status )
+Q3DepthRangeStyle_GetData(
+	TQ3StyleObject _Nonnull inStyle,
+	TQ3DepthRangeStyleData* _Nonnull outData );
+
+
+/*!
+	@function	Q3DepthRangeStyle_SetData
+	@abstract	Set the parameters of a depth range style.
+	@param		inStyle		A depth range style.
+	@param		inData		New data.
+	@result		Success or failure of the operation.
+*/
+Q3_EXTERN_API_C( TQ3Status )
+Q3DepthRangeStyle_SetData(
+	TQ3StyleObject _Nonnull inStyle,
+	const TQ3DepthRangeStyleData* _Nonnull inData );
+
+
+#endif // QUESA_ALLOW_QD3D_EXTENSIONS
+
+
+
+
+/*!
+	@functiongroup Write Switch
+*/
+#if QUESA_ALLOW_QD3D_EXTENSIONS
+
+/*!
+	@function	Q3WriteSwitchStyle_New
+	@abstract	Create a new write switch style object.
+	@discussion	Renderers often have a concept of writing images to a color buffer and a depth
+				buffer.  If the renderer supports it, this style may allow turning off writing to the color
+				buffer or the depth buffer.
+	@param		inMask		A mask made up of bits from TQ3WriteSwitchMasks.  The default
+							behavior is produced by
+							<code>kQ3WriteSwitchMaskDepth | kQ3WriteSwitchMaskColor</code>.
+	@result		The new style object.
+*/
+Q3_EXTERN_API_C ( TQ3StyleObject _Nonnull )
+Q3WriteSwitchStyle_New (
+    TQ3Uns32  inMask
+);
+
+
+/*!
+	@function	Q3WriteSwitchStyle_GetData
+	@abstract	Get the data from a write switch style.
+	@param		inStyle		A depth range style.
+	@param		outData		Receives the data.
+	@result		Success or failure of the operation.
+*/
+Q3_EXTERN_API_C( TQ3Status )
+Q3WriteSwitchStyle_GetData(
+	TQ3StyleObject _Nonnull inStyle,
+	TQ3Uns32* _Nonnull outData );
+
+
+/*!
+	@function	Q3WriteSwitchStyle_SetData
+	@abstract	Change the data of a write switch style.
+	@param		inStyle		A depth range style.
+	@param		inMask		A mask made up of bits from TQ3WriteSwitchMasks.  The default
+							behavior is produced by
+							<code>kQ3WriteSwitchMaskDepth | kQ3WriteSwitchMaskColor</code>.
+	@result		Success or failure of the operation.
+*/
+Q3_EXTERN_API_C( TQ3Status )
+Q3WriteSwitchStyle_SetData(
+	TQ3StyleObject _Nonnull inStyle,
+	TQ3Uns32 inMask );
+
+
 
 #endif // QUESA_ALLOW_QD3D_EXTENSIONS
 
