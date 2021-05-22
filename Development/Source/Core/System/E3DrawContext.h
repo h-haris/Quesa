@@ -10,23 +10,23 @@
         For the current release of Quesa, please see:
 
             <https://github.com/jwwalker/Quesa>
-
+        
         Redistribution and use in source and binary forms, with or without
         modification, are permitted provided that the following conditions
         are met:
-
+        
             o Redistributions of source code must retain the above copyright
               notice, this list of conditions and the following disclaimer.
-
+        
             o Redistributions in binary form must reproduce the above
               copyright notice, this list of conditions and the following
               disclaimer in the documentation and/or other materials provided
               with the distribution.
-
+        
             o Neither the name of Quesa nor the names of its contributors
               may be used to endorse or promote products derived from this
               software without specific prior written permission.
-
+        
         THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
         "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
         LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
@@ -160,33 +160,33 @@ class E3DrawContextInfo : public E3SharedInfo
 	{
 	const TQ3XDrawContextUpdateMethod			updateMethod ;
 	const TQ3XDrawContextGetDimensionsMethod	getDimensionsMethod ;
-
+	
 public :
 
 								E3DrawContextInfo	(
 													TQ3XMetaHandler	newClassMetaHandler,
 													E3ClassInfo*	newParent
-					 								) ; // constructor
+					 								) ; // constructor	
 	friend class E3DrawContext ;
 	} ;
 
 
 
 
-class E3DrawContext : public E3Shared
+class E3DrawContext : public E3Shared 
 	{
 Q3_CLASS_ENUMS ( kQ3SharedTypeDrawContext, E3DrawContext, E3Shared )
 
 	// There is no extra data for this class
 public :
-
+	
 	E3DrawContextInfo*		GetClass ( void ) { return (E3DrawContextInfo*) OpaqueTQ3Object::GetClass () ; }
-
+	
 	TQ3Status				Update ( void ) ;
 
 	TQ3Status				GetPane ( TQ3Area* pane ) ;
 	} ;
-
+	
 
 
 //=============================================================================

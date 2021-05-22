@@ -10,23 +10,23 @@
         For the current release of Quesa, please see:
 
             <https://github.com/jwwalker/Quesa>
-        
+
         Redistribution and use in source and binary forms, with or without
         modification, are permitted provided that the following conditions
         are met:
-        
+
             o Redistributions of source code must retain the above copyright
               notice, this list of conditions and the following disclaimer.
-        
+
             o Redistributions in binary form must reproduce the above
               copyright notice, this list of conditions and the following
               disclaimer in the documentation and/or other materials provided
               with the distribution.
-        
+
             o Neither the name of Quesa nor the names of its contributors
               may be used to endorse or promote products derived from this
               software without specific prior written permission.
-        
+
         THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
         "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
         LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
@@ -87,7 +87,7 @@ extern "C" {
 #define kQ3ClassNameAttributeSpecularControl		"SpecularControl"
 #define kQ3ClassNameAttributeSurfaceShader			"SurfaceShaderAttribute"
 #define kQ3ClassNameAttributeSurfaceTangent			"SurfaceTangent"
-#define kQ3ClassNameAttributeSurfaceUV				"SurfaceUV"	
+#define kQ3ClassNameAttributeSurfaceUV				"SurfaceUV"
 #define kQ3ClassNameAttributeTransparencyColor		"TransparencyColor"
 #define kQ3ClassNameAttributeEmissiveColor			"Quesa:EmissiveColor"
 #define kQ3ClassNameAttributeMetallic				"Quesa:Metallic"
@@ -208,6 +208,8 @@ extern "C" {
 #define kQ3ClassNameStyleHighlight					"HighlightStyle"
 #define kQ3ClassNameStyleInterpolation				"InterpolationStyle"
 #define kQ3ClassNameStyleLineWidth					"LineWidthStyle"
+#define kQ3ClassNameStyleDepthRange					"DepthRangeStyle"
+#define kQ3ClassNameStyleWriteSwitch				"WriteSwitchStyle"
 #define kQ3ClassNameStyleOrientation				"OrientationStyle"
 #define kQ3ClassNameStylePickID						"PickIDStyle"
 #define kQ3ClassNameStylePickParts					"PickPartsStyle"
@@ -422,7 +424,7 @@ typedef class OpaqueTQ3Object {
 	E3ClassInfoPtr		theClass;
 	void				*instanceData;
 	TQ3Object			parentObject;
-	
+
 #if Q3_DEBUG
 	TQ3Object			childObject;
 #endif
@@ -452,7 +454,7 @@ typedef struct E3Globals {
 	E3HashTablePtr			classTree;
 	E3ClassInfoPtr			classTreeRoot;
 	TQ3ObjectType			classNextType;
-	
+
 
 	// Shared libraries
 	TQ3Uns32				sharedLibraryCount;
