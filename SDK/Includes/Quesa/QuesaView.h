@@ -1,6 +1,6 @@
 /*! @header QuesaView.h
         Declares the Quesa view object.
-
+          
 	@ignore	_Nullable
 	@ignore _Nonnull
 	@ignore	_Null_unspecified
@@ -17,23 +17,23 @@
         For the current release of Quesa, please see:
 
             <https://github.com/jwwalker/Quesa>
-
+        
         Redistribution and use in source and binary forms, with or without
         modification, are permitted provided that the following conditions
         are met:
-
+        
             o Redistributions of source code must retain the above copyright
               notice, this list of conditions and the following disclaimer.
-
+        
             o Redistributions in binary form must reproduce the above
               copyright notice, this list of conditions and the following
               disclaimer in the documentation and/or other materials provided
               with the distribution.
-
+        
             o Neither the name of Quesa nor the names of its contributors
               may be used to endorse or promote products derived from this
               software without specific prior written permission.
-
+        
         THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
         "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
         LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
@@ -93,7 +93,7 @@ extern "C" {
  *  @constant kQ3ViewStatusError                Submit loop encountered an error.
  *  @constant kQ3ViewStatusCancelled            Submit loop was cancelled.
  */
-typedef enum TQ3ViewStatus {
+typedef enum TQ3ViewStatus QUESA_ENUM_BASE(TQ3Uns32) {
     kQ3ViewStatusDone                           = 0,
     kQ3ViewStatusRetraverse                     = 1,
     kQ3ViewStatusError                          = 2,
@@ -982,7 +982,7 @@ Q3View_GetLocalToWorldMatrixState (
  *		This function must be called within a submitting loop.  If you need
  *		this matrix when you are not in a submitting loop, use
  *		Q3Camera_GetWorldToFrustum instead.
- *
+ *		
  *		If the view's camera has a nonlinear projection (as in fisheye and all-seeing
  *		cameras), then the world to frustum transformation cannot be expressed
  *		as a matrix, hence this function will return kQ3Failure.
@@ -1160,14 +1160,14 @@ Q3View_GetOrientationStyleState (
  *  @discussion
  *      Get the current cast shadows style state from a view.
  *		Must be called within a submitting loop.
- *
+ *      
  *      <em>This function is not available in QD3D.</em>
  *
  *  @param view             The view to query.
  *  @param castShadows      Receives the current cast shadows style state.
  *  @result                 Success or failure of the operation.
  */
-#if QUESA_ALLOW_QD3D_EXTENSIONS
+#if QUESA_ALLOW_QD3D_EXTENSIONS    
 
 Q3_EXTERN_API_C ( TQ3Status  )
 Q3View_GetCastShadowsStyleState (
