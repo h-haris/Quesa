@@ -903,10 +903,10 @@ E3Initialize(void)
 
 #if QUESA_SUPPORT_CONTROLLER
 		if (qd3dStatus == kQ3Success)
-			qd3dStatus = E3Tracker_RegisterClass();//new!
+			qd3dStatus = E3Tracker_RegisterClass();
 			
 		if (qd3dStatus == kQ3Success)
-			qd3dStatus = E3ControllerState_RegisterClass();//new!
+			qd3dStatus = E3ControllerState_RegisterClass();
 #endif
 
 		if (qd3dStatus == kQ3Success)
@@ -999,8 +999,8 @@ E3Exit(void)
 		// Terminate Quesa
 		E3CustomElements_UnregisterClass();
 #if QUESA_SUPPORT_CONTROLLER
-        E3Tracker_UnregisterClass();//new
-        E3ControllerState_UnregisterClass();//new
+        E3Tracker_UnregisterClass();
+        E3ControllerState_UnregisterClass();
 #endif
 		E3Pick_UnregisterClass();
 		E3File_UnregisterClass();
