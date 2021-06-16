@@ -539,7 +539,9 @@ Must be called within a submitting loop.
 <blockquote>
 <dl>
 <dt><tt><em>view</em></tt></dt><dd>The view to query.</dd>
-<dt><tt><em>highlightStyle</em></tt></dt><dd>Receives the current highlight style state.</dd>
+<dt><tt><em>highlightStyle</em></tt></dt><dd>Receives the current highlight style state (the attribute set, not the style
+object).  If not NULL, this is a new
+reference that you are responsible for disposing of.</dd>
 </dl>
 </blockquote>
 <dl><dt><i>function result</i></dt><dd>Success or failure of the operation.
@@ -1326,5 +1328,5 @@ typedef enum TQ3ViewStatus QUESA_ENUM_BASE(TQ3Uns32) {
 <dt><a name="//Quesa/c/econst/kQ3ViewStatusCancelled"><tt>kQ3ViewStatusCancelled</tt></a></dt><dd>Submit loop was cancelled.</dd>
 </dl>
 </blockquote>
-<p><p>&#169; 1999-2021 Quesa Developers (Last Updated 6/10/2021)
+<p><p>&#169; 1999-2021 Quesa Developers (Last Updated 6/16/2021)
 </p></body></html>
