@@ -10,23 +10,23 @@
         For the current release of Quesa, please see:
 
             <https://github.com/jwwalker/Quesa>
-        
+
         Redistribution and use in source and binary forms, with or without
         modification, are permitted provided that the following conditions
         are met:
-        
+
             o Redistributions of source code must retain the above copyright
               notice, this list of conditions and the following disclaimer.
-        
+
             o Redistributions in binary form must reproduce the above
               copyright notice, this list of conditions and the following
               disclaimer in the documentation and/or other materials provided
               with the distribution.
-        
+
             o Neither the name of Quesa nor the names of its contributors
               may be used to endorse or promote products derived from this
               software without specific prior written permission.
-        
+
         THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
         "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
         LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
@@ -43,6 +43,13 @@
 //=============================================================================
 //      Include files
 //-----------------------------------------------------------------------------
+
+#if QUESA_OS_WIN32
+#include <ShlObj.h>
+#include <direct.h>
+#include <malloc.h>
+#endif
+
 #include "E3Prefix.h"
 #include "E3Memory.h"
 #include "E3StackCrawl.h"
@@ -57,12 +64,6 @@
 #if QUESA_OS_MACINTOSH
 	#include <unistd.h>
 	#include <malloc/malloc.h>
-#endif
-
-#if QUESA_OS_WIN32
-	#include <ShlObj.h>
-	#include <direct.h>
-	#include <malloc.h>
 #endif
 
 
@@ -165,7 +166,7 @@ e3slab_new(TQ3Object theObject, void *privateData, const void *paramData)
 		theData    = Q3SlabMemory_AppendData(theObject, instanceData->numItems, params->itemData);
 		qd3dStatus = (theData != nullptr ? kQ3Success : kQ3Failure);
 		}
-	
+
 	return(qd3dStatus);
 }
 
@@ -210,7 +211,7 @@ e3slab_metahandler(TQ3XMethodType methodType)
 			theMethod = (TQ3XFunctionPointer) e3slab_delete;
 			break;
 		}
-	
+
 	return(theMethod);
 }
 
@@ -292,10 +293,10 @@ static void SetDirectoryForDump( const char* inFileName )
 					{
 						chdir( thePath );
 					}
-					
+
 					CFRelease( pathCF );
 				}
-				
+
 				CFRelease( dirURL );
 			}
 		}
@@ -305,10 +306,10 @@ static void SetDirectoryForDump( const char* inFileName )
 	if ( (strchr( inFileName, '\\' ) == nullptr) && (strchr( inFileName, '/' ) == nullptr) )
 	{
 		char thePath[MAX_PATH];
-		
+
 		HRESULT	res = SHGetFolderPathA( nullptr, CSIDL_PERSONAL, nullptr,
 			0, thePath );
-		
+
 		if (res == S_OK)
 		{
 			_chdir( thePath );
@@ -374,7 +375,7 @@ E3Memory_Allocate(TQ3Uns32 theSize)
 
 
 	Q3_ASSERT( theSize > 0 );
-	
+
 	if (theSize == 0)
 	{
 		E3ErrorManager_PostError(kQ3ErrorInvalidParameter, kQ3False);
@@ -542,7 +543,7 @@ E3Memory_Reallocate(void **thePtr, TQ3Uns32 newSize)
 			}
 		qd3dStatus = kQ3Success;
 	}
-	
+
 	else	// newSize != 0
 	{
 	#if Q3_MEMORY_DEBUG
@@ -559,7 +560,7 @@ E3Memory_Reallocate(void **thePtr, TQ3Uns32 newSize)
 		if (qd3dStatus == kQ3Success)
 		{
 			*thePtr = newPtr;
-		
+
 		#if Q3_MEMORY_DEBUG
 			// Update statistics
 			TQ3Uns32 actualNewSize = e3memGetSize( newPtr );
@@ -657,7 +658,7 @@ E3Memory_Copy(const void *srcPtr, void *dstPtr, TQ3Uns32 theSize)
 
 	dstStart = (TQ3Uns8 *) dstPtr;
 	dstEnd   = (TQ3Uns8 *) dstPtr + theSize;
-			
+
 	if (!((dstStart >= srcEnd) || (dstEnd <= srcStart)))
 		memmove(dstPtr, srcPtr, theSize);
 
@@ -685,7 +686,7 @@ E3Memory_StartRecording(void)
 	Q3_REQUIRE_OR_RESULT( theGlobals != nullptr, kQ3Failure );
 
 	theGlobals->isLeakChecking = kQ3True;
-	
+
 	return kQ3Success;
 }
 #endif
@@ -705,7 +706,7 @@ E3Memory_StopRecording(void)
 	Q3_REQUIRE_OR_RESULT( theGlobals != nullptr, kQ3Failure );
 
 	theGlobals->isLeakChecking = kQ3False;
-	
+
 	return kQ3Success;
 }
 #endif
@@ -741,26 +742,26 @@ E3Memory_ForgetRecording(void)
 	TQ3Object		anObject, nextObject;
 	E3GlobalsPtr	theGlobals = E3Globals_Get();
 	Q3_REQUIRE_OR_RESULT( theGlobals != nullptr, kQ3Failure );
-	
+
 	if (theGlobals->listHead)	// true if anything was ever recorded
 		{
 		anObject = NEXTLINK( theGlobals->listHead );
-		
+
 		while (anObject != theGlobals->listHead)
 			{
 			nextObject = NEXTLINK( anObject );
 			NEXTLINK( anObject ) = nullptr;
 			PREVLINK( anObject ) = nullptr;
-			
+
 			if ( anObject->stackCrawl != nullptr )
 				{
 				E3StackCrawl_Dispose( anObject->stackCrawl );
 				anObject->stackCrawl = nullptr;
 				}
-			
+
 			anObject = nextObject;
 			}
-		
+
 		NEXTLINK( theGlobals->listHead ) = theGlobals->listHead;
 		PREVLINK( theGlobals->listHead ) = theGlobals->listHead;
 		}
@@ -781,13 +782,13 @@ E3Memory_CountRecords(void)
 	{
 	TQ3Uns32 numRecords = 0 ;
 	E3GlobalsPtr theGlobals = E3Globals_Get () ;
-	
+
 	Q3_REQUIRE_OR_RESULT( theGlobals != nullptr, 0 ) ;
-	
+
 	if ( theGlobals->listHead != nullptr )	// true if anything was ever recorded
 		{
 		TQ3Object anObject = NEXTLINK( theGlobals->listHead ) ;
-		
+
 		while ( anObject != theGlobals->listHead )
 			{
 			Q3_ASSERT( anObject->IsObjectValid () ) ;
@@ -795,8 +796,8 @@ E3Memory_CountRecords(void)
 			anObject = NEXTLINK( anObject ) ;
 			}
 		}
-	
-	return numRecords; 
+
+	return numRecords;
 	}
 #endif
 
@@ -813,9 +814,9 @@ E3Memory_NextRecordedObject( TQ3Object inObject )
 	{
 	TQ3Object theNext = nullptr ;
 	E3GlobalsPtr theGlobals = E3Globals_Get () ;
-	
+
 	Q3_REQUIRE_OR_RESULT( theGlobals != nullptr, nullptr ) ;
-	
+
 	if ( inObject == nullptr )
 		{
 		// Return the first thing in the list, if any.
@@ -827,10 +828,10 @@ E3Memory_NextRecordedObject( TQ3Object inObject )
 
 	if ( theNext == theGlobals->listHead )
 		theNext = nullptr ;
-	
+
 	if ( theNext != nullptr )
 		theNext = theNext->GetLeafObject () ;
-	
+
 	return theNext ;
 	}
 #endif
@@ -855,10 +856,10 @@ E3Memory_DumpRecording( const char* fileName, const char* memo )
 	const char*		timeStr;
 	char			timeStrCopy[100];
 	size_t			timeStrLen;
-	
+
 	Q3_REQUIRE_OR_RESULT( Q3_VALID_PTR( fileName ), kQ3Failure );
 	Q3_REQUIRE_OR_RESULT( theGlobals != nullptr, kQ3Failure );
-	
+
 	if (theGlobals->listHead)	// true if anything was ever recorded
 	{
 		SetDirectoryForDump( fileName );
@@ -868,7 +869,7 @@ E3Memory_DumpRecording( const char* fileName, const char* memo )
 			E3ErrorManager_PostError( kQ3ErrorFileNotOpen, kQ3False );
 			return kQ3Failure;
 		}
-		
+
 		// Get a time stamp, and get rid of the line feed at the end.
 		theTime = time( nullptr );
 		timeStr = ctime( &theTime );
@@ -879,20 +880,20 @@ E3Memory_DumpRecording( const char* fileName, const char* memo )
 			timeStrCopy[ timeStrLen-1 ] = '\0';
 			timeStr = timeStrCopy;
 		}
-		
+
 		if (memo == nullptr)
 			fprintf( dumpFile, "\n\n========== START DUMP %s ==========\n", timeStr );
 		else
 			fprintf( dumpFile, "\n\n========== START DUMP %s %s ==========\n",
 				timeStr, memo );
-		
+
 		anObject = NEXTLINK( theGlobals->listHead );
-		
+
 		while (anObject != theGlobals->listHead)
 		{
 			Q3_ASSERT( anObject->IsObjectValid () );
 			nextObject = NEXTLINK( anObject );
-			
+
 			// Find the class name and print it
 			theType = Q3Object_GetLeafType( anObject );
 			if (kQ3Failure == Q3ObjectHierarchy_GetStringFromType( theType, className ))
@@ -900,7 +901,7 @@ E3Memory_DumpRecording( const char* fileName, const char* memo )
 				SAFE_STRCPY( className, "UNKNOWN", sizeof(className) );
 			}
 			fprintf( dumpFile, "%s (%p)", className, anObject );
-			
+
 			if (Q3Object_IsType( anObject, kQ3StringTypeCString))
 			{
 				fprintf( dumpFile, "   %lu  '%s'\n",
@@ -915,13 +916,13 @@ E3Memory_DumpRecording( const char* fileName, const char* memo )
 			{
 				fprintf( dumpFile, "\n" );
 			}
-			
+
 			// If possible, show a stack crawl
 			if (anObject->stackCrawl != nullptr)
 			{
 				TQ3Uns32	numNames = E3StackCrawl_Count( anObject->stackCrawl );
 				TQ3Uns32	i;
-				
+
 				for (i = 0; i < numNames; ++i)
 				{
 					const char*	name = E3StackCrawl_Get( anObject->stackCrawl, i );
@@ -931,14 +932,14 @@ E3Memory_DumpRecording( const char* fileName, const char* memo )
 					}
 				}
 			}
-			
+
 			anObject = nextObject;
 		}
 
 		fprintf( dumpFile, "\n\n========== END DUMP ==========\n" );
 		fclose( dumpFile );
 	}
-	
+
 	return kQ3Success;
 }
 #endif
@@ -966,14 +967,14 @@ TQ3Status		E3Memory_GetStatistics( TQ3MemoryStatistics* info )
 			info->maxBytes.lo = maxAllocBytes & 0xFFFFFFFF;
 			info->maxBytes.hi = (maxAllocBytes >> 32);
 			info->maxAllocations = sMaxAllocCount;
-			
+
 			theResult = kQ3Success;
 		}
 		else
 		{
 			theResult = kQ3Failure;
 		}
-		
+
 		return theResult;
 	#else
 		 return kQ3Failure;
@@ -1126,7 +1127,7 @@ E3SlabMemory_SetCount(TQ3SlabObject theSlab, TQ3Uns32 numItems)
 	// Update the slab
 	if ( qd3dStatus != kQ3Failure )
 		( (E3SlabMemory*) theSlab )->instanceData.numItems = numItems ;
-	
+
 	return qd3dStatus ;
 	}
 
