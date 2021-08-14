@@ -1,32 +1,32 @@
 /*  NAME:
-        E3WindowsSystem.c
+        E3WindowsSystem.cpp
 
     DESCRIPTION:
         Windows specific routines.
 
     COPYRIGHT:
-        Copyright (c) 1999-2007, Quesa Developers. All rights reserved.
+        Copyright (c) 1999-2021, Quesa Developers. All rights reserved.
 
         For the current release of Quesa, please see:
 
             <https://github.com/jwwalker/Quesa>
-        
+
         Redistribution and use in source and binary forms, with or without
         modification, are permitted provided that the following conditions
         are met:
-        
+
             o Redistributions of source code must retain the above copyright
               notice, this list of conditions and the following disclaimer.
-        
+
             o Redistributions in binary form must reproduce the above
               copyright notice, this list of conditions and the following
               disclaimer in the documentation and/or other materials provided
               with the distribution.
-        
+
             o Neither the name of Quesa nor the names of its contributors
               may be used to endorse or promote products derived from this
               software without specific prior written permission.
-        
+
         THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
         "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
         LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
@@ -107,45 +107,45 @@ e3windowsystem_load1plugin(LPTSTR path)
 
 
 //=============================================================================
-//      e3windowsystem_loadplugins : Scans the directory dir 
+//      e3windowsystem_loadplugins : Scans the directory dir
 //										and loads files with extension ext.
 //-----------------------------------------------------------------------------
 static void
-e3windowsystem_loadplugins(LPTSTR dir, LPTSTR ext)
+e3windowsystem_loadplugins(LPTSTR dir, LPCTSTR ext)
 {
 
-	WIN32_FIND_DATA FindFileData; 
-	HANDLE hFindFile; 
-	TCHAR szFiles[MAX_PATH]; 
-	TCHAR szFileName[MAX_PATH]; 
+	WIN32_FIND_DATA FindFileData;
+	HANDLE hFindFile;
+	TCHAR szFiles[MAX_PATH];
+	TCHAR szFileName[MAX_PATH];
 	E3WindowsSystem_DLLSlot* lastLoadedModule;
- 
-	lstrcpy(szFiles, dir); 
-	lstrcat(szFiles, TEXT("\\*.")); 
-	lstrcat(szFiles, ext); 
- 
 
-	hFindFile = FindFirstFile(szFiles, &FindFileData); 
- 
-	if (hFindFile == INVALID_HANDLE_VALUE) { 
-		return; 
-	} 
- 
+	lstrcpy(szFiles, dir);
+	lstrcat(szFiles, TEXT("\\*."));
+	lstrcat(szFiles, ext);
 
-	
+
+	hFindFile = FindFirstFile(szFiles, &FindFileData);
+
+	if (hFindFile == INVALID_HANDLE_VALUE) {
+		return;
+	}
+
+
+
 	do {
 		if (FindFileData.cFileName[0] != '.')
 		{
-			lstrcpy(szFileName, dir); 
-			lstrcat(szFileName, TEXT("\\")); 
-			lstrcat(szFileName, FindFileData.cFileName); 
-			
+			lstrcpy(szFileName, dir);
+			lstrcat(szFileName, TEXT("\\"));
+			lstrcat(szFileName, FindFileData.cFileName);
+
 			lastLoadedModule = e3windowsystem_load1plugin(szFileName);
 		}
-	} while (FindNextFile(hFindFile, &FindFileData) 
-						|| (GetLastError() != ERROR_NO_MORE_FILES)); 
- 
-	FindClose(hFindFile); 
+	} while (FindNextFile(hFindFile, &FindFileData)
+						|| (GetLastError() != ERROR_NO_MORE_FILES));
+
+	FindClose(hFindFile);
 }
 
 
@@ -185,7 +185,7 @@ void
 E3WindowsSystem_Terminate(void)
 {
 	// Terminate the system
-	
+
 	E3CloseLog();
 }
 
@@ -205,7 +205,7 @@ E3WindowsSystem_LoadPlugins(void)
 
 
 	// Register Quesa plug-ins
-	
+
 	// Look in the application directory
 	if (GetModuleFileName( 0, thePath, MAX_PATH ) > 0)
 	{
@@ -216,7 +216,7 @@ E3WindowsSystem_LoadPlugins(void)
 			e3windowsystem_loadplugins(thePath, TEXT("xq3"));
 		}
 	}
-	
+
 	if(GetSystemDirectory(thePath, MAX_PATH) > 0)
 		e3windowsystem_loadplugins(thePath, TEXT("xq3"));
 

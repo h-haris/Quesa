@@ -1,35 +1,35 @@
 /*  NAME:
-        E3Math.c
+        E3Math.cpp
 
     DESCRIPTION:
         Math routines for Quesa.
-        
+
         Note that these routines are allowed to call other E3foo routines for
         speed, to avoid the trip back out through the Q3foo interface.
 
     COPYRIGHT:
-        Copyright (c) 1999-2020, Quesa Developers. All rights reserved.
+        Copyright (c) 1999-2021, Quesa Developers. All rights reserved.
 
         For the current release of Quesa, please see:
 
             <https://github.com/jwwalker/Quesa>
-        
+
         Redistribution and use in source and binary forms, with or without
         modification, are permitted provided that the following conditions
         are met:
-        
+
             o Redistributions of source code must retain the above copyright
               notice, this list of conditions and the following disclaimer.
-        
+
             o Redistributions in binary form must reproduce the above
               copyright notice, this list of conditions and the following
               disclaimer in the documentation and/or other materials provided
               with the distribution.
-        
+
             o Neither the name of Quesa nor the names of its contributors
               may be used to endorse or promote products derived from this
               software without specific prior written permission.
-        
+
         THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
         "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
         LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
@@ -97,7 +97,7 @@
 //		We can see that, in terms of the number of floating point operations,
 //		Gauss-Jordon elimination is faster than Cramer's rule, even for N as
 //		as small as 3 or 4.
-//	
+//
 //		More importantly, the explicit formulas for calculating the determinant
 //		and inverse of a matrix are unstable: Round off errors are not always
 //		negligible.
@@ -173,14 +173,14 @@ static float
 e3matrix3x3_determinant(TQ3Matrix3x3* a)
 {
     #define A(x,y) a->value[x][y]
-    
+
     TQ3Int32 iSign, iPivot = 0, jPivot = 0;
     TQ3Int32 i, j, k;
     float determinant, big, element;
-    
+
     // iSign is +1 or -1, depending on the number of row or column exchanges
     iSign = 1;
-    
+
     // Loop over 3 pivots
     for (k = 0; k < 3; ++k)
     {
@@ -194,7 +194,7 @@ e3matrix3x3_determinant(TQ3Matrix3x3* a)
                 element = A(i,j);
                 if (element < 0.0f)
                     element = -element;
-                
+
                 // Compare current element to largest element so far
                 if (element > big)
                 {
@@ -204,12 +204,12 @@ e3matrix3x3_determinant(TQ3Matrix3x3* a)
                 }
             }
         }
-        
+
         // If largest element is 0, the matrix is singular
         // (It could still be -1 if the matrix contained "nan" values.)
         if (big <= 0.0f)
             return(0.0f);
-        
+
         // If necessary, put pivot element on diagonal at (k,k)
         if (iPivot != k)
         {
@@ -225,7 +225,7 @@ e3matrix3x3_determinant(TQ3Matrix3x3* a)
             for (i = k; i < 3; ++i)
                 E3Float_Swap(A(i,jPivot), A(i,k));
         }
-        
+
         // Divide pivot row (to the right of the pivot column) by pivot element
         //
         // Note: If we were dividing by the same element many times, it would
@@ -237,7 +237,7 @@ e3matrix3x3_determinant(TQ3Matrix3x3* a)
         for (j = k+1; j < 3; ++j)
             A(k,j) /= element;
 
-        // Reduce rows below pivot row (and to the right of the pivot column)       
+        // Reduce rows below pivot row (and to the right of the pivot column)
         for (i = k+1; i < 3; ++i)
         {
             element = A(i,k);
@@ -245,7 +245,7 @@ e3matrix3x3_determinant(TQ3Matrix3x3* a)
                 A(i,j) -= A(k,j)*element;
         }
     }
-    
+
     // Now that the matrix is upper triangular, calculate the determinant as
     // the product of the diagonal elements
     determinant = A(0,0);
@@ -253,9 +253,9 @@ e3matrix3x3_determinant(TQ3Matrix3x3* a)
         determinant *= A(k,k);
     if (iSign < 0)
         determinant = -determinant;
-        
+
     return(determinant);
-    
+
     #undef A
 }
 
@@ -278,7 +278,7 @@ static void
 e3matrix3x3_invert(TQ3Matrix3x3* a)
 {
     #define A(x,y) a->value[x][y]
-    
+
     TQ3Int32 irow = 0, icol = 0;
     TQ3Int32 i, j, k;       // *** WARNING: 'k' must be a SIGNED integer ***
     float big, element;
@@ -297,17 +297,17 @@ e3matrix3x3_invert(TQ3Matrix3x3* a)
         {
             if (ipiv[i])
                 continue;
-                
+
             for (j = 0; j < 3; ++j)
             {
                 if (ipiv[j])
                     continue;
-                    
+
                 // Calculate absolute value of current element
                 element = A(i,j);
                 if (element < 0.0f)
                     element = -element;
-                
+
                 // Compare current element to largest element so far
                 if (element > big)
                 {
@@ -317,7 +317,7 @@ e3matrix3x3_invert(TQ3Matrix3x3* a)
                 }
             }
         }
-        
+
         // If largest element is 0, the matrix is singular
         // (If there are "nan" values in the matrix, "big" may still be -1.0.)
         if (big <= 0.0f)
@@ -325,12 +325,12 @@ e3matrix3x3_invert(TQ3Matrix3x3* a)
             E3ErrorManager_PostError(kQ3ErrorNonInvertibleMatrix, kQ3False);
             return;
         }
-            
+
         // Mark pivot row and column
         ++ipiv[icol];
         indxr[k] = irow;
         indxc[k] = icol;
-        
+
         // If necessary, exchange rows to put pivot element on diagonal
         if (irow != icol)
         {
@@ -361,7 +361,7 @@ e3matrix3x3_invert(TQ3Matrix3x3* a)
                 A(i,j) -= A(icol,j)*element;
         }
     }
-    
+
     // Permute columns
     for (k = 3; --k >= 0; )     // *** WARNING: 'k' must be a SIGNED integer ***
     {
@@ -371,7 +371,7 @@ e3matrix3x3_invert(TQ3Matrix3x3* a)
                 E3Float_Swap(A(i,indxr[k]), A(i,indxc[k]));
         }
     }
-    
+
     #undef A
 }
 
@@ -396,14 +396,14 @@ static float
 e3matrix4x4_determinant(TQ3Matrix4x4* a)
 {
     #define A(x,y) a->value[x][y]
-    
+
     TQ3Int32 iSign, iPivot = 0, jPivot = 0;
     TQ3Int32 i, j, k;
     float determinant, big, element;
-    
+
     // iSign is +1 or -1, depending on the number of row or column exchanges
     iSign = 1;
-    
+
     // Loop over 4 pivots
     for (k = 0; k < 4; ++k)
     {
@@ -417,7 +417,7 @@ e3matrix4x4_determinant(TQ3Matrix4x4* a)
                 element = A(i,j);
                 if (element < 0.0f)
                     element = -element;
-                
+
                 // Compare current element to largest element so far
                 if (element > big)
                 {
@@ -427,12 +427,12 @@ e3matrix4x4_determinant(TQ3Matrix4x4* a)
                 }
             }
         }
-        
+
         // If largest element is 0, the matrix is singular
         // (It could still be -1 if the matrix contained "nan" values.)
         if (big <= 0.0f)
             return(0.0f);
-        
+
         // If necessary, put pivot element on diagonal at (k,k)
         if (iPivot != k)
         {
@@ -448,7 +448,7 @@ e3matrix4x4_determinant(TQ3Matrix4x4* a)
             for (i = k; i < 4; ++i)
                 E3Float_Swap(A(i,jPivot), A(i,k));
         }
-        
+
         // Divide pivot row (to the right of the pivot column) by pivot element
         //
         // Note: If we were dividing by the same element many times, it would
@@ -460,7 +460,7 @@ e3matrix4x4_determinant(TQ3Matrix4x4* a)
         for (j = k+1; j < 4; ++j)
             A(k,j) /= element;
 
-        // Reduce rows below pivot row (and to the right of the pivot column)       
+        // Reduce rows below pivot row (and to the right of the pivot column)
         for (i = k+1; i < 4; ++i)
         {
             element = A(i,k);
@@ -468,7 +468,7 @@ e3matrix4x4_determinant(TQ3Matrix4x4* a)
                 A(i,j) -= A(k,j)*element;
         }
     }
-    
+
     // Now that the matrix is upper triangular, calculate the determinant as
     // the product of the diagonal elements
     determinant = A(0,0);
@@ -476,9 +476,9 @@ e3matrix4x4_determinant(TQ3Matrix4x4* a)
         determinant *= A(k,k);
     if (iSign < 0)
         determinant = -determinant;
-        
+
     return(determinant);
-    
+
     #undef A
 }
 
@@ -501,7 +501,7 @@ static void
 e3matrix4x4_invert(TQ3Matrix4x4* a)
 {
     #define A(x,y) a->value[x][y]
-    
+
     TQ3Int32 irow = 0, icol = 0;
     TQ3Int32 i, j, k;       // *** WARNING: 'k' must be a SIGNED integer ***
     float big, element;
@@ -520,17 +520,17 @@ e3matrix4x4_invert(TQ3Matrix4x4* a)
         {
             if (ipiv[i])
                 continue;
-                
+
             for (j = 0; j < 4; ++j)
             {
                 if (ipiv[j])
                     continue;
-                    
+
                 // Calculate absolute value of current element
                 element = A(i,j);
                 if (element < 0.0f)
                     element = -element;
-                
+
                 // Compare current element to largest element so far
                 if (element > big)
                 {
@@ -540,7 +540,7 @@ e3matrix4x4_invert(TQ3Matrix4x4* a)
                 }
             }
         }
-        
+
         // If largest element is 0, the matrix is singular
         // (If there are "nan" values in the matrix, "big" may still be -1.0.)
         if (big <= 0.0f)
@@ -548,12 +548,12 @@ e3matrix4x4_invert(TQ3Matrix4x4* a)
             E3ErrorManager_PostError(kQ3ErrorNonInvertibleMatrix, kQ3False);
             return;
         }
-            
+
         // Mark pivot row and column
         ++ipiv[icol];
         indxr[k] = irow;
         indxc[k] = icol;
-        
+
         // If necessary, exchange rows to put pivot element on diagonal
         if (irow != icol)
         {
@@ -584,7 +584,7 @@ e3matrix4x4_invert(TQ3Matrix4x4* a)
                 A(i,j) -= A(icol,j)*element;
         }
     }
-    
+
     // Permute columns
     for (k = 4; --k >= 0; )     // *** WARNING: 'k' must be a SIGNED integer ***
     {
@@ -594,7 +594,7 @@ e3matrix4x4_invert(TQ3Matrix4x4* a)
                 E3Float_Swap(A(i,indxr[k]), A(i,indxc[k]));
         }
     }
-    
+
     #undef A
 }
 
@@ -634,7 +634,7 @@ e3bounding_box_accumulate_point3D(TQ3BoundingBox *bBox, const TQ3Point3D *point3
 	float x = point3D->x;
 	float y = point3D->y;
 	float z = point3D->z;
-	
+
 	if (x < bBox->min.x)
 		bBox->min.x = x;
 	else if (x > bBox->max.x)
@@ -959,7 +959,7 @@ E3Point2D_ToPolar(const TQ3Point2D *point2D, TQ3PolarPoint *result)
 {
 	float x = point2D->x;
 	float y = point2D->y;
-	
+
 	if (x == 0.0f && y == 0.0f)
 	{
 		result->r = result->theta = 0.0f;
@@ -970,7 +970,7 @@ E3Point2D_ToPolar(const TQ3Point2D *point2D, TQ3PolarPoint *result)
 		result->theta = (float) atan2(y, x);
 		if (result->theta < 0.0f)
 			result->theta += kQ32Pi;
-	} 
+	}
 
 	return(result);
 }
@@ -1011,7 +1011,7 @@ E3Point3D_ToSpherical(const TQ3Point3D *point3D, TQ3SphericalPoint *result)
 	float x = point3D->x;
 	float y = point3D->y;
 	float z = point3D->z;
-	
+
 	if (x == 0.0f && y == 0.0f)
 	{
 		if (z >= 0.0f)
@@ -1033,7 +1033,7 @@ E3Point3D_ToSpherical(const TQ3Point3D *point3D, TQ3SphericalPoint *result)
 		result->theta = (float) atan2(y, x);
 		if (result->theta < 0.0f)
 			result->theta += kQ32Pi;
-	} 
+	}
 
 	return(result);
 }
@@ -1111,7 +1111,7 @@ E3Vector3D_DotArray(
 		for (i = 0; i < numVectors; ++i)
 		{
 			dotProduct           = Q3FastVector3D_Dot(inFirstVectors3D, inSecondVectors3D);
-			*outDotProducts      = dotProduct;	
+			*outDotProducts      = dotProduct;
 			*outDotLessThanZeros = (TQ3Boolean) (dotProduct < 0.0f);
 
 			AdvanceConstPointer( inFirstVectors3D, inStructSize );
@@ -1126,7 +1126,7 @@ E3Vector3D_DotArray(
 		for (i = 0; i < numVectors; ++i)
 		{
 			dotProduct           = Q3FastVector3D_Dot(inFirstVectors3D, inSecondVectors3D);
-			*outDotProducts      = dotProduct;	
+			*outDotProducts      = dotProduct;
 
 			AdvanceConstPointer( inFirstVectors3D, inStructSize );
 			AdvanceConstPointer( inSecondVectors3D, inStructSize );
@@ -1146,7 +1146,7 @@ E3Vector3D_DotArray(
 			AdvancePointer( outDotLessThanZeros, outDotLessThanZeroStructSize );
 		}
 	}
-	
+
 	return(kQ3Success);
 }
 
@@ -1255,7 +1255,7 @@ E3Triangle_CrossProductArray(TQ3Uns32			numTriangles,
 				}
 			}
 		}
-	
+
 	return(kQ3Success);
 }
 
@@ -1441,7 +1441,7 @@ E3Point3D_BoundingBox_DistanceSquared( const TQ3Point3D *p,
 								TQ3Point3D* outNearest )
 {
 	float	theDistanceSq;
-	
+
 	if (box->isEmpty)
 	{
 		theDistanceSq = std::numeric_limits<float>::infinity();
@@ -1452,15 +1452,15 @@ E3Point3D_BoundingBox_DistanceSquared( const TQ3Point3D *p,
 		nearest.x = E3Num_Clamp( p->x, box->min.x,  box->max.x );
 		nearest.y = E3Num_Clamp( p->y, box->min.y,  box->max.y );
 		nearest.z = E3Num_Clamp( p->z, box->min.z,  box->max.z );
-		
+
 		theDistanceSq = Q3FastPoint3D_DistanceSquared( p, &nearest );
-		
+
 		if (outNearest != nullptr)
 		{
 			*outNearest = nearest;
 		}
 	}
-	
+
 	return theDistanceSq;
 }
 
@@ -1910,7 +1910,7 @@ E3Point2D_AffineComb(const TQ3Point2D	*points2D,
 	float y = 0.0f;
 	float totalWeight = 0.0f;
 	TQ3Uns32 i;
-	
+
 	for (i = 0; i < numPoints; ++i)
 	{
 		x += points2D[i].x * weights[i];
@@ -1920,7 +1920,7 @@ E3Point2D_AffineComb(const TQ3Point2D	*points2D,
 
 	result->x = x / totalWeight;
 	result->y = y / totalWeight;
-	
+
 	return(result);
 }
 
@@ -1965,7 +1965,7 @@ E3RationalPoint3D_AffineComb(const TQ3RationalPoint3D	*rationalPoints3D,
 	float y = 0.0f;
 	float totalWeight = 0.0f;
 	TQ3Uns32 i;
-	
+
 	for (i = 0; i < numPoints; ++i)
 	{
 		x += rationalPoints3D[i].x / rationalPoints3D[i].w * weights[i];
@@ -1976,7 +1976,7 @@ E3RationalPoint3D_AffineComb(const TQ3RationalPoint3D	*rationalPoints3D,
 	result->x = x / totalWeight;
 	result->y = y / totalWeight;
 	result->w = 1.0f;
-	
+
 	return(result);
 }
 
@@ -2001,7 +2001,7 @@ E3Point3D_AffineComb(const TQ3Point3D	*points3D,
 	float z = 0.0f;
 	float totalWeight = 0.0f;
 	TQ3Uns32 i;
-	
+
 	for (i = 0; i < numPoints; ++i)
 	{
 		x += points3D[i].x * weights[i];
@@ -2013,7 +2013,7 @@ E3Point3D_AffineComb(const TQ3Point3D	*points3D,
 	result->x = x / totalWeight;
 	result->y = y / totalWeight;
 	result->z = z / totalWeight;
-	
+
 	return(result);
 }
 
@@ -2039,7 +2039,7 @@ E3RationalPoint4D_AffineComb(const TQ3RationalPoint4D	*rationalPoints4D,
 	float z = 0.0f;
 	float totalWeight = 0.0f;
 	TQ3Uns32 i;
-	
+
 	for (i = 0; i < numPoints; ++i)
 	{
 		x += rationalPoints4D[i].x / rationalPoints4D[i].w * weights[i];
@@ -2052,7 +2052,7 @@ E3RationalPoint4D_AffineComb(const TQ3RationalPoint4D	*rationalPoints4D,
 	result->y = y / totalWeight;
 	result->z = z / totalWeight;
 	result->w = 1.0f;
-	
+
 	return(result);
 }
 
@@ -2079,7 +2079,7 @@ E3Vector2D_Transform(const TQ3Vector2D *vector2D, const TQ3Matrix3x3 *matrix3x3,
 	// Save input to avoid problems when result is same as input
 	float x = vector2D->x;
 	float y = vector2D->y;
-	
+
 	#define M(x,y) matrix3x3->value[x][y]
 	result->x = x*M(0,0) + y*M(1,0);
 	result->y = x*M(0,1) + y*M(1,1);
@@ -2111,7 +2111,7 @@ E3Vector3D_Transform(const TQ3Vector3D *vector3D, const TQ3Matrix4x4 *matrix4x4,
 	float x = vector3D->x;
 	float y = vector3D->y;
 	float z = vector3D->z;
-	
+
 	#define M(x,y) matrix4x4->value[x][y]
 	result->x = x*M(0,0) + y*M(1,0) + z*M(2,0);
 	result->y = x*M(0,1) + y*M(1,1) + z*M(2,1);
@@ -2138,7 +2138,7 @@ E3Point2D_Transform(const TQ3Point2D *point2D, const TQ3Matrix3x3 *matrix3x3,
 	float x = point2D->x;
 	float y = point2D->y;
 	float neww;
-	
+
 	#define M(x,y) matrix3x3->value[x][y]
 	result->x = x*M(0,0) + y*M(1,0) + M(2,0);
 	result->y = x*M(0,1) + y*M(1,1) + M(2,1);
@@ -2157,7 +2157,7 @@ E3Point2D_Transform(const TQ3Point2D *point2D, const TQ3Matrix3x3 *matrix3x3,
 		result->x *= invw;
 		result->y *= invw;
 	}
-	
+
 	return(result);
 }
 
@@ -2195,13 +2195,13 @@ E3RationalPoint3D_Transform(const TQ3RationalPoint3D *rationalPoint3D,
 	float x = rationalPoint3D->x;
 	float y = rationalPoint3D->y;
 	float w = rationalPoint3D->w;
-	
+
 	#define M(x,y) matrix3x3->value[x][y]
 	result->x = x*M(0,0) + y*M(1,0) + w*M(2,0);
 	result->y = x*M(0,1) + y*M(1,1) + w*M(2,1);
 	result->w = x*M(0,2) + y*M(1,2) + w*M(2,2);
 	#undef M
-	
+
 	return(result);
 }
 
@@ -2223,7 +2223,7 @@ E3Point3D_Transform(const TQ3Point3D *point3D, const TQ3Matrix4x4 *matrix4x4,
 	float y = point3D->y;
 	float z = point3D->z;
 	float neww;
-	
+
 	#define M(x,y) matrix4x4->value[x][y]
 	result->x = x*M(0,0) + y*M(1,0) + z*M(2,0) + M(3,0);
 	result->y = x*M(0,1) + y*M(1,1) + z*M(2,1) + M(3,1);
@@ -2244,7 +2244,7 @@ E3Point3D_Transform(const TQ3Point3D *point3D, const TQ3Matrix4x4 *matrix4x4,
 		result->y *= invw;
 		result->z *= invw;
 	}
-	
+
 	return(result);
 }
 
@@ -2265,13 +2265,13 @@ E3Point3D_TransformAffine(const TQ3Point3D *point3D, const TQ3Matrix4x4 *matrix4
 	float x = point3D->x;
 	float y = point3D->y;
 	float z = point3D->z;
-	
+
 	#define M(x,y) matrix4x4->value[x][y]
 	result->x = x*M(0,0) + y*M(1,0) + z*M(2,0) + M(3,0);
 	result->y = x*M(0,1) + y*M(1,1) + z*M(2,1) + M(3,1);
 	result->z = x*M(0,2) + y*M(1,2) + z*M(2,2) + M(3,2);
 	#undef M
-	
+
 	return(result);
 }
 
@@ -2293,14 +2293,14 @@ E3RationalPoint4D_Transform(const TQ3RationalPoint4D *rationalPoint4D,
 	float y = rationalPoint4D->y;
 	float z = rationalPoint4D->z;
 	float w = rationalPoint4D->w;
-	
+
 	#define M(x,y) matrix4x4->value[x][y]
 	result->x = x*M(0,0) + y*M(1,0) + z*M(2,0) + w*M(3,0);
 	result->y = x*M(0,1) + y*M(1,1) + z*M(2,1) + w*M(3,1);
 	result->z = x*M(0,2) + y*M(1,2) + z*M(2,2) + w*M(3,2);
 	result->w = x*M(0,3) + y*M(1,3) + z*M(2,3) + w*M(3,3);
 	#undef M
-	
+
 	return(result);
 }
 
@@ -2322,7 +2322,7 @@ E3Vector2D_To2DTransformArray(const TQ3Vector2D		*inVectors2D,
 							  TQ3Uns32				outStructSize)
 {
 	TQ3Uns32 i;
-	
+
 	for (i = 0; i < numVectors; ++i)
 	{
 		E3Vector2D_Transform(inVectors2D, matrix3x3, outVectors2D);
@@ -2352,7 +2352,7 @@ E3Vector3D_To3DTransformArray(const TQ3Vector3D		*inVectors3D,
 							  TQ3Uns32				outStructSize)
 {
 	TQ3Uns32 i;
-	
+
 	for (i = 0; i < numVectors; ++i)
 	{
 		E3Vector3D_Transform(inVectors3D, matrix4x4, outVectors3D);
@@ -2382,7 +2382,7 @@ E3Point2D_To2DTransformArray(const TQ3Point2D		*inPoints2D,
 							 TQ3Uns32				outStructSize)
 {
 	TQ3Uns32 i;
-	
+
 	for (i = 0; i < numPoints; ++i)
 	{
 		E3Point2D_Transform(inPoints2D, matrix3x3, outPoints2D);
@@ -2411,7 +2411,7 @@ E3Point2D_To3DTransformArray(const TQ3Point2D		*inPoints2D,
 							 TQ3Uns32				outStructSize)
 {
 	TQ3Uns32 i;
-	
+
 	for (i = 0; i < numPoints; ++i)
 	{
 		#define M(x,y) matrix3x3->value[x][y]
@@ -2446,7 +2446,7 @@ E3RationalPoint3D_To3DTransformArray(const TQ3RationalPoint3D	*inRationalPoints3
 									 TQ3Uns32					outStructSize)
 {
 	TQ3Uns32 i;
-	
+
 	for (i = 0; i < numPoints; ++i)
 	{
 		E3RationalPoint3D_Transform(inRationalPoints3D, matrix3x3, outRationalPoints3D);
@@ -2476,7 +2476,7 @@ E3Point3D_To3DTransformArray(const TQ3Point3D		*inPoints3D,
 							 TQ3Uns32				outStructSize)
 {
 	TQ3Uns32 i;
-	
+
 	// In the common case of the last column of the matrix being (0, 0, 0, 1),
 	// we can avoid some divisions and conditionals inside the loop.
 	if ( (matrix4x4->value[3][3] == 1.0f) &&
@@ -2524,7 +2524,7 @@ E3Point3D_To4DTransformArray(const TQ3Point3D		*inPoints3D,
 							 TQ3Uns32				outStructSize)
 {
 	TQ3Uns32 i;
-	
+
 	for (i = 0; i < numPoints; ++i)
 	{
 		#define M(x,y) matrix4x4->value[x][y]
@@ -2533,7 +2533,7 @@ E3Point3D_To4DTransformArray(const TQ3Point3D		*inPoints3D,
 		outRationalPoints4D->z = inPoints3D->x*M(0,2) + inPoints3D->y*M(1,2) + inPoints3D->z*M(2,2) + M(3,2);
 		outRationalPoints4D->w = inPoints3D->x*M(0,3) + inPoints3D->y*M(1,3) + inPoints3D->z*M(2,3) + M(3,3);
 		#undef M
-		
+
 		AdvanceConstPointer( inPoints3D, inStructSize );
 		AdvancePointer( outRationalPoints4D, outStructSize );
 	}
@@ -2560,11 +2560,11 @@ E3RationalPoint4D_To4DTransformArray(const TQ3RationalPoint4D	*inRationalPoints4
 										TQ3Uns32				outStructSize)
 {
 	TQ3Uns32 i;
-	
+
 	for (i = 0; i < numPoints; ++i)
 	{
 		E3RationalPoint4D_Transform(inRationalPoints4D, matrix4x4, outRationalPoints4D);
-		
+
 		AdvanceConstPointer( inRationalPoints4D, inStructSize );
 		AdvancePointer( outRationalPoints4D, outStructSize );
 	}
@@ -2586,13 +2586,13 @@ E3Matrix3x3_SetIdentity(TQ3Matrix3x3 *matrix3x3)
 	Q3Memory_Clear(matrix3x3, sizeof(TQ3Matrix3x3));
 
 	#define M(x,y) matrix3x3->value[x][y]
-	
+
 	M(0,0) = 1.0f;
-	
+
 	M(1,1) = 1.0f;
-	
+
 	M(2,2) = 1.0f;
-	
+
 	#undef M
 
 	return(matrix3x3);
@@ -2611,15 +2611,15 @@ E3Matrix4x4_SetIdentity(TQ3Matrix4x4 *matrix4x4)
 	Q3Memory_Clear(matrix4x4, sizeof(TQ3Matrix4x4));
 
 	#define M(x,y) matrix4x4->value[x][y]
-	
+
 	M(0,0) = 1.0f;
-	
+
 	M(1,1) = 1.0f;
-	
+
 	M(2,2) = 1.0f;
-	
+
 	M(3,3) = 1.0f;
-	
+
 	#undef M
 
 	return(matrix4x4);
@@ -2640,13 +2640,13 @@ E3Matrix3x3_SetTranslate(TQ3Matrix3x3 *matrix3x3, float xTrans, float yTrans)
 	#define M(x,y) matrix3x3->value[x][y]
 
 	M(0,0) = 1.0f;
-	
+
 	M(1,1) = 1.0f;
-	
+
 	M(2,0) = xTrans;
 	M(2,1) = yTrans;
 	M(2,2) = 1.0f;
-	
+
 	#undef M
 
 	return(matrix3x3);
@@ -2668,16 +2668,16 @@ E3Matrix4x4_SetTranslate(TQ3Matrix4x4 *matrix4x4,
 	#define M(x,y) matrix4x4->value[x][y]
 
 	M(0,0) = 1.0f;
-	
+
 	M(1,1) = 1.0f;
-	
+
 	M(2,2) = 1.0f;
-	
+
 	M(3,0) = xTrans;
 	M(3,1) = yTrans;
 	M(3,2) = zTrans;
 	M(3,3) = 1.0f;
-	
+
 	#undef M
 
 	return(matrix4x4);
@@ -2694,13 +2694,13 @@ TQ3Matrix3x3 *
 E3Matrix3x3_SetScale(TQ3Matrix3x3 *matrix3x3, float xScale, float yScale)
 {
 	Q3Memory_Clear(matrix3x3, sizeof(TQ3Matrix3x3));
-	
+
 	#define M(x,y) matrix3x3->value[x][y]
 
 	M(0,0) = xScale;
-	
+
 	M(1,1) = yScale;
-	
+
 	M(2,2) = 1.0f;
 
 	#undef M
@@ -2722,15 +2722,15 @@ E3Matrix4x4_SetScale(TQ3Matrix4x4 *matrix4x4,
 	Q3Memory_Clear(matrix4x4, sizeof(TQ3Matrix4x4));
 
 	#define M(x,y) matrix4x4->value[x][y]
-	
+
 	M(0,0) = xScale;
-	
+
 	M(1,1) = yScale;
-	
+
 	M(2,2) = zScale;
-	
+
 	M(3,3) = 1.0f;
-	
+
 	#undef M
 
 	return(matrix4x4);
@@ -2750,19 +2750,19 @@ E3Matrix3x3_SetRotate(TQ3Matrix3x3 *matrix3x3, float angle)
 	float sinAngle = (float) sin(angle);
 
 	Q3Memory_Clear(matrix3x3, sizeof(TQ3Matrix3x3));
-	
+
 	#define M(x,y) matrix3x3->value[x][y]
 
 	M(0,0) =  cosAngle;
 	M(0,1) =  sinAngle;
-	
+
 	M(1,0) = -sinAngle;
 	M(1,1) =  cosAngle;
-	
+
 	M(2,2) =  1.0f;
 
 	#undef M
-	
+
 	return(matrix3x3);
 }
 
@@ -2780,21 +2780,21 @@ E3Matrix4x4_SetRotate_X(TQ3Matrix4x4 *matrix4x4, float angle)
 	float sinAngle = (float) sin(angle);
 
 	Q3Memory_Clear(matrix4x4, sizeof(TQ3Matrix4x4));
-	
+
 	#define M(x,y) matrix4x4->value[x][y]
 
 	M(0,0) =  1.0f;
-	
+
 	M(1,1) =  cosAngle;
 	M(1,2) =  sinAngle;
-	
+
 	M(2,1) = -sinAngle;
 	M(2,2) =  cosAngle;
-	
+
 	M(3,3) =  1.0f;
 
 	#undef M
-	
+
 	return(matrix4x4);
 }
 
@@ -2812,21 +2812,21 @@ E3Matrix4x4_SetRotate_Y(TQ3Matrix4x4 *matrix4x4, float angle)
 	float sinAngle = (float) sin(angle);
 
 	Q3Memory_Clear(matrix4x4, sizeof(TQ3Matrix4x4));
-	
+
 	#define M(x,y) matrix4x4->value[x][y]
 
 	M(0,0) =  cosAngle;
 	M(0,2) = -sinAngle;
-	
+
 	M(1,1) =  1.0f;
-	
+
 	M(2,0) =  sinAngle;
 	M(2,2) =  cosAngle;
-	
+
 	M(3,3) =  1.0f;
 
 	#undef M
-	
+
 	return(matrix4x4);
 }
 
@@ -2844,21 +2844,21 @@ E3Matrix4x4_SetRotate_Z(TQ3Matrix4x4 *matrix4x4, float angle)
 	float sinAngle = (float) sin(angle);
 
 	Q3Memory_Clear(matrix4x4, sizeof(TQ3Matrix4x4));
-	
+
 	#define M(x,y) matrix4x4->value[x][y]
 
 	M(0,0) =  cosAngle;
 	M(0,1) =  sinAngle;
-	
+
 	M(1,0) = -sinAngle;
 	M(1,1) =  cosAngle;
-	
+
 	M(2,2) =  1.0f;
-	
+
 	M(3,3) =  1.0f;
 
 	#undef M
-	
+
 	return(matrix4x4);
 }
 
@@ -2880,34 +2880,34 @@ E3Matrix4x4_SetRotate_XYZ(TQ3Matrix4x4 *matrix4x4,
 	float sinY = (float) sin(yAngle);
 	float cosZ = (float) cos(zAngle);
 	float sinZ = (float) sin(zAngle);
-	
+
 	float sinXsinY = sinX*sinY;
 	float cosXsinY = cosX*sinY;
-	
+
 	#define M(x,y) matrix4x4->value[x][y]
 
 	M(0,0) =  cosY*cosZ;
 	M(0,1) =  cosY*sinZ;
 	M(0,2) = -sinY;
 	M(0,3) =  0.0f;
-	
+
 	M(1,0) =  sinXsinY*cosZ - cosX*sinZ;
 	M(1,1) =  sinXsinY*sinZ + cosX*cosZ;
 	M(1,2) =  sinX*cosY;
 	M(1,3) =  0.0f;
-	
+
 	M(2,0) =  cosXsinY*cosZ + sinX*sinZ;
 	M(2,1) =  cosXsinY*sinZ - sinX*cosZ;
 	M(2,2) =  cosX*cosY;
 	M(2,3) =  0.0f;
-	
+
 	M(3,0) =  0.0f;
 	M(3,1) =  0.0f;
 	M(3,2) =  0.0f;
 	M(3,3) =  1.0f;
 
 	#undef M
-	
+
 	return(matrix4x4);
 }
 
@@ -2928,23 +2928,23 @@ E3Matrix3x3_SetRotateAboutPoint(TQ3Matrix3x3 *matrix3x3,
 	#define M(x,y)	matrix3x3->value[x][y]
 	#define Dx		origin->x
 	#define Dy		origin->y
-	
+
 	M(0,0) =  cosAngle;
 	M(0,1) =  sinAngle;
 	M(0,2) =  0.0f;
-	
+
 	M(1,0) = -sinAngle;
 	M(1,1) =  cosAngle;
 	M(1,2) =  0.0f;
-	
+
 	M(2,0) =  Dx - Dx*cosAngle + Dy*sinAngle;   // = Dx - Dx*M(0,0) - Dy*M(1,0)
 	M(2,1) =  Dy - Dx*sinAngle - Dy*cosAngle;   // = Dx - Dx*M(0,1) - Dy*M(1,1)
 	M(2,2) =  1.0f;
-	
+
 	#undef M
 	#undef Dx
 	#undef Dy
-	
+
 	return(matrix3x3);
 }
 
@@ -2967,7 +2967,7 @@ E3Matrix4x4_SetRotateAboutPoint(TQ3Matrix4x4 *matrix4x4,
 	float sinY = (float) sin(yAngle);
 	float cosZ = (float) cos(zAngle);
 	float sinZ = (float) sin(zAngle);
-	
+
 	float sinXsinY = sinX*sinY;
 	float cosXsinY = cosX*sinY;
 
@@ -2980,17 +2980,17 @@ E3Matrix4x4_SetRotateAboutPoint(TQ3Matrix4x4 *matrix4x4,
 	M(0,1) =  cosY*sinZ;
 	M(0,2) = -sinY;
 	M(0,3) =  0.0f;
-	
+
 	M(1,0) =  sinXsinY*cosZ - cosX*sinZ;
 	M(1,1) =  sinXsinY*sinZ + cosX*cosZ;
 	M(1,2) =  sinX*cosY;
 	M(1,3) =  0.0f;
-	
+
 	M(2,0) =  cosXsinY*cosZ + sinX*sinZ;
 	M(2,1) =  cosXsinY*sinZ - sinX*cosZ;
 	M(2,2) =  cosX*cosY;
 	M(2,3) =  0.0f;
-	
+
 	M(3,0) =  Dx - Dx*M(0,0) - Dy*M(1,0) - Dz*M(2,0);
 	M(3,1) =  Dy - Dx*M(0,1) - Dy*M(1,1) - Dz*M(2,1);
 	M(3,2) =  Dz - Dx*M(0,2) - Dy*M(1,2) - Dz*M(2,2);
@@ -3000,7 +3000,7 @@ E3Matrix4x4_SetRotateAboutPoint(TQ3Matrix4x4 *matrix4x4,
 	#undef Dx
 	#undef Dy
 	#undef Dz
-	
+
 	return(matrix4x4);
 }
 
@@ -3041,17 +3041,17 @@ E3Matrix4x4_SetRotateAboutAxis(TQ3Matrix4x4 *matrix4x4,
 	M(0,1) = tx*axis->y + sz;
 	M(0,2) = tx*axis->z - sy;
 	M(0,3) = 0.0f;
-	
+
 	M(1,0) = ty*axis->x - sz;
 	M(1,1) = ty*axis->y + c;
 	M(1,2) = ty*axis->z + sx;
 	M(1,3) = 0.0f;
-	
+
 	M(2,0) = tz*axis->x + sy;
 	M(2,1) = tz*axis->y - sx;
 	M(2,2) = tz*axis->z + c;
 	M(2,3) = 0.0f;
-	
+
 	M(3,0) = Dx - Dx*M(0,0) - Dy*M(1,0) - Dz*M(2,0);
 	M(3,1) = Dy - Dx*M(0,1) - Dy*M(1,1) - Dz*M(2,1);
 	M(3,2) = Dz - Dx*M(0,2) - Dy*M(1,2) - Dz*M(2,2);
@@ -3061,7 +3061,7 @@ E3Matrix4x4_SetRotateAboutAxis(TQ3Matrix4x4 *matrix4x4,
 	#undef Dx
 	#undef Dy
 	#undef Dz
-	
+
 	return(matrix4x4);
 }
 
@@ -3102,13 +3102,13 @@ E3Matrix4x4_SetRotateVectorToVector(TQ3Matrix4x4 *matrix4x4,
 	//
 	// To see this, simply multiply this composite matrix by the u, v or w row
 	// vector on the left and see that the result is u', v' or w, respectively.
-	
+
 	TQ3Vector3D u, uPrime, v, vPrime, w;
 	TQ3Matrix3x3 a, b;
 
-	// Construct vector w (axis of rotation) perpendicular to v1 and v2	
+	// Construct vector w (axis of rotation) perpendicular to v1 and v2
 	Q3FastVector3D_Cross(v1, v2, &w);
-	
+
 	// Check if vector w is roughly zero
 	if (e3vector3d_below_tolerance(&w, 10.0f*FLT_EPSILON))
 	{
@@ -3118,14 +3118,14 @@ E3Matrix4x4_SetRotateVectorToVector(TQ3Matrix4x4 *matrix4x4,
 		TQ3Vector3D v2Proxy;
 		TQ3Int32 iSmall, i;
 		float valueSmall;
-		
+
 		// Determine v1 component of smallest absolute value
 		iSmall = 0;
 		valueSmall = (float) fabs(v1->x);
 		for (i = 1; i < 3; ++i)
 		{
 			float value;
-			
+
 			value = (float) fabs(((const float*) (v1))[i]);
 			if (value < valueSmall)
 			{
@@ -3133,17 +3133,17 @@ E3Matrix4x4_SetRotateVectorToVector(TQ3Matrix4x4 *matrix4x4,
 				valueSmall = value;
 			}
 		}
-		
+
 		// Construct corresponding basis vector
 		for (i = 0; i < 3; ++i)
 			((float*) (&v2Proxy))[i] = (i == iSmall ? 1.0f : 0.0f);
-		
+
 		// Construct vector w (axis of rotation) perpendicular to v1 and v2Proxy
 		Q3FastVector3D_Cross(v1, &v2Proxy, &w);
 	}
-	
+
 	Q3FastVector3D_Normalize(&w, &w);
-	
+
 	u = *v1;
 	uPrime = *v2;
 	Q3FastVector3D_Cross(&w, &u, &v);
@@ -3152,7 +3152,7 @@ E3Matrix4x4_SetRotateVectorToVector(TQ3Matrix4x4 *matrix4x4,
 	#define A(x,y)	a.value[x][y]
 	#define B(x,y)	b.value[x][y]
 	#define M(x,y)	matrix4x4->value[x][y]
-	
+
 	A(0,0) = u.x;
 	A(0,1) = v.x;
 	A(0,2) = w.x;
@@ -3160,11 +3160,11 @@ E3Matrix4x4_SetRotateVectorToVector(TQ3Matrix4x4 *matrix4x4,
 	A(1,0) = u.y;
 	A(1,1) = v.y;
 	A(1,2) = w.y;
-				
+
 	A(2,0) = u.z;
 	A(2,1) = v.z;
 	A(2,2) = w.z;
-	
+
 	B(0,0) = uPrime.x;
 	B(0,1) = uPrime.y;
 	B(0,2) = uPrime.z;
@@ -3172,11 +3172,11 @@ E3Matrix4x4_SetRotateVectorToVector(TQ3Matrix4x4 *matrix4x4,
 	B(1,0) = vPrime.x;
 	B(1,1) = vPrime.y;
 	B(1,2) = vPrime.z;
-				
+
 	B(2,0) = w.x;
 	B(2,1) = w.y;
 	B(2,2) = w.z;
-	
+
 	// Now multiply the two 3x3 matrices a and b to get the 3x3 part of the result,
 	// filling out the rest of the result as an identity matrix (since we are
 	// rotating about the point <0,0,0>)
@@ -3184,17 +3184,17 @@ E3Matrix4x4_SetRotateVectorToVector(TQ3Matrix4x4 *matrix4x4,
 	M(0,1) = A(0,0)*B(0,1) + A(0,1)*B(1,1) + A(0,2)*B(2,1);
 	M(0,2) = A(0,0)*B(0,2) + A(0,1)*B(1,2) + A(0,2)*B(2,2);
 	M(0,3) = 0.0f;
-	
+
 	M(1,0) = A(1,0)*B(0,0) + A(1,1)*B(1,0) + A(1,2)*B(2,0);
 	M(1,1) = A(1,0)*B(0,1) + A(1,1)*B(1,1) + A(1,2)*B(2,1);
 	M(1,2) = A(1,0)*B(0,2) + A(1,1)*B(1,2) + A(1,2)*B(2,2);
 	M(1,3) = 0.0f;
-	
+
 	M(2,0) = A(2,0)*B(0,0) + A(2,1)*B(1,0) + A(2,2)*B(2,0);
 	M(2,1) = A(2,0)*B(0,1) + A(2,1)*B(1,1) + A(2,2)*B(2,1);
 	M(2,2) = A(2,0)*B(0,2) + A(2,1)*B(1,2) + A(2,2)*B(2,2);
 	M(2,3) = 0.0f;
-	
+
 	M(3,0) = 0.0f;
 	M(3,1) = 0.0f;
 	M(3,2) = 0.0f;
@@ -3237,7 +3237,7 @@ E3Matrix4x4_SetQuaternion(TQ3Matrix4x4 *matrix4x4, const TQ3Quaternion *quaterni
 	float wz = quaternion->w * z2;
 
 	#define M(x,y) matrix4x4->value[x][y]
-	
+
 	M(0,0) = 1.0f - (yy + zz);
 	M(0,1) = xy + wz;
 	M(0,2) = xz - wy;
@@ -3247,17 +3247,17 @@ E3Matrix4x4_SetQuaternion(TQ3Matrix4x4 *matrix4x4, const TQ3Quaternion *quaterni
 	M(1,1) = 1.0f - (xx + zz);
 	M(1,2) = yz + wx;
 	M(1,3) = 0.0f;
-	
+
 	M(2,0) = xz + wy;
 	M(2,1) = yz - wx;
 	M(2,2) = 1.0f - (xx + yy);
 	M(2,3) = 0.0f;
-	
+
 	M(3,0) = 0.0f;
 	M(3,1) = 0.0f;
 	M(3,2) = 0.0f;
 	M(3,3) = 1.0f;
-	
+
 	#undef M
 
 	return(matrix4x4);
@@ -3312,7 +3312,7 @@ TQ3Matrix3x3 *
 E3Matrix3x3_Transpose(const TQ3Matrix3x3 *matrix3x3, TQ3Matrix3x3 *result)
 {
 	TQ3Int32 i, j;
-	
+
 	if (result != matrix3x3)
 	{
 		for (i = 0; i < 3; ++i)
@@ -3341,7 +3341,7 @@ TQ3Matrix4x4 *
 E3Matrix4x4_Transpose(const TQ3Matrix4x4 *matrix4x4, TQ3Matrix4x4 *result)
 {
 	TQ3Int32 i, j;
-	
+
 	if (result != matrix4x4)
 	{
 		for (i = 0; i < 4; ++i)
@@ -3371,7 +3371,7 @@ float
 E3Matrix3x3_Determinant(const TQ3Matrix3x3 *matrix3x3)
 {
     TQ3Matrix3x3        temp = *matrix3x3;
-    
+
     return(e3matrix3x3_determinant(&temp));
 }
 
@@ -3402,7 +3402,7 @@ E3Matrix4x4_Determinant(const TQ3Matrix4x4 *matrix4x4)
 	{
 		result = e3matrix4x4_determinant(&temp);
 	}
-    
+
     return result;
 }
 
@@ -3427,30 +3427,30 @@ E3Matrix3x3_Adjoint(const TQ3Matrix3x3 *matrix3x3, TQ3Matrix3x3 *result)
 	// If result is alias of input, output to temporary
 	TQ3Matrix3x3 temp;
 	TQ3Matrix3x3* output = (result == matrix3x3 ? &temp : result);
-	
+
 	#define A(x,y) matrix3x3->value[x][y]
 	#define B(x,y) output->value[y][x]
-	
+
 	//  B(x,y) is set up to do the transpose for us!
-	
+
 	B(0,0)	=  (A(1,1)*A(2,2)-A(2,1)*A(1,2));
 	B(0,1)	= -(A(1,0)*A(2,2)-A(2,0)*A(1,2));
 	B(0,2)	=  (A(1,0)*A(2,1)-A(2,0)*A(1,1));
-	
+
 	B(1,0)	= -(A(0,1)*A(2,2)-A(2,1)*A(0,2));
 	B(1,1)	=  (A(0,0)*A(2,2)-A(2,0)*A(0,2));
 	B(1,2)	= -(A(0,0)*A(2,1)-A(2,0)*A(0,1));
-	
+
 	B(2,0)	=  (A(0,1)*A(1,2)-A(1,1)*A(0,2));
 	B(2,1)	= -(A(0,0)*A(1,2)-A(1,0)*A(0,2));
 	B(2,2)	=  (A(0,0)*A(1,1)-A(1,0)*A(0,1));
-	
+
 	#undef A
 	#undef B
-	
+
 	if (output == &temp)
 		*result = temp;
-	
+
 	return(result);
 }
 
@@ -3468,9 +3468,9 @@ E3Matrix3x3_Invert(const TQ3Matrix3x3 *matrix3x3, TQ3Matrix3x3 *result)
 {
     if (result != matrix3x3)
         *result = *matrix3x3;
-        
+
     e3matrix3x3_invert(result);
-        
+
     return(result);
 }
 
@@ -3487,8 +3487,10 @@ TQ3Matrix4x4 *
 E3Matrix4x4_Invert(const TQ3Matrix4x4 *matrix4x4, TQ3Matrix4x4 *result)
 {
     if (result != matrix4x4)
+	{
         *result = *matrix4x4;
-	
+	}
+
 	// The 4x4 matrices used in 3D graphics often have a last column of
 	// (0, 0, 0, 1).  In that case, we want the inverse to have exactly the same
 	// last column, and we can compute the inverse with fewer floating point
@@ -3504,9 +3506,9 @@ E3Matrix4x4_Invert(const TQ3Matrix4x4 *matrix4x4, TQ3Matrix4x4 *result)
 		TQ3Matrix3x3	upperLeft;
 		e3matrix4x4_extract3x3( *result, upperLeft );
 		int	i, j;
-		
+
 		e3matrix3x3_invert( &upperLeft );
-		
+
 		for (i = 0; i < 3; ++i)
 		{
 			for (j = 0; j < 3; ++j)
@@ -3514,12 +3516,12 @@ E3Matrix4x4_Invert(const TQ3Matrix4x4 *matrix4x4, TQ3Matrix4x4 *result)
 				result->value[i][j] = upperLeft.value[i][j];
 			}
 		}
-		
+
 		TQ3RationalPoint3D	v = {
 			result->value[3][0], result->value[3][1], result->value[3][2]
 		};
 		E3RationalPoint3D_Transform( &v, &upperLeft, &v );
-		
+
 		result->value[3][0] = -v.x;
 		result->value[3][1] = -v.y;
 		result->value[3][2] = -v.w;
@@ -3528,7 +3530,7 @@ E3Matrix4x4_Invert(const TQ3Matrix4x4 *matrix4x4, TQ3Matrix4x4 *result)
 	{
 		e3matrix4x4_invert(result);
 	}
-        
+
     return(result);
 }
 
@@ -3547,23 +3549,23 @@ E3Matrix3x3_Multiply(const TQ3Matrix3x3 *m1, const TQ3Matrix3x3 *m2, TQ3Matrix3x
 	// If result is alias of input, output to temporary
 	TQ3Matrix3x3 temp;
 	TQ3Matrix3x3* output = (result == m1 || result == m2 ? &temp : result);
-	
+
 	#define A(x,y)	m1->value[x][y]
 	#define B(x,y)	m2->value[x][y]
 	#define M(x,y)	output->value[x][y]
-	
+
 	M(0,0) = A(0,0)*B(0,0) + A(0,1)*B(1,0) + A(0,2)*B(2,0);
 	M(0,1) = A(0,0)*B(0,1) + A(0,1)*B(1,1) + A(0,2)*B(2,1);
 	M(0,2) = A(0,0)*B(0,2) + A(0,1)*B(1,2) + A(0,2)*B(2,2);
-	
+
 	M(1,0) = A(1,0)*B(0,0) + A(1,1)*B(1,0) + A(1,2)*B(2,0);
 	M(1,1) = A(1,0)*B(0,1) + A(1,1)*B(1,1) + A(1,2)*B(2,1);
 	M(1,2) = A(1,0)*B(0,2) + A(1,1)*B(1,2) + A(1,2)*B(2,2);
-	
+
 	M(2,0) = A(2,0)*B(0,0) + A(2,1)*B(1,0) + A(2,2)*B(2,0);
 	M(2,1) = A(2,0)*B(0,1) + A(2,1)*B(1,1) + A(2,2)*B(2,1);
 	M(2,2) = A(2,0)*B(0,2) + A(2,1)*B(1,2) + A(2,2)*B(2,2);
-	
+
 	#undef A
 	#undef B
 	#undef M
@@ -3589,31 +3591,31 @@ E3Matrix4x4_Multiply(const TQ3Matrix4x4 *m1, const TQ3Matrix4x4 *m2, TQ3Matrix4x
 	// If result is alias of input, output to temporary
 	TQ3Matrix4x4 temp;
 	TQ3Matrix4x4* output = (result == m1 || result == m2 ? &temp : result);
-	
+
 	#define A(x,y)	m1->value[x][y]
 	#define B(x,y)	m2->value[x][y]
 	#define M(x,y)	output->value[x][y]
-	
+
 	M(0,0) = A(0,0)*B(0,0) + A(0,1)*B(1,0) + A(0,2)*B(2,0) + A(0,3)*B(3,0);
 	M(0,1) = A(0,0)*B(0,1) + A(0,1)*B(1,1) + A(0,2)*B(2,1) + A(0,3)*B(3,1);
 	M(0,2) = A(0,0)*B(0,2) + A(0,1)*B(1,2) + A(0,2)*B(2,2) + A(0,3)*B(3,2);
 	M(0,3) = A(0,0)*B(0,3) + A(0,1)*B(1,3) + A(0,2)*B(2,3) + A(0,3)*B(3,3);
-	
+
 	M(1,0) = A(1,0)*B(0,0) + A(1,1)*B(1,0) + A(1,2)*B(2,0) + A(1,3)*B(3,0);
 	M(1,1) = A(1,0)*B(0,1) + A(1,1)*B(1,1) + A(1,2)*B(2,1) + A(1,3)*B(3,1);
 	M(1,2) = A(1,0)*B(0,2) + A(1,1)*B(1,2) + A(1,2)*B(2,2) + A(1,3)*B(3,2);
 	M(1,3) = A(1,0)*B(0,3) + A(1,1)*B(1,3) + A(1,2)*B(2,3) + A(1,3)*B(3,3);
-	
+
 	M(2,0) = A(2,0)*B(0,0) + A(2,1)*B(1,0) + A(2,2)*B(2,0) + A(2,3)*B(3,0);
 	M(2,1) = A(2,0)*B(0,1) + A(2,1)*B(1,1) + A(2,2)*B(2,1) + A(2,3)*B(3,1);
 	M(2,2) = A(2,0)*B(0,2) + A(2,1)*B(1,2) + A(2,2)*B(2,2) + A(2,3)*B(3,2);
 	M(2,3) = A(2,0)*B(0,3) + A(2,1)*B(1,3) + A(2,2)*B(2,3) + A(2,3)*B(3,3);
-	
+
 	M(3,0) = A(3,0)*B(0,0) + A(3,1)*B(1,0) + A(3,2)*B(2,0) + A(3,3)*B(3,0);
 	M(3,1) = A(3,0)*B(0,1) + A(3,1)*B(1,1) + A(3,2)*B(2,1) + A(3,3)*B(3,1);
 	M(3,2) = A(3,0)*B(0,2) + A(3,1)*B(1,2) + A(3,2)*B(2,2) + A(3,3)*B(3,2);
 	M(3,3) = A(3,0)*B(0,3) + A(3,1)*B(1,3) + A(3,2)*B(2,3) + A(3,3)*B(3,3);
-	
+
 	#undef A
 	#undef B
 	#undef M
@@ -3664,12 +3666,12 @@ TQ3Quaternion *
 E3Quaternion_SetRotate_X(TQ3Quaternion *quaternion, float angle)
 {
 	float halfAngle = 0.5f*angle;
-	
+
 	quaternion->w = (float) cos(halfAngle);
 	quaternion->x = (float) sin(halfAngle);
 	quaternion->y = 0.0f;
 	quaternion->z = 0.0f;
-	
+
 	return(quaternion);
 }
 
@@ -3684,12 +3686,12 @@ TQ3Quaternion *
 E3Quaternion_SetRotate_Y(TQ3Quaternion *quaternion, float angle)
 {
 	float halfAngle = 0.5f*angle;
-	
+
 	quaternion->w = (float) cos(halfAngle);
 	quaternion->x = 0.0f;
 	quaternion->y = (float) sin(halfAngle);
 	quaternion->z = 0.0f;
-	
+
 	return(quaternion);
 }
 
@@ -3704,12 +3706,12 @@ TQ3Quaternion *
 E3Quaternion_SetRotate_Z(TQ3Quaternion *quaternion, float angle)
 {
 	float halfAngle = 0.5f*angle;
-	
+
 	quaternion->w = (float) cos(halfAngle);
 	quaternion->x = 0.0f;
 	quaternion->y = 0.0f;
 	quaternion->z = (float) sin(halfAngle);
-	
+
 	return(quaternion);
 }
 
@@ -3744,7 +3746,7 @@ E3Quaternion_SetRotate_XYZ(TQ3Quaternion *quaternion,
 	quaternion->x = sinHalfX*cosHalfYcosHalfZ  - cosHalfX*sinHalfYsinHalfZ;
 	quaternion->y = cosHalfX*sinHalfY*cosHalfZ + sinHalfX*cosHalfY*sinHalfZ;
 	quaternion->z = cosHalfX*cosHalfY*sinHalfZ - sinHalfX*sinHalfY*cosHalfZ;
-	
+
 	return(quaternion);
 }
 
@@ -3770,7 +3772,7 @@ E3Quaternion_SetRotateAboutAxis(TQ3Quaternion *quaternion,
 	quaternion->x = axis->x * sinHalfAngle;
 	quaternion->y = axis->y * sinHalfAngle;
 	quaternion->z = axis->z * sinHalfAngle;
-	
+
 	// ahhh... this is so much easier than matrices...
 	return(quaternion);
 }
@@ -3791,26 +3793,26 @@ E3Quaternion_SetRotateVectorToVector(TQ3Quaternion *quaternion,
 {
 	float cosAngle;
 	TQ3Vector3D axis;
-	
+
 	cosAngle = Q3FastVector3D_Dot(v1, v2);
 	Q3FastVector3D_Cross(v1, v2, &axis);
-	
+
 	// Note: sin(angle) = |axis|
-		
+
 	if ( !e3vector3d_below_tolerance(&axis, 10.0f*FLT_EPSILON) &&
 		(1.0f + cosAngle > FLT_EPSILON) )
 	{
 		// Vectors are neither approximately parallel nor approximately anti-parallel
-		
+
 		float cosHalfAngle;
 		float factor;
-		
+
 		cosHalfAngle = E3Math_SquareRoot((1.0f + cosAngle) * 0.5f);
-		
+
 		// Note: sin(angle/2) = sin(angle) / (2 * cos(angle/2)) = sin(angle) * factor
-		
+
 		factor = 1.0f / (2.0f * cosHalfAngle);
-		
+
 		quaternion->w = cosHalfAngle;
 		quaternion->x = axis.x * factor;
 		quaternion->y = axis.y * factor;
@@ -3819,25 +3821,25 @@ E3Quaternion_SetRotateVectorToVector(TQ3Quaternion *quaternion,
 	else
 	{
 		// Vectors are approximately parallel or approximately anti-parallel
-		
+
 		// cos(angle) is approximately +1 or approximately -1
-		
+
 		if (cosAngle < 0.0f)
 		{
 			// Vectors are approximately anti-parallel
-			
+
 			TQ3Vector3D v2Prime;
 			TQ3Int32 iSmall, i;
 			float valueSmall;
 			float factor;
-			
+
 			// Determine v1 component of smallest in absolute value
 			iSmall = 0;
 			valueSmall = (float) fabs (v1->x);
 			for (i = 1; i < 3; ++i)
 			{
 				float value;
-				
+
 				value = (float) fabs(((const float*) v1)[i]);
 				if (value < valueSmall)
 				{
@@ -3845,18 +3847,18 @@ E3Quaternion_SetRotateVectorToVector(TQ3Quaternion *quaternion,
 					valueSmall = value;
 				}
 			}
-			
+
 			// Construct corresponding basis vector
 			for (i = 0; i < 3; ++i)
 				((float*) &v2Prime)[i] = (i == iSmall ? 1.0f : 0.0f);
-			
+
 			// Axis is vector perpendicular to v1 and v2Prime
 			Q3FastVector3D_Cross(v1, &v2Prime, &axis);
-			
+
 			// Note: 1 = sin(angle/2) = |axis| * factor
-			
+
 			factor = 1.0f / Q3FastVector3D_Length(&axis);
-			
+
 			quaternion->w = 0.0f;
 			quaternion->x = axis.x * factor;
 			quaternion->y = axis.y * factor;
@@ -3865,14 +3867,14 @@ E3Quaternion_SetRotateVectorToVector(TQ3Quaternion *quaternion,
 		else
 		{
 			// Vectors are approximately parallel
-			
+
 			quaternion->w = 1.0f;
 			quaternion->x = 0.0f;
 			quaternion->y = 0.0f;
 			quaternion->z = 0.0f;
 		}
 	}
-	
+
 	return(quaternion);
 }
 
@@ -3906,7 +3908,7 @@ E3Quaternion_SetMatrix(TQ3Quaternion *quaternion, const TQ3Matrix4x4 *matrix4x4)
 	TQ3Uns32 nxt[3] = {1, 2, 0};
 
 	#define M(x,y) matrix4x4->value[x][y]
-	
+
 	tr = M(0,0) + M(1,1) + M(2,2);
 
 	// check the diagonal
@@ -3942,9 +3944,9 @@ E3Quaternion_SetMatrix(TQ3Quaternion *quaternion, const TQ3Matrix4x4 *matrix4x4)
 		quaternion->z = q[2];
 		quaternion->w = q[3];
 	}
-	
+
 	#undef M
-	
+
 	return(quaternion);
 }
 
@@ -4077,10 +4079,10 @@ E3Quaternion_Multiply(const TQ3Quaternion *q1, const TQ3Quaternion *q2, TQ3Quate
 	output->x = q1->w*q2->x + q1->x*q2->w - q1->y*q2->z + q1->z*q2->y;
 	output->y = q1->w*q2->y + q1->y*q2->w - q1->z*q2->x + q1->x*q2->z;
 	output->z = q1->w*q2->z + q1->z*q2->w - q1->x*q2->y + q1->y*q2->x;
-	
+
 	if (output == &temp)
 		*result = temp;
-	
+
 	return(result);
 }
 
@@ -4146,7 +4148,7 @@ E3Quaternion_InterpolateFast(const TQ3Quaternion *q1, const TQ3Quaternion *q2, f
 //		Note :	Despite the name, this function does a SLERP from q1 to q2.
 //				It falls back on a straight linear interpolation only when the
 //				cosine of the angle between them is greater than 0.99.
-//				
+//
 //				The cut-off point was chosen arbitrarily, and may not match
 //				that of QD3D.
 //
@@ -4195,8 +4197,8 @@ E3Quaternion_InterpolateLinear(const TQ3Quaternion *q1, const TQ3Quaternion *q2,
 		result->w = scale0*q1->w + scale1*to1[3];
 	}
 	else
-	{        
-		// "q1" and "q2" quaternions are very close 
+	{
+		// "q1" and "q2" quaternions are very close
 		//  ... so we can do a linear interpolation
 		scale0 = 1.0f - t;
 		scale1 = t;
@@ -4206,7 +4208,7 @@ E3Quaternion_InterpolateLinear(const TQ3Quaternion *q1, const TQ3Quaternion *q2,
 		result->y = scale0*q1->y + scale1*to1[1];
 		result->z = scale0*q1->z + scale1*to1[2];
 		result->w = scale0*q1->w + scale1*to1[3];
-		
+
 		Q3FastQuaternion_Normalize( result, result );
 	}
 	return(result);
@@ -4288,18 +4290,18 @@ E3Vector3D_TransformQuaternion(const TQ3Vector3D *vector3D, const TQ3Quaternion 
 	TQ3Vector3D *result)
 {
 	TQ3Quaternion temp;
-	
+
 	// Multiply quaternion by vector3D (noting that vector3D->w is 0)
 	temp.w = quaternion->x*vector3D->x + quaternion->y*vector3D->y + quaternion->z*vector3D->z;
 	temp.x = quaternion->w*vector3D->x + quaternion->y*vector3D->z - quaternion->z*vector3D->y;
 	temp.y = quaternion->w*vector3D->y + quaternion->z*vector3D->x - quaternion->x*vector3D->z;
 	temp.z = quaternion->w*vector3D->z + quaternion->x*vector3D->y - quaternion->y*vector3D->x;
-	
+
 	// Multiply (quaternion*vector3D) by inverse(quaternion) (noting that result->w is 0)
 	result->x = temp.w*quaternion->x + temp.x*quaternion->w - (temp.y*quaternion->z - temp.z*quaternion->y);
 	result->y = temp.w*quaternion->y + temp.y*quaternion->w + (temp.x*quaternion->z - temp.z*quaternion->x);
 	result->z = temp.w*quaternion->z + temp.z*quaternion->w - (temp.x*quaternion->y - temp.y*quaternion->x);
-	
+
 	return(result);
 }
 
@@ -4368,9 +4370,9 @@ E3BoundingBox_SetFromPoints3D(TQ3BoundingBox *bBox,
 	{
 		const char* in = (const char*) points3D;
 		TQ3Uns32 i = 0;
-		
+
 		Q3FastBoundingBox_Set(bBox, points3D, points3D, kQ3False);
-		
+
 		// We have already accounted for the first point, so if the number of
 		// points is odd, we can handle the other points in pairs, and need not
 		// look at the first point again.  But if the number of points is even,
@@ -4380,14 +4382,14 @@ E3BoundingBox_SetFromPoints3D(TQ3BoundingBox *bBox,
 			in += structSize;
 			i = 1;
 		}
-		
+
 		for (; i < numPoints; i += 2)
 		{
 			TQ3Point3D pt0 = *(const TQ3Point3D*)(const void*) in;
 			in += structSize;
 			TQ3Point3D pt1 = *(const TQ3Point3D*)(const void*) in;
 			in += structSize;
-			
+
 			if (pt0.x < pt1.x)
 			{
 				if (pt0.x < bBox->min.x)
@@ -4410,7 +4412,7 @@ E3BoundingBox_SetFromPoints3D(TQ3BoundingBox *bBox,
 					bBox->max.x = pt0.x;
 				}
 			}
-			
+
 			if (pt0.y < pt1.y)
 			{
 				if (pt0.y < bBox->min.y)
@@ -4433,7 +4435,7 @@ E3BoundingBox_SetFromPoints3D(TQ3BoundingBox *bBox,
 					bBox->max.y = pt0.y;
 				}
 			}
-			
+
 			if (pt0.z < pt1.z)
 			{
 				if (pt0.z < bBox->min.z)
@@ -4481,11 +4483,11 @@ E3BoundingBox_SetFromRationalPoints4D(TQ3BoundingBox *bBox,
 		TQ3Point3D point3D;
 		const char* in = (const char*) rationalPoints4D;
 		TQ3Uns32 i;
-		
+
 		Q3RationalPoint4D_To3D(rationalPoints4D, &point3D);
 		Q3BoundingBox_Set(bBox, &point3D, &point3D, kQ3False);
 		in += structSize;
-		
+
 		for (i = 1; i < numPoints; ++i, in += structSize)
 		{
 			Q3RationalPoint4D_To3D((const TQ3RationalPoint4D*)(const void*) in, &point3D);
@@ -4572,7 +4574,7 @@ E3BoundingBox_UnionPoint3D(const TQ3BoundingBox *bBox, const TQ3Point3D *point3D
 	{
 		if (result != bBox)
 			Q3BoundingBox_Copy(bBox, result);
-		
+
 		e3bounding_box_accumulate_point3D(result, point3D);
 	}
 
@@ -4593,7 +4595,7 @@ E3BoundingBox_UnionRationalPoint4D(const TQ3BoundingBox *bBox,
 	const TQ3RationalPoint4D *rationalPoint4D, TQ3BoundingBox *result)
 {
 	TQ3Point3D point3D;
-	
+
 	Q3RationalPoint4D_To3D(rationalPoint4D, &point3D);
 
 	return(Q3BoundingBox_UnionPoint3D(bBox, &point3D, result));
@@ -4654,10 +4656,10 @@ E3BoundingBox_Transform( const TQ3BoundingBox *inBox, const TQ3Matrix4x4* inMtx,
 {
 	TQ3Point3D	theCorners[8];
 	E3BoundingBox_GetCorners( inBox, theCorners );
-	
+
 	E3Point3D_To3DTransformArray( theCorners, inMtx, theCorners, 8,
 		sizeof(TQ3Point3D), sizeof(TQ3Point3D) );
-	
+
 	E3BoundingBox_SetFromPoints3D( outBox, theCorners, 8, sizeof(TQ3Point3D) );
 }
 
@@ -4666,7 +4668,7 @@ E3BoundingBox_Transform( const TQ3BoundingBox *inBox, const TQ3Matrix4x4* inMtx,
 
 /*!
 	@function	E3Area_SetFromPoints2D
-	
+
 	@abstract	Find the smallest area that encloses an array of 1 or more 2D points.
 	@param		inCount		Number of points.  Must not be 0.
 	@param		inPts		Array of points.
@@ -4688,7 +4690,7 @@ E3Area_SetFromPoints2D( TQ3Uns32 inCount, const TQ3Point2D* inPts )
 		{
 			result.max.x = inPts[i].x;
 		}
-		
+
 		if (inPts[i].y < result.min.y)
 		{
 			result.min.y = inPts[i].y;
@@ -4698,7 +4700,7 @@ E3Area_SetFromPoints2D( TQ3Uns32 inCount, const TQ3Point2D* inPts )
 			result.max.y = inPts[i].y;
 		}
 	}
-	
+
 	return result;
 }
 
@@ -4817,11 +4819,11 @@ E3BoundingSphere_SetFromRationalPoints4D(TQ3BoundingSphere *bSphere, const TQ3Ra
 		TQ3Point3D point3D;
 		const char* in = (const char*) rationalPoints4D;
 		TQ3Uns32 i;
-		
+
 		Q3RationalPoint4D_To3D(rationalPoints4D, &point3D);
 		Q3BoundingSphere_Set(bSphere, &point3D, 0.0f, kQ3False);
 		in += structSize;
-		
+
 		for (i = 1; i < numPoints; ++i, in += structSize)
 		{
 			Q3RationalPoint4D_To3D((const TQ3RationalPoint4D*)(const void*) in, &point3D);
@@ -4882,18 +4884,18 @@ E3BoundingSphere_Union(const TQ3BoundingSphere *s1, const TQ3BoundingSphere *s2,
 		else
 		{
 		 float dist = Q3FastPoint3D_Distance(&s1->origin, &s2->origin);
-		 
+
 			if (dist > kQ3RealZero)
 			{
 			 float finalRadius = (dist + s1->radius + s2->radius)/2.0f;
 			 finalRadius = E3Num_Max(s1->radius,finalRadius);
 			 finalRadius = E3Num_Max(s2->radius,finalRadius);
-			 
+
 			 Q3FastPoint3D_RRatio(&s1->origin, &s2->origin,
 			 			((finalRadius - s2->radius)/dist),
 			 			((dist - (finalRadius - s2->radius))/dist),
 			 			&result->origin);
-			
+
 			 result->radius = finalRadius;
 			}
 			else
@@ -4961,7 +4963,7 @@ E3BoundingSphere_UnionPoint3D(const TQ3BoundingSphere *bSphere, const TQ3Point3D
 	}
 
 	result->isEmpty = kQ3False;
-	
+
 	return(result);
 }
 
@@ -4981,7 +4983,7 @@ E3BoundingSphere_UnionRationalPoint4D(const TQ3BoundingSphere *bSphere,
 	const TQ3RationalPoint4D *rationalPoint4D, TQ3BoundingSphere *result)
 {
 	TQ3Point3D point3D;
-	
+
 	Q3RationalPoint4D_To3D(rationalPoint4D, &point3D);
 
 	return(Q3BoundingSphere_UnionPoint3D(bSphere, &point3D, result));

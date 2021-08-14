@@ -1,6 +1,6 @@
 /*! @header QuesaStyle.h
         Declares the Quesa style objects.
-          
+
 	@ignore	_Nullable
 	@ignore _Nonnull
 	@ignore	_Null_unspecified
@@ -17,23 +17,23 @@
         For the current release of Quesa, please see:
 
             <https://github.com/jwwalker/Quesa>
-        
+
         Redistribution and use in source and binary forms, with or without
         modification, are permitted provided that the following conditions
         are met:
-        
+
             o Redistributions of source code must retain the above copyright
               notice, this list of conditions and the following disclaimer.
-        
+
             o Redistributions in binary form must reproduce the above
               copyright notice, this list of conditions and the following
               disclaimer in the documentation and/or other materials provided
               with the distribution.
-        
+
             o Neither the name of Quesa nor the names of its contributors
               may be used to endorse or promote products derived from this
               software without specific prior written permission.
-        
+
         THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
         "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
         LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
@@ -215,7 +215,7 @@ typedef enum TQ3OrientationStyle QUESA_ENUM_BASE(TQ3Uns32) {
 typedef enum TQ3AntiAliasModeMasks QUESA_ENUM_BASE(TQ3Uns32) {
     kQ3AntiAliasModeMaskEdges                   = (1 << 0),
     kQ3AntiAliasModeMaskFilled                  = (1 << 1),
-#if QUESA_ALLOW_QD3D_EXTENSIONS    
+#if QUESA_ALLOW_QD3D_EXTENSIONS
     kQ3AntiAliasModeMaskFullScreen              = (1 << 2),
 #endif // QUESA_ALLOW_QD3D_EXTENSIONS
     kQ3AntiAliasModeSize32                      = 0xFFFFFFFF
@@ -406,7 +406,12 @@ typedef struct TQ3FogStyleExtendedData
 	TQ3RationalPoint4D         halfspaceFogPlane;
 } TQ3FogStyleExtendedData;
 
-
+// Note: some Windows headers define near and far as macros, which interferes
+// with our use of near and far members in the following structure.  If you
+// need to include Windows headers, it is probably safest to include them all
+// before Quesa headers.
+#undef near
+#undef far
 /*!
 	@struct		TQ3DepthRangeStyleData
 	@abstract	Depth range style data.
@@ -693,13 +698,13 @@ Q3PickPartsStyle_Set (
  *      Q3CastShadowsStyle_New
  *  @discussion
  *      Create a cast shadows style.
- *      
+ *
  *      <em>This function is not available in QD3D.</em>
  *
  *  @param castShadows      The cast shadows style data.
  *  @result                 The new cast shadows style.
  */
-#if QUESA_ALLOW_QD3D_EXTENSIONS    
+#if QUESA_ALLOW_QD3D_EXTENSIONS
 
 Q3_EXTERN_API_C ( TQ3StyleObject _Nonnull )
 Q3CastShadowsStyle_New (
@@ -715,14 +720,14 @@ Q3CastShadowsStyle_New (
  *      Q3CastShadowsStyle_Submit
  *  @discussion
  *      Submit a cast shadows style to a view.
- *      
+ *
  *      <em>This function is not available in QD3D.</em>
  *
  *  @param castShadows      The cast shadows style data.
  *  @param view             The view to submit the style to.
  *  @result                 Success or failure of the operation.
  */
-#if QUESA_ALLOW_QD3D_EXTENSIONS    
+#if QUESA_ALLOW_QD3D_EXTENSIONS
 
 Q3_EXTERN_API_C ( TQ3Status  )
 Q3CastShadowsStyle_Submit (
@@ -739,14 +744,14 @@ Q3CastShadowsStyle_Submit (
  *      Q3CastShadowsStyle_Get
  *  @discussion
  *      Get the data from a cast shadows style.
- *      
+ *
  *      <em>This function is not available in QD3D.</em>
  *
  *  @param styleObject      The style to query.
  *  @param castShadows      Receives the data from the style.
  *  @result                 Success or failure of the operation.
  */
-#if QUESA_ALLOW_QD3D_EXTENSIONS    
+#if QUESA_ALLOW_QD3D_EXTENSIONS
 
 Q3_EXTERN_API_C ( TQ3Status  )
 Q3CastShadowsStyle_Get (
@@ -763,14 +768,14 @@ Q3CastShadowsStyle_Get (
  *      Q3CastShadowsStyle_Set
  *  @discussion
  *      Set the data for a cast shadows style.
- *      
+ *
  *      <em>This function is not available in QD3D.</em>
  *
  *  @param styleObject      The style to update.
  *  @param castShadows      The new data for the style.
  *  @result                 Success or failure of the operation.
  */
-#if QUESA_ALLOW_QD3D_EXTENSIONS    
+#if QUESA_ALLOW_QD3D_EXTENSIONS
 
 Q3_EXTERN_API_C ( TQ3Status  )
 Q3CastShadowsStyle_Set (
@@ -1379,7 +1384,7 @@ Q3FogStyle_SetData (
  *      Q3LineWidthStyle_New
  *  @discussion
  *      Create a line width style.
- *      
+ *
  *      <em>This function is not available in QD3D.</em>
  *
  *  @param inWidth          New line width in pixels.
@@ -1401,7 +1406,7 @@ Q3LineWidthStyle_New (
  *      Q3LineWidthStyle_Submit
  *  @discussion
  *      Submit a line width style to a view.
- *      
+ *
  *      <em>This function is not available in QD3D.</em>
  *
  *  @param inWidth          New line width in pixels.
@@ -1425,14 +1430,14 @@ Q3LineWidthStyle_Submit (
  *      Q3LineWidthStyle_GetData
  *  @discussion
  *      Get width from a line width style.
- *      
+ *
  *      <em>This function is not available in QD3D.</em>
  *
  *  @param styleObject      The style to query.
  *  @param outWidth         Receives the data from the style.
  *  @result                 Success or failure of the operation.
  */
-#if QUESA_ALLOW_QD3D_EXTENSIONS    
+#if QUESA_ALLOW_QD3D_EXTENSIONS
 
 Q3_EXTERN_API_C ( TQ3Status  )
 Q3LineWidthStyle_GetData (
@@ -1449,14 +1454,14 @@ Q3LineWidthStyle_GetData (
  *      Q3LineWidthStyle_SetData
  *  @discussion
  *      Set the width for a line width style.
- *      
+ *
  *      <em>This function is not available in QD3D.</em>
  *
  *  @param styleObject      The style to update.
  *  @param inWidth          The new line width for the style.
  *  @result                 Success or failure of the operation.
  */
-#if QUESA_ALLOW_QD3D_EXTENSIONS    
+#if QUESA_ALLOW_QD3D_EXTENSIONS
 
 Q3_EXTERN_API_C ( TQ3Status  )
 Q3LineWidthStyle_SetData (
@@ -1482,7 +1487,7 @@ Q3LineWidthStyle_SetData (
 				range style, you can map the depths to a subinterval.  This can be used for special
 				effects such as forcing an object to render in front of other objects in spite of being
 				farther away in camera space.
-				
+
 				Some renderers may not support this operation.
 	@param		inData		The depth range data.
 	@result		The new depth range style.

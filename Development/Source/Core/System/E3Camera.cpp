@@ -3,38 +3,38 @@
 
     DESCRIPTION:
         Quesa camera object implementation.
-        
+
         The implementation of the E3Camera_xxx routines _requires_ that a
         TQ3CameraData field be the first field in any camera specific
         instance data.
-        
+
         This allows the generic routines to manipulate the generic fields
         in any camera object, without having to have accessors for every
         camera type.
 
     COPYRIGHT:
-        Copyright (c) 1999-2020, Quesa Developers. All rights reserved.
+        Copyright (c) 1999-2021, Quesa Developers. All rights reserved.
 
         For the current release of Quesa, please see:
 
             <https://github.com/jwwalker/Quesa>
-        
+
         Redistribution and use in source and binary forms, with or without
         modification, are permitted provided that the following conditions
         are met:
-        
+
             o Redistributions of source code must retain the above copyright
               notice, this list of conditions and the following disclaimer.
-        
+
             o Redistributions in binary form must reproduce the above
               copyright notice, this list of conditions and the following
               disclaimer in the documentation and/or other materials provided
               with the distribution.
-        
+
             o Neither the name of Quesa nor the names of its contributors
               may be used to endorse or promote products derived from this
               software without specific prior written permission.
-        
+
         THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
         "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
         LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
@@ -73,7 +73,7 @@ E3CameraInfo::E3CameraInfo	(
 				E3ClassInfo*	newParent // nil for root class of course
 			 	)
 		: E3ShapeInfo ( newClassMetaHandler, newParent ) ,
-		frustumMatrixMethod		( (TQ3XCameraFrustumMatrixMethod)		Find_Method ( kQ3XMethodTypeCameraFrustumMatrix ) )		 
+		frustumMatrixMethod		( (TQ3XCameraFrustumMatrixMethod)		Find_Method ( kQ3XMethodTypeCameraFrustumMatrix ) )
 	{
 	if ( frustumMatrixMethod == nullptr )
 		SetAbstract () ;
@@ -140,7 +140,7 @@ static TQ3Object
 e3camera_orthographic_read ( TQ3FileObject theFile )
 	{
 	TQ3OrthographicCameraData cameraData ;
-	
+
 	// Initialise the camera data
 	Q3Memory_Clear ( &cameraData, sizeof ( cameraData ) ) ;
 
@@ -148,7 +148,7 @@ e3camera_orthographic_read ( TQ3FileObject theFile )
 	Q3Float32_Read ( &cameraData.top, theFile ) ;
 	Q3Float32_Read ( &cameraData.right, theFile ) ;
 	Q3Float32_Read ( &cameraData.bottom, theFile ) ;
-		
+
 	// Read in the attributes
 	while ( Q3File_IsEndOfContainer ( theFile, nullptr ) == kQ3False )
 		{
@@ -175,14 +175,14 @@ e3camera_orthographic_read ( TQ3FileObject theFile )
 				case kQ3SharedTypeSet :
 					{
 					// Set must be at end so we know we've finished
-					
+
 					TQ3CameraObject result = Q3OrthographicCamera_New ( &cameraData ) ;
 					result->SetSet ( childObject ) ;
 					Q3Object_Dispose ( childObject ) ;
 					return result ;
 					}
 				}
-				
+
 			Q3Object_Dispose ( childObject ) ;
 			}
 		}
@@ -218,7 +218,7 @@ e3camera_orthographic_write ( TQ3ViewObject theObject, TQ3FileObject theFile )
 	{
 	TQ3OrthographicCameraData cameraData ;
 	Q3OrthographicCamera_GetData ( theObject , &cameraData ) ;
-	
+
 	TQ3Uns32 result = kQ3Success ;
 
 	result &= Q3Float32_Write ( cameraData.left, theFile ) ;
@@ -243,17 +243,17 @@ e3camera_orthographic_metahandler ( TQ3XMethodType methodType )
 
 		case kQ3XMethodTypeCameraFrustumMatrix:
 			return (TQ3XFunctionPointer) e3camera_orthographic_frustum_matrix ;
-			
+
 		case kQ3XMethodTypeObjectRead :
 			return (TQ3XFunctionPointer) e3camera_orthographic_read ;
-			
+
 		case kQ3XMethodTypeObjectTraverse :
 			return (TQ3XFunctionPointer) e3camera_orthographic_traverse ;
-			
+
 		case kQ3XMethodTypeObjectWrite :
 			return (TQ3XFunctionPointer) e3camera_orthographic_write ;
 		}
-	
+
 	return nullptr ;
 	}
 
@@ -266,7 +266,7 @@ e3camera_orthographic_metahandler ( TQ3XMethodType methodType )
 //-----------------------------------------------------------------------------
 void
 e3camera_viewplane_frustum_matrix(TQ3CameraObject theCamera, TQ3Matrix4x4 *theMatrix)
-{	
+{
 	( ( E3ViewPlaneCamera* ) theCamera )->GetFrustumMatrix ( theMatrix );
 }
 
@@ -306,7 +306,7 @@ static TQ3Object
 e3camera_viewplane_read ( TQ3FileObject theFile )
 	{
 	TQ3ViewPlaneCameraData cameraData ;
-	
+
 	// Initialise the camera data
 	Q3Memory_Clear ( &cameraData, sizeof ( cameraData ) ) ;
 
@@ -315,7 +315,7 @@ e3camera_viewplane_read ( TQ3FileObject theFile )
 	Q3Float32_Read ( &cameraData.halfHeightAtViewPlane, theFile ) ;
 	Q3Float32_Read ( &cameraData.centerXOnViewPlane, theFile ) ;
 	Q3Float32_Read ( &cameraData.centerYOnViewPlane, theFile ) ;
-		
+
 	// Read in the attributes
 	while ( Q3File_IsEndOfContainer ( theFile, nullptr ) == kQ3False )
 		{
@@ -342,14 +342,14 @@ e3camera_viewplane_read ( TQ3FileObject theFile )
 				case kQ3SharedTypeSet :
 					{
 					// Set must be at end so we know we've finished
-					
+
 					TQ3CameraObject result = Q3ViewPlaneCamera_New ( &cameraData ) ;
 					result->SetSet ( childObject ) ;
 					Q3Object_Dispose ( childObject ) ;
 					return result ;
 					}
 				}
-				
+
 			Q3Object_Dispose ( childObject ) ;
 			}
 		}
@@ -390,7 +390,7 @@ e3camera_viewplane_write ( TQ3ViewObject theObject, TQ3FileObject theFile )
 	{
 	TQ3ViewPlaneCameraData cameraData ;
 	Q3ViewPlaneCamera_GetData ( theObject , &cameraData ) ;
-	
+
 	TQ3Uns32 result = kQ3Success ;
 
 	result &= Q3Float32_Write ( cameraData.viewPlane, theFile ) ;
@@ -417,17 +417,17 @@ e3camera_viewplane_metahandler ( TQ3XMethodType methodType )
 
 		case kQ3XMethodTypeCameraFrustumMatrix:
 			return (TQ3XFunctionPointer) e3camera_viewplane_frustum_matrix;
-			
+
 		case kQ3XMethodTypeObjectRead :
 			return (TQ3XFunctionPointer) e3camera_viewplane_read ;
-			
+
 		case kQ3XMethodTypeObjectTraverse :
 			return (TQ3XFunctionPointer) e3camera_viewplane_traverse ;
-			
+
 		case kQ3XMethodTypeObjectWrite :
 			return (TQ3XFunctionPointer) e3camera_viewplane_write ;
 		}
-	
+
 	return nullptr ;
 	}
 
@@ -458,14 +458,14 @@ static TQ3Object
 e3camera_viewangle_read ( TQ3FileObject theFile )
 	{
 	TQ3ViewAngleAspectCameraData cameraData ;
-	
+
 	// Initialise the camera data
 	Q3Memory_Clear ( &cameraData, sizeof ( cameraData ) ) ;
 
-	if ( Q3Float32_Read ( &cameraData.fov, theFile ) == kQ3Failure ) 
+	if ( Q3Float32_Read ( &cameraData.fov, theFile ) == kQ3Failure )
 		cameraData.fov = 1.0f ; // What is a sensible default?
-		
-	if ( Q3Float32_Read ( &cameraData.aspectRatioXToY, theFile ) == kQ3Failure ) 
+
+	if ( Q3Float32_Read ( &cameraData.aspectRatioXToY, theFile ) == kQ3Failure )
 		cameraData.aspectRatioXToY = 1.0f ;
 
 	// Read in the attributes
@@ -494,14 +494,14 @@ e3camera_viewangle_read ( TQ3FileObject theFile )
 				case kQ3SharedTypeSet :
 					{
 					// Set must be at end so we know we've finished
-					
+
 					TQ3CameraObject result = Q3ViewAngleAspectCamera_New ( &cameraData ) ;
 					result->SetSet ( childObject ) ;
 					Q3Object_Dispose ( childObject ) ;
 					return result ;
 					}
 				}
-				
+
 			Q3Object_Dispose ( childObject ) ;
 			}
 		}
@@ -557,7 +557,7 @@ e3camera_viewangle_write ( TQ3ViewObject theObject, TQ3FileObject theFile )
 	{
 	TQ3ViewAngleAspectCameraData cameraData ;
 	Q3ViewAngleAspectCamera_GetData ( theObject , &cameraData ) ;
-	
+
 	TQ3Uns32 result = kQ3Success ;
 
 	result &= Q3Float32_Write ( cameraData.fov, theFile ) ;
@@ -581,17 +581,17 @@ e3camera_viewangle_metahandler(TQ3XMethodType methodType)
 
 		case kQ3XMethodTypeCameraFrustumMatrix:
 			return (TQ3XFunctionPointer) e3camera_viewangle_frustum_matrix ;
-			
+
 		case kQ3XMethodTypeObjectRead :
 			return (TQ3XFunctionPointer) e3camera_viewangle_read ;
-			
+
 		case kQ3XMethodTypeObjectTraverse :
 			return (TQ3XFunctionPointer) e3camera_viewangle_traverse ;
-			
+
 		case kQ3XMethodTypeObjectWrite :
 			return (TQ3XFunctionPointer) e3camera_viewangle_write ;
 		}
-	
+
 	return nullptr ;
 	}
 
@@ -620,7 +620,7 @@ static TQ3XFunctionPointer
 e3camera_fisheye_metahandler(TQ3XMethodType methodType)
 {
 	TQ3XFunctionPointer result = nullptr;
-	
+
 	switch ( methodType )
 	{
 		case kQ3XMethodTypeObjectNew:
@@ -631,7 +631,7 @@ e3camera_fisheye_metahandler(TQ3XMethodType methodType)
 			result = (TQ3XFunctionPointer) e3camera_fisheye_frustum_matrix;
 			break;
 	}
-	
+
 	return result;
 }
 
@@ -669,7 +669,7 @@ static TQ3Object
 e3camera_allseeing_read( TQ3FileObject theFile )
 {
 	TQ3CameraData cameraData;
-	
+
 	// Initialise the camera data
 	Q3Memory_Clear( &cameraData, sizeof( cameraData ) );
 
@@ -699,14 +699,14 @@ e3camera_allseeing_read( TQ3FileObject theFile )
 				case kQ3SharedTypeSet :
 					{
 					// Set must be at end so we know we've finished
-					
+
 					TQ3CameraObject result = Q3AllSeeingCamera_New( &cameraData );
 					result->SetSet( childObject );
 					Q3Object_Dispose( childObject );
 					return result ;
 					}
 			}
-				
+
 			Q3Object_Dispose ( childObject ) ;
 		}
 	}
@@ -724,20 +724,20 @@ e3camera_allseeing_metahandler(TQ3XMethodType methodType)
 	{
 		case kQ3XMethodTypeObjectNew:
 			return (TQ3XFunctionPointer) e3camera_allseeing_new;
-		
+
 		case kQ3XMethodTypeCameraFrustumMatrix:
 			return (TQ3XFunctionPointer) e3camera_allseeing_frustum_matrix;
-			
+
 		case kQ3XMethodTypeObjectTraverse:
 			return (TQ3XFunctionPointer) e3camera_allseeing_traverse;
-		
+
 		case kQ3XMethodTypeObjectWrite:
 			return (TQ3XFunctionPointer) e3camera_allseeing_write;
-		
+
 		case kQ3XMethodTypeObjectRead:
 			return (TQ3XFunctionPointer) e3camera_allseeing_read;
 	}
-	
+
 	return nullptr;
 }
 
@@ -755,7 +755,7 @@ e3camera_metahandler ( TQ3XMethodType methodType )
 		case kQ3XMethodTypeNewObjectClass :
 			return (TQ3XFunctionPointer) e3camera_new_class_info ;
 		}
-	
+
 	return nullptr ;
 	}
 
@@ -795,12 +795,12 @@ E3Camera::RegisterClass(void)
 		qd3dStatus = Q3_REGISTER_CLASS (	kQ3ClassNameCameraViewAngle,
 											e3camera_viewangle_metahandler,
 											E3ViewAngleAspectCamera ) ;
-	
+
 	if (qd3dStatus == kQ3Success)
 		qd3dStatus = Q3_REGISTER_CLASS_NO_DATA (	kQ3ClassNameCameraAllSeeing,
 											e3camera_allseeing_metahandler,
 											E3AllSeeingCamera ) ;
-	
+
 	if (qd3dStatus == kQ3Success)
 		qd3dStatus = Q3_REGISTER_CLASS (	kQ3ClassNameCameraFisheye,
 											e3camera_fisheye_metahandler,
@@ -844,10 +844,10 @@ E3Camera::IsOfMyClass ( TQ3Object object )
 	{
 	if ( object == nullptr )
 		return kQ3False ;
-		
+
 	if ( object->IsObjectValid () )
 		return Q3_OBJECT_IS_CLASS ( object, E3Camera ) ;
-		
+
 	return kQ3False ;
 	}
 
@@ -877,7 +877,7 @@ E3Camera::SetData ( const TQ3CameraData *CameraData )
 	{
 	// Set the camera data
 	cameraData = *CameraData ;
-	
+
 	Q3Shared_Edited ( this ) ;
 
 	return kQ3Success ;
@@ -894,9 +894,9 @@ TQ3Status
 E3Camera::GetData ( TQ3CameraData *CameraData )
 	{
 	// Return the camera data
-	
+
 	*CameraData = cameraData ;
-	
+
 	return kQ3Success ;
 	}
 
@@ -945,7 +945,7 @@ E3Camera::SetRange ( const TQ3CameraRange *range )
 	{
 	// Set the camera range
 	cameraData.range = *range ;
-	
+
 	Q3Shared_Edited ( this ) ;
 
 	return kQ3Success ;
@@ -979,7 +979,7 @@ E3Camera::SetViewPort ( const TQ3CameraViewPort *viewPort )
 	{
 	// Set the camera viewport
 	cameraData.viewPort = *viewPort ;
-	
+
 	Q3Shared_Edited ( this ) ;
 
 	return kQ3Success ;
@@ -1023,14 +1023,14 @@ E3Camera::GetWorldToView ( TQ3Matrix4x4 *worldToView )
 		cameraData.placement.cameraLocation - cameraData.placement.pointOfInterest );
 	TQ3Vector3D up = Q3Normalize3D( cameraData.placement.upVector );
 	TQ3Vector3D right = Q3Normalize3D( Q3Cross3D( up, backward ) );
-	
+
 	// At this point we know that all 3 vectors are of unit length, and that
 	// right is orthogonal to up and backward.  If the camera placement was
 	// properly defined, then up and backward would also be orthogonal to each
 	// other, but maybe there's some inaccuracy there.  So let's recompute up.
-	
+
 	up = Q3Normalize3D( Q3Cross3D( backward, right ) );
-	
+
 	// Now, suppose we let R be the 3x3 rotation matrix whose rows are right, up,
 	// and backward in that order, and let L be the camera location as a 1x3 row
 	// vector.  If we schematically define a 4x4 matrix
@@ -1040,7 +1040,7 @@ E3Camera::GetWorldToView ( TQ3Matrix4x4 *worldToView )
 	// right, (0, 1, 0, 0) maps to up, (0, 0, 1, 0) maps to backward, and
 	// (0, 0, 0, 1) (the origin) maps to (L, 1).  Thus M is the view to world
 	// transformation.
-	
+
 	// To find the world to view transformation, we could just compute the inverse
 	// of M, but we can do it with more speed and accuracy due to the extra
 	// information we have about the structure of M.  The inverse of R is the
@@ -1049,11 +1049,11 @@ E3Camera::GetWorldToView ( TQ3Matrix4x4 *worldToView )
 	// -L T(R)   1 .
 
 	Q3Matrix4x4_SetIdentity(worldToView);
-	
+
 	worldToView->value[0][0] = right.x;
 	worldToView->value[1][0] = right.y;
 	worldToView->value[2][0] = right.z;
-	
+
 	worldToView->value[0][1] = up.x;
 	worldToView->value[1][1] = up.y;
 	worldToView->value[2][1] = up.z;
@@ -1061,7 +1061,7 @@ E3Camera::GetWorldToView ( TQ3Matrix4x4 *worldToView )
 	worldToView->value[0][2] = backward.x;
 	worldToView->value[1][2] = backward.y;
 	worldToView->value[2][2] = backward.z;
-	
+
 	const TQ3Vector3D& camLocation( reinterpret_cast<const TQ3Vector3D&>(
 		cameraData.placement.cameraLocation ) );
 	worldToView->value[3][0] = - Q3Dot3D( camLocation, right );
@@ -1191,10 +1191,10 @@ E3OrthographicCamera::IsOfMyClass ( TQ3Object object )
 {
 	if ( object == nullptr )
 		return kQ3False ;
-		
+
 	if ( object->IsObjectValid () )
 		return Q3_OBJECT_IS_CLASS ( object, E3OrthographicCamera ) ;
-		
+
 	return kQ3False ;
 }
 
@@ -1210,12 +1210,12 @@ E3OrthographicCamera::GetData ( TQ3OrthographicCameraData *CameraData )
 	{
 	// Return the camera's data
 	E3Camera::GetData( &CameraData->cameraData );
-	
+
 	CameraData->left = instanceData.left;
 	CameraData->top = instanceData.top;
 	CameraData->right = instanceData.right;
 	CameraData->bottom = instanceData.bottom;
-	
+
 	return kQ3Success ;
 	}
 
@@ -1231,12 +1231,12 @@ E3OrthographicCamera::SetData ( const TQ3OrthographicCameraData *CameraData )
 	{
 	// Set the camera's data
 	E3Camera::SetData( &CameraData->cameraData );
-	
+
 	instanceData.left = CameraData->left;
 	instanceData.top = CameraData->top;
 	instanceData.right = CameraData->right;
 	instanceData.bottom = CameraData->bottom;
-	
+
 	Q3Shared_Edited ( this );
 
 	return kQ3Success ;
@@ -1254,7 +1254,7 @@ E3OrthographicCamera::SetLeft ( float Left )
 	{
 	// Set the field
 	instanceData.left = Left ;
-	
+
 	Q3Shared_Edited ( this ) ;
 
 	return kQ3Success ;
@@ -1272,7 +1272,7 @@ E3OrthographicCamera::GetLeft ( float *Left )
 	{
 	// Return the field
 	*Left = instanceData.left ;
-	
+
 	return kQ3Success ;
 	}
 
@@ -1284,7 +1284,7 @@ E3OrthographicCamera::GetLeft ( float *Left )
 //      E3OrthographicCamera_SetTop : Set the top field.
 //-----------------------------------------------------------------------------
 TQ3Status
-E3OrthographicCamera::SetTop ( float Top) 
+E3OrthographicCamera::SetTop ( float Top)
 	{
 	// Set the field
 	instanceData.top = Top ;
@@ -1444,10 +1444,10 @@ E3ViewPlaneCamera::IsOfMyClass ( TQ3Object object )
 {
 	if ( object == nullptr )
 		return kQ3False ;
-		
+
 	if ( object->IsObjectValid () )
 		return Q3_OBJECT_IS_CLASS ( object, E3ViewPlaneCamera ) ;
-		
+
 	return kQ3False ;
 }
 
@@ -1468,7 +1468,7 @@ E3ViewPlaneCamera::GetData ( TQ3ViewPlaneCameraData *CameraData)
 	CameraData->halfHeightAtViewPlane = instanceData.halfHeightAtViewPlane;
 	CameraData->centerXOnViewPlane = instanceData.centerXOnViewPlane;
 	CameraData->centerYOnViewPlane = instanceData.centerYOnViewPlane;
-	
+
 	return kQ3Success ;
 	}
 
@@ -1687,7 +1687,7 @@ E3ViewPlaneCamera::GetFrustumMatrix ( TQ3Matrix4x4 *theMatrix )
 			instanceData.centerYOnViewPlane + instanceData.halfHeightAtViewPlane	// max.y
 		}
 	};
-	
+
 	// Expand to an area in xy view coordinates centered at the origin
 	TQ3Area	viewSymArea =
 	{
@@ -1703,7 +1703,7 @@ E3ViewPlaneCamera::GetFrustumMatrix ( TQ3Matrix4x4 *theMatrix )
 	};
 	float	symWidth = viewSymArea.max.x - viewSymArea.min.x;
 	float	symHeight = viewSymArea.max.y - viewSymArea.min.y;
-	
+
 	// Think of the symmetric area as the view plane of an angle aspect camera,
 	// and compute its view to frustum matrix.
 	float zNear       = cameraData.range.hither;
@@ -1711,7 +1711,7 @@ E3ViewPlaneCamera::GetFrustumMatrix ( TQ3Matrix4x4 *theMatrix )
 	float	w = 2 * instanceData.viewPlane / symWidth;
 	float	h = 2 * instanceData.viewPlane / symHeight;
 	float q;
-	
+
 	if (isfinite( zFar ))
 	{
 		q = zFar / (zFar - zNear);
@@ -1728,7 +1728,7 @@ E3ViewPlaneCamera::GetFrustumMatrix ( TQ3Matrix4x4 *theMatrix )
 	viewToStdFrustum.value[2][3] = -1.0f;
 	viewToStdFrustum.value[3][2] = q * zNear;
 	viewToStdFrustum.value[3][3] = 0.0f;
-	
+
 	// Converting from the view angle frustum space to the desired view plane
 	// frustum space is essentially a matter of applying a camera viewport
 	// transformation, as in E3Camera::GetViewToFrustum.
@@ -1758,7 +1758,7 @@ E3ViewPlaneCamera::GetFrustumMatrix ( TQ3Matrix4x4 *theMatrix )
 	Q3Matrix4x4_SetScale( &scalePort, 1.0f / halfPortWidth, 1.0f / halfPortHeight, 1.0f );
 	// Compute the combined viewport matrix
 	TQ3Matrix4x4	viewportMtx = transPort * scalePort;
-	
+
 	// Finally get the view to frustum matrix
 	*theMatrix = viewToStdFrustum * viewportMtx;
 }
@@ -1795,10 +1795,10 @@ E3ViewAngleAspectCamera::IsOfMyClass ( TQ3Object object )
 {
 	if ( object == nullptr )
 		return kQ3False ;
-		
+
 	if ( object->IsObjectValid () )
 		return Q3_OBJECT_IS_CLASS ( object, E3ViewAngleAspectCamera ) ;
-		
+
 	return kQ3False ;
 }
 
@@ -1814,7 +1814,7 @@ E3ViewAngleAspectCamera::SetData ( const TQ3ViewAngleAspectCameraData *CameraDat
 	E3Camera::SetData( &CameraData->cameraData );
 	instanceData.fov = CameraData->fov;
 	instanceData.aspectRatioXToY = CameraData->aspectRatioXToY;
-	
+
 	Q3Shared_Edited ( this ) ;
 
 	return kQ3Success ;
@@ -1834,7 +1834,7 @@ E3ViewAngleAspectCamera::GetData ( TQ3ViewAngleAspectCameraData *CameraData )
 	E3Camera::GetData( &CameraData->cameraData );
 	CameraData->fov = instanceData.fov;
 	CameraData->aspectRatioXToY = instanceData.aspectRatioXToY;
-	
+
 	return kQ3Success ;
 	}
 
@@ -1850,7 +1850,7 @@ E3ViewAngleAspectCamera::SetFOV ( float Fov )
 	{
 	// Set the field
 	instanceData.fov = Fov ;
-	
+
 	Q3Shared_Edited ( this ) ;
 
 	return kQ3Success ;
@@ -1868,7 +1868,7 @@ E3ViewAngleAspectCamera::GetFOV ( float *Fov )
 	{
 	// Return the field
 	*Fov = instanceData.fov ;
-	
+
 	return kQ3Success ;
 	}
 
@@ -1884,7 +1884,7 @@ E3ViewAngleAspectCamera::SetAspectRatio ( float AspectRatioXToY )
 	{
 	// Set the field
 	instanceData.aspectRatioXToY = AspectRatioXToY ;
-	
+
 	Q3Shared_Edited ( this ) ;
 
 	return kQ3Success ;
@@ -1928,7 +1928,7 @@ E3ViewAngleAspectCamera::GetFrustumMatrix ( TQ3Matrix4x4 *theMatrix )
 
 
 	float q;
-	
+
 	if (isfinite( zFar ))
 	{
 		q = zFar / (zFar - zNear);
@@ -1954,7 +1954,7 @@ E3ViewAngleAspectCamera::GetFrustumMatrix ( TQ3Matrix4x4 *theMatrix )
 TQ3CameraObject		E3AllSeeingCamera_New(const TQ3CameraData *cameraData)
 {
 	TQ3CameraObject theObject = E3ClassTree::CreateInstance( kQ3CameraTypeAllSeeing, kQ3True, cameraData );
-	return theObject;	
+	return theObject;
 }
 
 //=============================================================================
@@ -1969,10 +1969,10 @@ E3AllSeeingCamera::IsOfMyClass ( TQ3Object object )
 {
 	if ( object == nullptr )
 		return kQ3False ;
-		
+
 	if ( object->IsObjectValid () )
 		return Q3_OBJECT_IS_CLASS ( object, E3AllSeeingCamera ) ;
-		
+
 	return kQ3False ;
 }
 
@@ -1988,7 +1988,7 @@ E3AllSeeingCamera::GetFrustumMatrix( TQ3Matrix4x4 *theMatrix )
 	// Initialise ourselves
 	float zNear       = cameraData.range.hither;
 	float zFar        = cameraData.range.yon;
-	
+
 	static const float kTestFOV = 1.0f;
 	static const float kTestAspect = 1.0f;
 
@@ -2000,7 +2000,7 @@ E3AllSeeingCamera::GetFrustumMatrix( TQ3Matrix4x4 *theMatrix )
 
 
 	float q;
-	
+
 	if (isfinite( zFar ))
 	{
 		q = zFar / (zFar - zNear);
@@ -2030,20 +2030,20 @@ TQ3Point3D	E3AllSeeingCamera::ViewToFrustum( const TQ3Point3D& inViewPt ) const
 	TQ3Vector3D eyeToPt = inViewPt - TQ3Point3D{ 0.0f, 0.0f, 0.0f };
 	float r = Q3Length3D( eyeToPt );
 
-	
+
 	// Looking at the fisheye shaders, we see how to compute z in NDC
 	// coordinates:
 	// NDC.z = 2.0 * q - 1.0 - (2.0 * q * near) / r;
 	// But the z of Quesa's frustum coordinates is related to NDC by
 	// NDC.z = -2 * frustum.z - 1 , or
 	// frustum.z = 0.5 * (-1 - NDC.z) .  This leads to:
-	
+
 	TQ3Point3D frustumPt = {
 		atan2f( inViewPt.x, -inViewPt.z ) / kQ3Pi,
-		2.0f * asin( inViewPt.y / r ) / kQ3Pi,
+		2.0f * asinf( inViewPt.y / r ) / kQ3Pi,
 		q * (near / r - 1.0f)
 	};
-	
+
 	// Viewport transformation
 	frustumPt.x = 2.0f * (frustumPt.x - cameraData.viewPort.origin.x) /
 		cameraData.viewPort.width - 1.0f;
@@ -2065,19 +2065,19 @@ TQ3Point3D	E3AllSeeingCamera::FrustumToView( const TQ3Point3D& inFrustumPt ) con
 	float near       = cameraData.range.hither;
 	float far        = cameraData.range.yon;
 	float q = isinf( far )? 1.0 : far / (far - near);
-	
+
 	// With r being the distance from the camera to the target point in view
 	// space, ViewToFrustum has the relationship
 	// frustumPt.z = q * (near / r - 1.0f) .  If we solve this for r, we get
-	
+
 	float r = q * near / (q + frustumPt.z);
-	
+
 	TQ3Point3D viewPt = {
 		r * sinf( frustumPt.x * kQ3Pi ) * cosf( frustumPt.y * kQ3PiOver2 ),
 		r * sinf( frustumPt.y * kQ3PiOver2 ),
 		-r * cosf( frustumPt.x * kQ3Pi ) * cosf( frustumPt.y * kQ3PiOver2 )
 	};
-	
+
 	return viewPt;
 }
 
@@ -2088,7 +2088,7 @@ TQ3CameraObject		E3FisheyeCamera_New(const TQ3FisheyeCameraData *cameraData)
 {
 	TQ3CameraObject theObject = E3ClassTree::CreateInstance( kQ3CameraTypeFisheye,
 		kQ3False, cameraData );
-	return theObject;	
+	return theObject;
 }
 
 
@@ -2104,10 +2104,10 @@ E3FisheyeCamera::IsOfMyClass( TQ3Object object )
 {
 	if ( object == nullptr )
 		return kQ3False ;
-		
+
 	if ( object->IsObjectValid () )
 		return Q3_OBJECT_IS_CLASS ( object, E3FisheyeCamera ) ;
-		
+
 	return kQ3False ;
 }
 
@@ -2124,7 +2124,7 @@ E3FisheyeCamera::GetData( TQ3FisheyeCameraData *CameraData )
 	CameraData->focalLength = instanceData.focalLength;
 	CameraData->mappingFunction = instanceData.mappingFunction;
 	CameraData->croppingFormat = instanceData.croppingFormat;
-	
+
 	return kQ3Success;
 }
 
@@ -2141,7 +2141,7 @@ E3FisheyeCamera::SetData ( const TQ3FisheyeCameraData *CameraData )
 	instanceData.focalLength = CameraData->focalLength;
 	instanceData.mappingFunction = CameraData->mappingFunction;
 	instanceData.croppingFormat = CameraData->croppingFormat;
-	
+
 	Q3Shared_Edited( this );
 
 	return kQ3Success ;
@@ -2161,7 +2161,7 @@ E3FisheyeCamera::GetFrustumMatrix( TQ3Matrix4x4 *theMatrix )
 	// Initialise ourselves
 	float zNear       = cameraData.range.hither;
 	float zFar        = cameraData.range.yon;
-	
+
 	static const float kTestFOV = 1.0f;
 	static const float kTestAspect = 1.0f;
 
@@ -2173,7 +2173,7 @@ E3FisheyeCamera::GetFrustumMatrix( TQ3Matrix4x4 *theMatrix )
 
 
 	float q;
-	
+
 	if (isfinite( zFar ))
 	{
 		q = zFar / (zFar - zNear);
@@ -2204,32 +2204,32 @@ TQ3Point3D	E3FisheyeCamera::ViewToFrustum( const TQ3Point3D& inViewPt ) const
 	float far = cameraData.range.yon;
 	float q = isinf( far )? 1.0 : far / (far - near);
 	float r = Q3Length3D( eyeToPt );
-	
+
 	// Looking at the fisheye shaders, we see how to compute z in NDC
 	// coordinates:
 	// NDC.z = 2.0 * q - 1.0 - (2.0 * q * near) / r;
 	// But the z of Quesa's frustum coordinates is related to NDC by
 	// NDC.z = -2 * frustum.z - 1 , or
 	// frustum.z = 0.5 * (-1 - NDC.z) .  This leads to:
-	
+
 	frustumPt.z = q * (near / r - 1.0f);
-	
+
 	float theta = atan2f( Q3Length3D( Q3Cross3D( eyeToPt, forward ) ), Q3Dot3D( eyeToPt, forward ) );
 	switch (instanceData.mappingFunction)
 	{
 		case kQ3FisheyeMappingFunctionOrthographic:
 			r = instanceData.focalLength * sinf( theta );
 			break;
-		
+
 		default:
 		case kQ3FisheyeMappingFunctionStereographic:
 			r = 2.0f * instanceData.focalLength * tanf( theta / 2.0f );
 			break;
-		
+
 		case kQ3FisheyeMappingFunctionEquidistant:
 			r = instanceData.focalLength * theta;
 			break;
-		
+
 		case kQ3FisheyeMappingFunctionEquisolidAngle:
 			r = 2.0f * instanceData.focalLength * sinf( theta / 2.0f );
 			break;
@@ -2238,13 +2238,13 @@ TQ3Point3D	E3FisheyeCamera::ViewToFrustum( const TQ3Point3D& inViewPt ) const
 	TQ3Vector2D dir2D = Q3Normalize2D( eyeToPtXY );
 	frustumPt.x = 2.0f * r * dir2D.x / instanceData.sensorSize.x;
 	frustumPt.y = 2.0f * r * dir2D.y / instanceData.sensorSize.y;
-	
+
 	// Viewport transformation
 	frustumPt.x = 2.0f * (frustumPt.x - cameraData.viewPort.origin.x) /
 		cameraData.viewPort.width - 1.0f;
 	frustumPt.y = 2.0f * (frustumPt.y - cameraData.viewPort.origin.y) /
 		cameraData.viewPort.height + 1.0f;
-	
+
 	return frustumPt;
 }
 
@@ -2260,13 +2260,13 @@ TQ3Point3D	E3FisheyeCamera::FrustumToView( const TQ3Point3D& inFrustumPt ) const
 	float near = cameraData.range.hither;
 	float far = cameraData.range.yon;
 	float q = isinf( far )? 1.0 : far / (far - near);
-	
+
 	// With r being the distance from the camera to the target point in view
 	// space, ViewToFrustum has the relationship
 	// frustumPt.z = q * (near / r - 1.0f) .  If we solve this for r, we get
-	
+
 	float length = q * near / (q + frustumPt.z);
-	
+
 	TQ3Vector2D diffOnSensor = {
 		frustumPt.x * instanceData.sensorSize.x / 2.0f,
 		frustumPt.y * instanceData.sensorSize.y / 2.0f
@@ -2279,16 +2279,16 @@ TQ3Point3D	E3FisheyeCamera::FrustumToView( const TQ3Point3D& inFrustumPt ) const
 		case kQ3FisheyeMappingFunctionOrthographic:
 			theta = asinf( r / instanceData.focalLength );
 			break;
-		
+
 		default:
 		case kQ3FisheyeMappingFunctionStereographic:
 			theta = 2.0f * atanf( r / (2.0f * instanceData.focalLength) );
 			break;
-		
+
 		case kQ3FisheyeMappingFunctionEquidistant:
 			theta = r / instanceData.focalLength;
 			break;
-		
+
 		case kQ3FisheyeMappingFunctionEquisolidAngle:
 			theta = 2.0f * asinf( r / (2.0f * instanceData.focalLength) );
 			break;

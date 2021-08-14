@@ -1,32 +1,32 @@
 /*  NAME:
-        E3WindowsDebug.c
+        E3WindowsDebug.cpp
 
     DESCRIPTION:
         Windows debug implementation.
 
     COPYRIGHT:
-        Copyright (c) 1999-2020, Quesa Developers. All rights reserved.
+        Copyright (c) 1999-2021, Quesa Developers. All rights reserved.
 
         For the current release of Quesa, please see:
 
             <https://github.com/jwwalker/Quesa>
-        
+
         Redistribution and use in source and binary forms, with or without
         modification, are permitted provided that the following conditions
         are met:
-        
+
             o Redistributions of source code must retain the above copyright
               notice, this list of conditions and the following disclaimer.
-        
+
             o Redistributions in binary form must reproduce the above
               copyright notice, this list of conditions and the following
               disclaimer in the documentation and/or other materials provided
               with the distribution.
-        
+
             o Neither the name of Quesa nor the names of its contributors
               may be used to endorse or promote products derived from this
               software without specific prior written permission.
-        
+
         THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
         "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
         LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
@@ -43,9 +43,9 @@
 //=============================================================================
 //      Include files
 //-----------------------------------------------------------------------------
+#include "ShlObj.h"
 #include "E3Prefix.h"
 #include "E3Debug.h"
-#include "ShlObj.h"
 
 #include <stdio.h>
 #include <string>
@@ -76,10 +76,14 @@ E3Assert(const char *srcFile, TQ3Uns32 lineNum, const char *theAssertion)
 
     // Check our parameters
     if (srcFile == NULL)
+	{
     	srcFile = "Unknown";
+	}
 
     if (theAssertion == NULL)
+	{
     	theAssertion = "Unknown";
+	}
 
 
 
@@ -91,7 +95,7 @@ E3Assert(const char *srcFile, TQ3Uns32 lineNum, const char *theAssertion)
 	//MessageBox(NULL, theString, srcFile, MB_OK | MB_ICONERROR);
 	OutputDebugString(theString);
 	E3LogMessage( theString );
-	
+
 	// DebugBreak caused a problem when not running under a debugger, or when
 	// running under Delphi's debugger.
 #if QUESA_USE_DEBUGBREAK
@@ -118,7 +122,7 @@ E3IsValidPtr(const void *thePtr)
 
 
 
-	// If we're still here, it looks OK	
+	// If we're still here, it looks OK
 	return(kQ3True);
 }
 
@@ -135,7 +139,7 @@ void		E3LogMessage( const char* inMessage )
 	{
 		return;
 	}
-	
+
 	if (gDebugMode < 0)
 	{
 		return;
@@ -146,16 +150,16 @@ void		E3LogMessage( const char* inMessage )
 	if (sLogFile == NULL)
 	{
 		TCHAR thePath[MAX_PATH];
-		
+
 		HRESULT	res = SHGetFolderPath( NULL, CSIDL_PERSONAL, NULL,
 			0, thePath );
-		
+
 		if (res == S_OK)
 		{
 			strcat( thePath, "\\Quesa.log" );
-			
+
 			sLogFile = fopen( thePath, "ab" );
-			
+
 			if (sLogFile != NULL)
 			{
 				// Make the stream unbuffered, so that if the program crashes,
@@ -172,7 +176,7 @@ void		E3LogMessage( const char* inMessage )
 			}
 		}
 	}
-	
+
 	if (sLogFile != NULL)
 	{
 		fprintf( sLogFile, "%s", inMessage );
