@@ -4,7 +4,7 @@ Quesa is a 3D rendering and scene graph library for macOS and Windows, with a BS
 
 ## Authorship
 
-The Quesa project was begun by Dair Grant.  At its period of maximum activity, it was also administered by JosŽ Cruanyes, Roger Holmes, Kevin Matthews, Joe Strout, and James W. Walker, with contributions from a few others.  Now it is solely maintained by James W. Walker.
+The Quesa project was begun by Dair Grant.  At its period of maximum activity, it was also administered by José Cruanyes, Roger Holmes, Kevin Matthews, Joe Strout, and James W. Walker, with contributions from a few others. Now it is solely maintained by James W. Walker.
 
 ## Recent Work and Future Plans
 
@@ -12,9 +12,11 @@ The Quesa project was begun by Dair Grant.  At its period of maximum activity, i
 Most recently, I have added all-seeing and fisheye cameras.  See the API documentation,
 or the documentation comments in QuesaCamera.h.
 
-In the near term, I plan to contribute code to import and export 3D models in Collada (.dae) format.
-
-In more of a "hopes and dreams" category, it would be nice to support other rendering APIs such as Vulkan or Metal.
+I have added a Mac example project called FilamentViewer that illustrates how to
+do rendering, cameras, and lighting using
+[Filament](https://github.com/google/filament) while using Quesa as a file format
+and scene graph.  Not only Quesa geometries and materials, but also many Quesa style and
+transform objects, are converted to Filament information.
 
 ### h-haris:
 The Controller and Tracker APIs to support 3D devices are reintroduced.
