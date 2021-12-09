@@ -3,30 +3,30 @@
 
     DESCRIPTION:
         Implementation of Quesa 3DMF FileFormat object.
-
+        
     COPYRIGHT:
         Copyright (c) 1999-2021, Quesa Developers. All rights reserved.
 
         For the current release of Quesa, please see:
 
             <https://github.com/jwwalker/Quesa>
-
+        
         Redistribution and use in source and binary forms, with or without
         modification, are permitted provided that the following conditions
         are met:
-
+        
             o Redistributions of source code must retain the above copyright
               notice, this list of conditions and the following disclaimer.
-
+        
             o Redistributions in binary form must reproduce the above
               copyright notice, this list of conditions and the following
               disclaimer in the documentation and/or other materials provided
               with the distribution.
-
+        
             o Neither the name of Quesa nor the names of its contributors
               may be used to endorse or promote products derived from this
               software without specific prior written permission.
-
+        
         THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
         "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
         LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
@@ -125,7 +125,7 @@ public :
 
 	TE3FFormat3DMF_Text_Data			instanceData ;
 	} ;
-
+	
 
 
 
@@ -172,7 +172,7 @@ e3fformat_3dmf_text_skipcomments ( E3Text3DMFReader* format )
 		result = dataRead( format->instanceData.MFData.baseData.storage,
 			format->instanceData.MFData.baseData.currentStoragePosition, 1,
 			(TQ3Uns8*)buffer, &sizeRead);
-
+		
 		if (result == kQ3Success)
 			{
 			// If find a comment, skip until newline
@@ -193,7 +193,7 @@ e3fformat_3dmf_text_skipcomments ( E3Text3DMFReader* format )
 				}
 			}
 		}
-
+		
 	E3FFormat_3DMF_Text_Check_ContainerEnd( & format->instanceData );
 
 	return(result);
@@ -242,7 +242,7 @@ e3fformat_3dmf_text_readobjecttype( E3Text3DMFReader* format, char* theItem, TQ3
 			format->instanceData.nestingLevel++;
 		if (result == kQ3Success)
 			result = e3fformat_3dmf_text_skipcomments(format);
-
+	
 		while ((result == kQ3Success) && (lastSeparator != '('))
 		{ // skip spaces before '('
 			result = E3FileFormat_GenericReadText_ReadUntilChars( format, buffer,
@@ -257,7 +257,7 @@ e3fformat_3dmf_text_readobjecttype( E3Text3DMFReader* format, char* theItem, TQ3
 			theItem[ *charsRead - 1 ] = '\0';
 			*charsRead -= 1;
 		}
-
+		
 		// Skip trailing blanks and comments. Note that if we've read some real data
 		// as well, a failure at this point (e.g., due to eof) should not be returned
 		// back to our caller - we read _something_, so we return OK.
@@ -271,10 +271,10 @@ e3fformat_3dmf_text_readobjecttype( E3Text3DMFReader* format, char* theItem, TQ3
 				result = kQ3Success;
 		}
 	}
-
+	
 	if (*charsRead == 0)
 		result = kQ3Failure;
-
+ 	
 	return (result);
 }
 
@@ -289,11 +289,11 @@ static TQ3Status
 e3fformat_3dmf_text_readitem ( E3Text3DMFReader* format, char* theItem, TQ3Uns32 maxLen,TQ3Uns32* charsRead )
 {
 	TQ3Int32 lastSeparator = 0;
-
+	
 	TQ3Status result = E3FileFormat_GenericReadText_SkipBlanks (format);
 	if(result == kQ3Success)
 		result = E3FileFormat_GenericReadText_ReadUntilChars (format, theItem, "()", 2, kQ3True, &lastSeparator, maxLen, charsRead);
-
+	
 	if(lastSeparator == ')'){
 		format->instanceData.nestingLevel--;
 		}
@@ -320,7 +320,7 @@ static TQ3Status
 e3read_3dmf_text_readflag(TQ3Uns32* flag, TQ3FileObject inFile, TQ3ObjectType hint)
 {
 	E3File* theFile = (E3File*) inFile;
-
+	
 	typedef struct dictEntry {
 		TQ3ObjectType hint;
 		char name[32];
@@ -329,27 +329,27 @@ e3read_3dmf_text_readflag(TQ3Uns32* flag, TQ3FileObject inFile, TQ3ObjectType hi
 
 	static dictEntry dictionary[] = {	{kQ3ObjectTypeAttributeSetList,"INCLUDE",0},
 										{kQ3ObjectTypeAttributeSetList,"EXCLUDE",1},
-
+								
 										{kQ3ObjectType3DMF,"FALSE",0},
 										{kQ3ObjectType3DMF,"TRUE",1},
-
+								
 										{kQ3ObjectType3DMF,"OFF",0},
 										{kQ3ObjectType3DMF,"ON",1},
-
+								
 										{kQ3ObjectType3DMF,"BIGENDIAN",0},
 										{kQ3ObjectType3DMF,"LITTLEENDIAN",1},
-
+								
 										{kQ3ObjectType3DMF,"NORMAL",0},
 										{kQ3ObjectType3DMF,"STREAM",1},
 										{kQ3ObjectType3DMF,"DATABASE",2},
-
+								
 										{kQ3TextureTypePixmap,"RGB32",0},
 										{kQ3TextureTypePixmap,"ARGB32",1},
 										{kQ3TextureTypePixmap,"RGB16",2},
 										{kQ3TextureTypePixmap,"ARGB16",3},
 										{kQ3TextureTypePixmap,"RGB16_565",4},
 										{kQ3TextureTypePixmap,"RGB24",5},
-
+								
 										{kQ3ObjectTypeGeneralPolygonHint,"COMPLEX",0},
 										{kQ3ObjectTypeGeneralPolygonHint,"CONCAVE",1},
 										{kQ3ObjectTypeGeneralPolygonHint,"CONVEX",2},
@@ -373,7 +373,7 @@ e3read_3dmf_text_readflag(TQ3Uns32* flag, TQ3FileObject inFile, TQ3ObjectType hi
 
 										{kQ3StyleTypeOrientation,"COUNTERCLOCKWISE",0},
 										{kQ3StyleTypeOrientation,"CLOCKWISE",1},
-
+										
 										{kQ3ObjectTypeDisplayGroupState,"NONE",0},
 										{kQ3ObjectTypeDisplayGroupState,"ISINLINE",1},
 										// The 3DMF specification says that the inline flag is
@@ -436,8 +436,8 @@ e3read_3dmf_text_readflag(TQ3Uns32* flag, TQ3FileObject inFile, TQ3ObjectType hi
 						// Save the current storage position, and read the next token
 						saveStoragePos = formatInstanceData->currentStoragePosition;
 						result         = e3fformat_3dmf_text_readitem(format, buffer, 256, &charsRead);
-
-
+						
+						
 						// If it's not a pipe, that was the last flag: we're done
 						areDone = (TQ3Boolean) ((result == kQ3Failure) || !E3CString_IsEqual(buffer, "|"));
 						if (areDone)
@@ -446,8 +446,8 @@ e3read_3dmf_text_readflag(TQ3Uns32* flag, TQ3FileObject inFile, TQ3ObjectType hi
 							result = kQ3Success;
 						}
 					}
-
-
+					
+					
 					// Break from the inner for loop
 					break;
 				}
@@ -455,7 +455,7 @@ e3read_3dmf_text_readflag(TQ3Uns32* flag, TQ3FileObject inFile, TQ3ObjectType hi
 		}
 	}
 	while (!areDone);
-
+	
 	return (result);
 }
 
@@ -471,20 +471,20 @@ e3fformat_3dmf_textreader_new(TQ3Object theObject, void *privateData, const void
 {
 #pragma unused( theObject, paramData )
 	TE3FFormat3DMF_Text_Data*	instanceData = static_cast<TE3FFormat3DMF_Text_Data*>(privateData);
-
+	
 	instanceData->mLabelMap = new(std::nothrow) LabelToOffsetMap;
-
+	
 	instanceData->mTOC = new(std::nothrow) TOCVec;
-
+	
 	TQ3Status	theStatus = ((instanceData->mLabelMap != nullptr) && (instanceData->mTOC != nullptr))?
 		kQ3Success : kQ3Failure;
-
+		
 	if (theStatus == kQ3Failure)
 	{
 		delete instanceData->mLabelMap;
 		delete instanceData->mTOC;
 	}
-
+	
 	return theStatus;
 }
 
@@ -500,7 +500,7 @@ e3fformat_3dmf_textreader_delete(TQ3Object theObject, void *privateData)
 {
 #pragma unused( theObject )
 	TE3FFormat3DMF_Text_Data*	instanceData = static_cast<TE3FFormat3DMF_Text_Data*>(privateData);
-
+	
 	delete instanceData->mLabelMap;
 	delete instanceData->mTOC;
 }
@@ -532,16 +532,16 @@ static TQ3Status
 e3fformat_3dmf_text_read_int8( TQ3FileFormatObject inFormat, TQ3Int8* data)
 {
 	E3Text3DMFReader* format = (E3Text3DMFReader*) inFormat;
-
+	
 	char buffer[256];
 	TQ3Status result;
 	TQ3Uns32 charsRead;
-
+	
 	result = e3fformat_3dmf_text_readitem (format, buffer, 256, &charsRead);
-
+	
 	if(result == kQ3Success)
 		*data = (TQ3Int8) atoi(buffer);
-
+		
 	return (result);
 }
 
@@ -559,12 +559,12 @@ e3fformat_3dmf_text_read_int16 ( TQ3FileFormatObject inFormat, TQ3Int16* data )
 	char buffer[256];
 	TQ3Status result;
 	TQ3Uns32 charsRead;
-
+	
 	result = e3fformat_3dmf_text_readitem (format, buffer, 256, &charsRead);
-
+	
 	if(result == kQ3Success)
 		*data = (TQ3Int16) atoi(buffer);
-
+		
 	return (result);
 }
 
@@ -582,12 +582,12 @@ e3fformat_3dmf_text_read_int32 ( TQ3FileFormatObject inFormat, TQ3Int32* data )
 	char buffer[256];
 	TQ3Status result;
 	TQ3Uns32 charsRead;
-
+	
 	result = e3fformat_3dmf_text_readitem (format, buffer, 256, &charsRead);
-
+	
 	if(result == kQ3Success)
 		*data = atoi(buffer);
-
+		
 	return (result);
 }
 
@@ -605,14 +605,14 @@ e3fformat_3dmf_text_read_int64 ( TQ3FileFormatObject inFormat, TQ3Int64* data )
 	char buffer[256];
 	TQ3Status result;
 	TQ3Uns32 charsRead;
-
+	
 	result = e3fformat_3dmf_text_readitem (format, buffer, 256, &charsRead);
-
+	
 	if(result == kQ3Success){
 		data->hi = 0;
 		data->lo = (TQ3Uns32) atoi(buffer);
 		}
-
+		
 	return (result);
 }
 
@@ -630,13 +630,13 @@ e3fformat_3dmf_text_read_float32 ( TQ3FileFormatObject inFormat, TQ3Float32* dat
 	char buffer[256];
 	TQ3Status result;
 	TQ3Uns32 charsRead;
-
+	
 	result = e3fformat_3dmf_text_readitem (format, buffer, 256, &charsRead);
-
+	
 	if(result == kQ3Success){
 		*data = (TQ3Float32) atof(buffer);
 		}
-
+		
 	return (result);
 }
 
@@ -654,13 +654,13 @@ e3fformat_3dmf_text_read_float64 ( TQ3FileFormatObject inFormat, TQ3Float64* dat
 	char buffer[256];
 	TQ3Status result;
 	TQ3Uns32 charsRead;
-
+	
 	result = e3fformat_3dmf_text_readitem (format, buffer, 256, &charsRead);
-
+	
 	if(result == kQ3Success){
 		*data = atof(buffer);
 		}
-
+		
 	return (result);
 }
 
@@ -675,7 +675,7 @@ static TQ3Uns32
 e3fformat_3dmf_hex_to_dec(unsigned char hex)
 {
 	TQ3Uns32	theValue = 0;
-
+	
 	switch(hex){
 		case '0':
 			theValue = 0;
@@ -736,7 +736,7 @@ e3fformat_3dmf_hex_to_dec(unsigned char hex)
 			theValue = 0;
 			break;
 	}
-
+	
 	return theValue;
 }
 
@@ -753,16 +753,16 @@ e3fformat_3dmf_hexraw_to_raw(char* hexBuffer, TQ3Uns32 hexBufferLength,
 {
 	TQ3Uns32 hexBuffIndex = 2;
 	unsigned char* destinationPtr;
-
+	
 	Q3_REQUIRE_OR_RESULT(*offset < maxLen, kQ3Failure);
 	Q3_REQUIRE_OR_RESULT(hexBuffer[0] == '0', kQ3Failure);
 	Q3_REQUIRE_OR_RESULT((hexBuffer[1] == 'x') || (hexBuffer[1] == 'x'), kQ3Failure);
-
+	
 	if((hexBufferLength/2)-1 > (maxLen-*offset)) // two digits per byte, -1 (the '0x')
 		hexBufferLength = ((maxLen-*offset)+1)*2;
-
+	
 	destinationPtr = destination + *offset;
-
+	
 	while((hexBuffIndex < hexBufferLength)){
 		*destinationPtr = (unsigned char)
 							((e3fformat_3dmf_hex_to_dec ((unsigned char)hexBuffer[hexBuffIndex]) << 4)
@@ -789,16 +789,16 @@ e3fformat_3dmf_text_read_raw ( TQ3FileFormatObject inFormat, unsigned char* data
 	TQ3Status result = kQ3Success;
 	TQ3Uns32 bytesRead = 0;
 	TQ3Uns32 charsRead;
-
+	
 	while((result == kQ3Success)
 		&& (bytesRead < length)){
 		result = e3fformat_3dmf_text_readitem (format, buffer, 256, &charsRead);
-
+	
 		if(result == kQ3Success){
 			result = e3fformat_3dmf_hexraw_to_raw(buffer, charsRead, data, &bytesRead, length);
 			}
 		}
-
+				
 	return (result);
 }
 
@@ -817,10 +817,10 @@ e3fformat_3dmf_text_skip_to_level ( E3File* theFile, TQ3Uns32 nesting )
 	TQ3Int32 lastSeparator;
 	char separators[] = "()";
 	char buffer[256];
-
+	
 	E3Text3DMFReader* format = (E3Text3DMFReader*) theFile->GetFileFormat () ;
 
-
+	
 	while((result == kQ3Success) && (format->instanceData.nestingLevel > nesting))
 	{
 		result = E3FileFormat_GenericReadText_ReadUntilChars (format, buffer, separators, 2, kQ3False, &lastSeparator, 256, &charsRead);
@@ -832,9 +832,9 @@ e3fformat_3dmf_text_skip_to_level ( E3File* theFile, TQ3Uns32 nesting )
 			{
 			format->instanceData.nestingLevel--;
 			}
-
+		
 		};
-
+	
 	E3FFormat_3DMF_Text_Check_ContainerEnd( & format->instanceData );
 	return result;
 }
@@ -853,22 +853,22 @@ e3fformat_3dmf_text_canread(TQ3StorageObject storage, TQ3ObjectType* theFileForm
 	char label[11];
 	char key[] = "3DMetafile";
 	TQ3Uns32 sizeRead;
-
+	
 	if (theFileFormatFound == nullptr) {
 		return (kQ3False);
 	}
 
 	*theFileFormatFound = kQ3ObjectTypeInvalid;
-
+	
 	readMethod = (TQ3XStorageReadDataMethod) storage->GetMethod ( kQ3XMethodTypeStorageReadData ) ;
-
+	
 	if(readMethod != nullptr){
 		// read 10 bytes, search for "3DMetafile"
 		readMethod(storage,0, 10,(TQ3Uns8*)&label, &sizeRead);
 		label[10] = 0;
 		if (sizeRead != 10)
 			return kQ3False;
-
+		
 		if (E3CString_IsEqual(label,key)){
 			*theFileFormatFound = kQ3FFormatReaderType3DMFText;
 			return kQ3True;
@@ -894,9 +894,9 @@ e3fformat_3dmf_text_readlabels( TQ3FileFormatObject format, TE3FFormat3DMF_Text_
 	TQ3Status	result;
 	TQ3XStorageReadDataMethod		dataRead;
 
-
+	
 	// Get the read method
-	dataRead = (TQ3XStorageReadDataMethod) instanceData->MFData.baseData.storage->GetMethod (
+	dataRead = (TQ3XStorageReadDataMethod) instanceData->MFData.baseData.storage->GetMethod ( 
 		kQ3XMethodTypeStorageReadData ) ;
 	if (dataRead == nullptr)
 		return;
@@ -905,12 +905,12 @@ e3fformat_3dmf_text_readlabels( TQ3FileFormatObject format, TE3FFormat3DMF_Text_
 		(instanceData->MFData.baseData.currentStoragePosition < instanceData->MFData.baseData.logicalEOF) )
 	{
 		labelStartOffset = instanceData->MFData.baseData.currentStoragePosition;
-
+		
 		result = dataRead(instanceData->MFData.baseData.storage, instanceData->MFData.baseData.currentStoragePosition,
 			1, &firstNonBlank, &charsRead );
 		if (result != kQ3Success)
 			break;
-
+		
 		if (firstNonBlank == '#')
 		{
 			result = E3FileFormat_GenericReadText_ReadUntilChars( format, buffer, "\x0D\x0A", 2, kQ3False, nullptr,
@@ -924,7 +924,7 @@ e3fformat_3dmf_text_readlabels( TQ3FileFormatObject format, TE3FFormat3DMF_Text_
 				sizeof(buffer), &charsRead );
 			if (result != kQ3Success)
 				break;
-
+			
 			if ( (charsRead > 0) && (buffer[charsRead-1] == ':') )
 			{
 				buffer[charsRead-1] = '\0';
@@ -946,7 +946,7 @@ static void
 e3fformat_3dmf_text_read_toc ( E3Text3DMFReader* format, TE3FFormat3DMF_Text_Data* instanceData, const char* inTOCLabel )
 {
 	std::string	tocLabel( inTOCLabel );
-
+	
 	if ( (! tocLabel.empty()) && (tocLabel[ tocLabel.size() - 1 ] == '>'))
 	{
 		tocLabel.resize( tocLabel.size() - 1 );	// erase the final '>'
@@ -984,7 +984,7 @@ e3fformat_3dmf_text_read_toc ( E3Text3DMFReader* format, TE3FFormat3DMF_Text_Dat
 			TQ3Int32	numEntries;
 			theStatus = e3fformat_3dmf_text_read_int32( format, &numEntries );
 			Q3_REQUIRE( theStatus == kQ3Success );
-
+			
 			for (TQ3Int32 i = 0; i < numEntries; ++i)
 			{
 				TQ3Int32	refID;
@@ -1005,16 +1005,16 @@ e3fformat_3dmf_text_read_toc ( E3Text3DMFReader* format, TE3FFormat3DMF_Text_Dat
 					if (labelIter != instanceData->mLabelMap->end())
 					{
 						TOCEntry	tocEntry;
-
+						
 						tocEntry.refID = refID;
 						tocEntry.objLocation = labelIter->second;
 						tocEntry.object = CQ3ObjectRef();
-
+						
 						instanceData->mTOC->push_back( tocEntry );
 					}
 				}
 			}
-
+			
 			e3fformat_3dmf_text_read_toc( format, instanceData, nextTocLabel.c_str() );
 		}
 	}
@@ -1050,19 +1050,19 @@ e3fformat_3dmf_text_read_header ( TQ3FileObject inFile )
 
 	if(format->instanceData.MFData.baseData.logicalEOF <= 24)
 		return kQ3Failure;
-
+	
 	format->instanceData.MFData.baseData.currentStoragePosition = 0;
-
+	
 	e3fformat_3dmf_text_readobjecttype (format, header, 64, &charsRead);
 
 	result = (e3fformat_3dmf_text_read_int16 (format, &major) != kQ3Failure);
 	result = (e3fformat_3dmf_text_read_int16 (format, &minor) != kQ3Failure) &&
 		result;
-
+	
 	format->instanceData.MFData.baseData.fileVersion = (TQ3FileVersion)((major << 16) + minor);
 	if(result == true)
 		result = (e3read_3dmf_text_readflag (&format->instanceData.MFData.fileMode, theFile, kQ3ObjectType3DMF) != kQ3Failure);
-
+	
 	if(result == true){
 		format->instanceData.MFData.fileMode += kQ3FileModeText;
 		result = (TQ3Boolean)(e3fformat_3dmf_text_readitem (format, header, 64, &charsRead)!= kQ3Failure);
@@ -1070,27 +1070,27 @@ e3fformat_3dmf_text_read_header ( TQ3FileObject inFile )
 
 	if(result == true){
 		oldPosition	= format->instanceData.MFData.baseData.currentStoragePosition;
-
+		
 		if ((format->instanceData.MFData.fileMode & kQ3FileModeStream) == 0)	// i.e., if normal or database
 		{
 			TQ3Uns32	oldNestLevel = format->instanceData.nestingLevel;
-
+			
 			TRY
 			{
 				e3fformat_3dmf_text_readlabels( format, & format->instanceData );
-
+				
 				e3fformat_3dmf_text_read_toc( format, & format->instanceData , header );
 			}
 			CATCH_ALL
-
+			
 			format->instanceData.nestingLevel = oldNestLevel;
 		}
-
+		
 		//result = (TQ3Boolean)(e3fformat_3dmf_text_scan_n_read_toc(format, header) != kQ3Failure);
 		format->instanceData.MFData.baseData.currentStoragePosition = oldPosition;// reset the file mark
 		}
 	E3FFormat_3DMF_Text_Check_MoreObjects( & format->instanceData );
-
+	
 	return result ? kQ3Success : kQ3Failure;
 }
 
@@ -1123,15 +1123,15 @@ e3fformat_3dmf_text_skipobject ( E3File* theFile )
 	char 					objectType[64];
 	TQ3Uns32 				charsRead;
 	TQ3Uns32 				level;
-
+	
 	E3Text3DMFReader* format = (E3Text3DMFReader*) theFile->GetFileFormat () ;
-
+	
 	level = format->instanceData.nestingLevel;
-
+	
 	result = e3fformat_3dmf_text_readobjecttype (format, objectType, 64, &charsRead);
-
+	
 	e3fformat_3dmf_text_skip_to_level (theFile, level);
-
+	
 	E3FFormat_3DMF_Text_Check_MoreObjects( & format->instanceData );
 	E3FFormat_3DMF_Text_Check_ContainerEnd( & format->instanceData );
 	return result;
@@ -1175,16 +1175,16 @@ static TQ3Object
 e3fformat_3dmf_textreader_resolve_reference( TE3FFormat3DMF_Text_Data* instanceData, TQ3Int32 refNum )
 {
 	TQ3Object	theObject = nullptr;
-
+	
 	for (TOCVec::iterator tocIt = instanceData->mTOC->begin(); tocIt != instanceData->mTOC->end(); ++tocIt)
 	{
 		if ( (tocIt->refID == (TQ3Uns32)refNum) && tocIt->object.isvalid() )
 		{
-			theObject = Q3Shared_GetReference( tocIt->object.get() );
+			theObject = Q3Shared_GetReference( (TQ3Object _Nonnull) tocIt->object.get() );
 			break;
 		}
 	}
-
+	
 	return theObject;
 }
 
@@ -1214,7 +1214,7 @@ e3fformat_3dmf_text_readobject ( TQ3FileObject inFile )
 	TQ3Int32				referenceNum;
 
 	E3Text3DMFReader* format = (E3Text3DMFReader*) theFile->GetFileFormat () ;
-
+	
 	objLocation = format->instanceData.MFData.baseData.currentStoragePosition;
 
 	level = format->instanceData.nestingLevel;
@@ -1226,10 +1226,10 @@ e3fformat_3dmf_text_readobject ( TQ3FileObject inFile )
 				oldContainer = format->instanceData.containerLevel;
 				format->instanceData.containerLevel = format->instanceData.nestingLevel;
 				format->instanceData.MFData.inContainer = kQ3True;
-
+				
 				// read the root object, is its responsibility read its childs
 				result = Q3File_ReadObject (theFile);
-
+				
 				e3fformat_3dmf_text_skip_to_level (theFile, level);
 				format->instanceData.containerLevel = oldContainer;
 			}
@@ -1238,10 +1238,10 @@ e3fformat_3dmf_text_readobject ( TQ3FileObject inFile )
 			oldContainer = format->instanceData.containerLevel;
 			format->instanceData.containerLevel = format->instanceData.nestingLevel;
 			format->instanceData.MFData.inContainer = kQ3True;
-
+			
 			// read the root object, is its responsibility read its childs
 			result = Q3File_ReadObject (theFile);
-
+			
 			e3fformat_3dmf_text_skip_to_level (theFile, level);
 			format->instanceData.containerLevel = oldContainer;
 
@@ -1251,7 +1251,7 @@ e3fformat_3dmf_text_readobject ( TQ3FileObject inFile )
 				format->instanceData.MFData.baseData.groupDeepCounter++;
 				if((result == nullptr) || (Q3Object_IsType(result, kQ3ShapeTypeGroup) == kQ3False))
 					return nullptr;
-
+				
 				while(Q3File_IsEndOfFile(theFile) == kQ3False)
 					{
 					childObject = Q3File_ReadObject(theFile);
@@ -1293,15 +1293,15 @@ e3fformat_3dmf_text_readobject ( TQ3FileObject inFile )
 				// the closing parenthesis.
 				if (format->instanceData.nestingLevel == level)
 				{
-					readDefaultMethod = (TQ3XObjectReadDefaultMethod) theClass->GetMethod (
+					readDefaultMethod = (TQ3XObjectReadDefaultMethod) theClass->GetMethod ( 
 								kQ3XMethodTypeObjectReadDefault ) ;
-
+					
 					if (readDefaultMethod != nullptr)
 					{
 						result = readDefaultMethod( theFile );
 					}
 				}
-
+					
 				if (readDefaultMethod == nullptr)
 				{
 					// find the read Object method for the class and call it
@@ -1311,24 +1311,24 @@ e3fformat_3dmf_text_readobject ( TQ3FileObject inFile )
 						result = readMethod(theFile);
 					}
 				}
-
+				
 				if ( (readMethod == nullptr) && (readDefaultMethod == nullptr) &&
 					theClass->IsType( kQ3ObjectTypeElement ) )
 				{
 					readDataMethod = (TQ3XObjectReadDataMethod) theClass->GetMethod(
 						kQ3XMethodTypeObjectReadData );
-
+					
 					if (readDataMethod != nullptr)
 					{
 						result = Q3Set_New();
-
+						
 						if (result != nullptr)
 						{
 							readDataMethod( result, theFile );
 						}
 					}
 				}
-
+				
 				if ( (readMethod == nullptr) && (readDefaultMethod == nullptr) &&
 					(readDataMethod == nullptr) )
 				{
@@ -1338,14 +1338,14 @@ e3fformat_3dmf_text_readobject ( TQ3FileObject inFile )
 			}
 		}
 	}
-
+	
 	if (result != nullptr)
 		e3fformat_3dmf_textreader_update_toc( result, objLocation, & format->instanceData );
 
-
+	
 	E3FFormat_3DMF_Text_Check_MoreObjects( & format->instanceData );
 	E3FFormat_3DMF_Text_Check_ContainerEnd( & format->instanceData );
-
+	
 	return result;
 }
 
@@ -1368,11 +1368,11 @@ e3read_3dmf_text_readnextelement ( TQ3AttributeSet parent, TQ3FileObject inFile 
 	char 						objectType[64];
 	TQ3Uns32 					charsRead;
 	TQ3Uns32 					level;
-
+	
 
 	TQ3XObjectReadDataMethod 	readDataMethod;
 	E3ClassInfoPtr				theClass;
-
+	
 
 	E3Text3DMFReader* format = (E3Text3DMFReader*) theFile->GetFileFormat () ;
 
@@ -1381,20 +1381,20 @@ e3read_3dmf_text_readnextelement ( TQ3AttributeSet parent, TQ3FileObject inFile 
 
 	elemLocation = format->instanceData.MFData.baseData.currentStoragePosition;
 	level = format->instanceData.nestingLevel;
-
+	
 	status = e3fformat_3dmf_text_readobjecttype (format, objectType, 64, &charsRead);
 	if(status == kQ3Success){
-
+		
 		// find the proper class
 		if(E3CString_IsEqual(ContainerLabel,objectType)) // Container
 			{
 				oldContainer = format->instanceData.containerLevel;
 				format->instanceData.containerLevel = format->instanceData.nestingLevel;
 				format->instanceData.MFData.inContainer = kQ3True;
-
+				
 				// read the root object, is its responsibility read its childs
 				result = Q3File_ReadObject (theFile);
-
+				
 				if (result != nullptr)
 					{
 					elemType = Q3Object_GetLeafType(result);
@@ -1408,7 +1408,7 @@ e3read_3dmf_text_readnextelement ( TQ3AttributeSet parent, TQ3FileObject inFile 
 					Q3AttributeSet_Add (parent, elemType, &result);
 					Q3Object_Dispose(result);
 					}
-
+				
 				e3fformat_3dmf_text_skip_to_level (theFile, level);
 				format->instanceData.containerLevel = oldContainer;
 			}
@@ -1431,8 +1431,8 @@ e3read_3dmf_text_readnextelement ( TQ3AttributeSet parent, TQ3FileObject inFile 
 			}
 		else{
 			theClass = E3ClassTree::GetClass ( objectType ) ;
-
-
+				
+				
 			if(theClass == nullptr){
 				// by now skip entirely, but we have to return an unknown object
 				e3fformat_3dmf_text_skip_to_level (theFile, level);
@@ -1459,7 +1459,7 @@ e3read_3dmf_text_readnextelement ( TQ3AttributeSet parent, TQ3FileObject inFile 
 				}
 			}
 		}
-
+		
 
 	E3FFormat_3DMF_Text_Check_MoreObjects( & format->instanceData );
 	E3FFormat_3DMF_Text_Check_ContainerEnd( & format->instanceData );
@@ -1486,7 +1486,7 @@ e3fformat_3dmf_text_get_nexttype ( TQ3FileObject inFile )
 	TQ3Uns32 					charsRead;
 	TQ3Status 					status;
 	E3ClassInfoPtr 				theClass;
-
+	
 	E3Text3DMFReader* format = (E3Text3DMFReader*) theFile->GetFileFormat () ;
 
 	oldPosition	= format->instanceData.MFData.baseData.currentStoragePosition;
@@ -1499,7 +1499,7 @@ e3fformat_3dmf_text_get_nexttype ( TQ3FileObject inFile )
 		while(E3CString_IsEqual(ContainerLabel,objectType) ||// Container
 			E3CString_IsEqual(BeginGroupLabel,objectType))
 			status = e3fformat_3dmf_text_readobjecttype(format, objectType, 64, &charsRead);
-
+	
 		if (status == kQ3Success)
 		{
 			theClass = E3ClassTree::GetClass ( objectType ) ;
@@ -1560,9 +1560,9 @@ e3fformat_3dmf_text_read_string(TQ3FileFormatObject format, char* data, TQ3Uns32
 	TQ3Uns32 bufferLength = *ioLength;
 	bool	haveBackslash = false;
 	*ioLength = 0;
-
+	
 	e3fformat_3dmf_text_skipcomments( textFormat );
-
+	
 	// Get the storage read method
 	TQ3XStorageReadDataMethod dataRead = (TQ3XStorageReadDataMethod)
 		instanceData.MFData.baseData.storage->GetMethod ( kQ3XMethodTypeStorageReadData ) ;
@@ -1570,10 +1570,10 @@ e3fformat_3dmf_text_read_string(TQ3FileFormatObject format, char* data, TQ3Uns32
 	{
 		return status;
 	}
-
+	
 	// Save the storage position, in case we need to reset it
 	TQ3Uns32 startOffset = instanceData.MFData.baseData.currentStoragePosition;
-
+	
 	// Read bytes one at a time.  The first one we read had better be \".
 	TQ3Uns32 sizeRead;
 	char oneChar;
@@ -1613,11 +1613,11 @@ e3fformat_3dmf_text_read_string(TQ3FileFormatObject format, char* data, TQ3Uns32
 				case 'n':
 					oneChar = 0x0A;
 					break;
-
+				
 				case 'r':
 					oneChar = 0x0D;
 					break;
-
+				
 				case 't':
 					oneChar = 0x09;
 					break;
@@ -1630,12 +1630,12 @@ e3fformat_3dmf_text_read_string(TQ3FileFormatObject format, char* data, TQ3Uns32
 		}
 		*ioLength += 1;
 	}
-
+	
 	if ( (data != nullptr) && (*ioLength < bufferLength) )
 	{
 		data[ *ioLength ] = '\0';	// NUL termination
 	}
-
+	
 	if (data == nullptr)
 	{
 		instanceData.MFData.baseData.currentStoragePosition = startOffset;
@@ -1643,13 +1643,13 @@ e3fformat_3dmf_text_read_string(TQ3FileFormatObject format, char* data, TQ3Uns32
 	else if (status == kQ3Success)
 	{
 		status = E3FileFormat_GenericReadText_SkipBlanks( textFormat );
-
+		
 		if (status == kQ3Success)
 		{
 			status = e3fformat_3dmf_text_skipcomments( textFormat );
 		}
 	}
-
+	
 	return status;
 }
 
@@ -1748,7 +1748,7 @@ e3fformat_3dmf_text_metahandler(TQ3XMethodType methodType)
 			theMethod = (TQ3XFunctionPointer) e3read_3dmf_text_readflag;
 			break;
 		}
-
+	
 	return(theMethod);
 }
 
@@ -1807,21 +1807,21 @@ TQ3Status	E3FFormat_3DMF_Text_ReadEnumeratedConstant( TQ3FileFormatObject format
 						char* data, TQ3Uns32 *ioLength )
 {
 	E3Text3DMFReader* textFormat = (E3Text3DMFReader*) format;
-
+	
 	e3fformat_3dmf_text_skipcomments( textFormat );
-
+	
 	TQ3Status	status = E3FileFormat_GenericReadText_ReadUntilChars( format,
 		data, "", 0, kQ3True, nullptr, *ioLength, ioLength );
-
+	
 	if (status == kQ3Success)
 	{
 		status = E3FileFormat_GenericReadText_SkipBlanks( textFormat );
-
+		
 		if (status == kQ3Success)
 		{
 			status = e3fformat_3dmf_text_skipcomments( textFormat );
 		}
 	}
-
+	
 	return status;
 }
