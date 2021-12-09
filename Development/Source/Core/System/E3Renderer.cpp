@@ -10,23 +10,23 @@
         For the current release of Quesa, please see:
 
             <https://github.com/jwwalker/Quesa>
-        
+
         Redistribution and use in source and binary forms, with or without
         modification, are permitted provided that the following conditions
         are met:
-        
+
             o Redistributions of source code must retain the above copyright
               notice, this list of conditions and the following disclaimer.
-        
+
             o Redistributions in binary form must reproduce the above
               copyright notice, this list of conditions and the following
               disclaimer in the documentation and/or other materials provided
               with the distribution.
-        
+
             o Neither the name of Quesa nor the names of its contributors
               may be used to endorse or promote products derived from this
               software without specific prior written permission.
-        
+
         THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
         "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
         LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
@@ -85,7 +85,7 @@ public :
 
 	TQ3RendererData			instanceData ;
 	} ;
-	
+
 
 
 class E3CSGAttribute : public E3Attribute // This is a leaf class so no other classes use this,
@@ -98,7 +98,7 @@ public :
 
 	TQ3CSGObjectID			instanceData ;
 	} ;
-	
+
 
 
 //=============================================================================
@@ -342,10 +342,10 @@ E3Renderer_IsOfMyClass ( TQ3Object object )
 	{
 	if ( object == nullptr )
 		return kQ3False ;
-		
+
 	if ( object->IsObjectValid () )
 		return Q3_OBJECT_IS_CLASS ( object, E3Renderer ) ;
-		
+
 	return kQ3False ;
 	}
 
@@ -608,7 +608,7 @@ E3Renderer_Method_UpdateMatrix(TQ3ViewObject			theView,
 		}
 	}
 
-	
+
 	// Handle world-to-camera changes
 	if (theState & kQ3MatrixStateWorldToCamera)
 	{
@@ -620,8 +620,8 @@ E3Renderer_Method_UpdateMatrix(TQ3ViewObject			theView,
 			qd3dStatus = updateWorldToCamera(theView, instanceData, worldToCamera);
 		}
 	}
-	
-	
+
+
 	// Handle camera-to-frustum changes
 	if (theState & kQ3MatrixStateCameraToFrustum)
 	{
@@ -634,7 +634,7 @@ E3Renderer_Method_UpdateMatrix(TQ3ViewObject			theView,
 		}
 	}
 
-	
+
 	// Update local to camera if local to world or world to camera changes
 	if ( (theState & (kQ3MatrixStateLocalToWorld | kQ3MatrixStateWorldToCamera)) != 0 )
 	{
@@ -646,8 +646,8 @@ E3Renderer_Method_UpdateMatrix(TQ3ViewObject			theView,
 			qd3dStatus = updateLocalToCamera( theView, instanceData, localToCamera );
 		}
 	}
-	
-	
+
+
 	// Update local to frustum if any of the 3 basic matrices changed
 	if ( (theState & (kQ3MatrixStateLocalToWorld | kQ3MatrixStateWorldToCamera |
 		kQ3MatrixStateCameraToFrustum)) != 0 )
@@ -662,8 +662,8 @@ E3Renderer_Method_UpdateMatrix(TQ3ViewObject			theView,
 			qd3dStatus = updateLocalToFrustum( theView, instanceData, &tmpMatrix );
 		}
 	}
-	
-	
+
+
 	// Update world to frustum if world to camera or camera to frustum changed
 	if ( (theState & (kQ3MatrixStateWorldToCamera | kQ3MatrixStateCameraToFrustum)) != 0 )
 	{
@@ -677,8 +677,8 @@ E3Renderer_Method_UpdateMatrix(TQ3ViewObject			theView,
 			qd3dStatus = updateWorldToFrustum( theView, instanceData, &tmpMatrix );
 		}
 	}
-	
-	
+
+
 
 	return qd3dStatus ;
 }
@@ -692,7 +692,7 @@ E3Renderer_Method_UpdateMatrix(TQ3ViewObject			theView,
 //-----------------------------------------------------------------------------
 TQ3Status
 E3Renderer_Method_UpdateShader(TQ3ViewObject theView, TQ3ObjectType shaderType, TQ3Object *theShader)
-	{	
+	{
 	TQ3RendererObject theRenderer = E3View_AccessRenderer ( theView ) ;
 
 	// No-op if no renderer set
@@ -817,17 +817,17 @@ E3Renderer_Method_SubmitGeometry(TQ3ViewObject		theView,
 		// Test whether the geometry's attribute set contains a surface shader.
 		// (How do we do this in immediate mode?)
 		TQ3Boolean	hasSurfaceShader = kQ3False;
-		
+
 		if (theGeom != nullptr)
 		{
 			CQ3ObjectRef	attSet( CQ3Geometry_GetAttributeSet( theGeom ) );
 			if (attSet.isvalid())
 			{
-				hasSurfaceShader = Q3AttributeSet_Contains( attSet.get(), kQ3AttributeTypeSurfaceShader );
+				hasSurfaceShader = Q3AttributeSet_Contains( (TQ3Object _Nonnull) attSet.get(), kQ3AttributeTypeSurfaceShader );
 			}
 		}
-		
-		
+
+
 		// If there is a shader, we must push the view state
 		if ( hasSurfaceShader )
 			E3Push_Submit ( theView ) ;
@@ -871,7 +871,7 @@ E3Renderer_NewFromType(TQ3ObjectType rendererObjectType)
 				e3renderer_add_methods ( theObject ) ;
 			}
 		}
-	
+
 	return theObject ;
 	}
 
@@ -1047,7 +1047,7 @@ E3InteractiveRenderer_SetCSGEquation ( TQ3RendererObject theRenderer, TQ3CSGEqua
 	// Set the field
 	( (E3Renderer*) theRenderer )->instanceData.interactiveCSGEquation = equation ;
 	Q3Shared_Edited ( theRenderer ) ;
-	
+
 	return kQ3Success ;
 	}
 
@@ -1063,7 +1063,7 @@ E3InteractiveRenderer_GetCSGEquation(TQ3RendererObject theRenderer, TQ3CSGEquati
 	{
 	// Get the field
 	*equation = ( (E3Renderer*) theRenderer )->instanceData.interactiveCSGEquation ;
-	
+
 	return kQ3Success ;
 	}
 
@@ -1081,7 +1081,7 @@ E3InteractiveRenderer_SetPreferences(TQ3RendererObject theRenderer, TQ3RaveVendo
 	( (E3Renderer*) theRenderer )->instanceData.interactiveVendorID = vendorID ;
 	( (E3Renderer*) theRenderer )->instanceData.interactiveEngineID = engineID ;
 	Q3Shared_Edited ( theRenderer ) ;
-	
+
 	return kQ3Success ;
 	}
 
@@ -1098,7 +1098,7 @@ E3InteractiveRenderer_GetPreferences(TQ3RendererObject theRenderer, TQ3RaveVendo
 	// Get the fields
 	*vendorID = ( (E3Renderer*) theRenderer )->instanceData.interactiveVendorID ;
 	*engineID = ( (E3Renderer*) theRenderer )->instanceData.interactiveEngineID ;
-	
+
 	return kQ3Success ;
 	}
 
@@ -1115,7 +1115,7 @@ E3InteractiveRenderer_SetDoubleBufferBypass(TQ3RendererObject theRenderer, TQ3Bo
 	// Set the field
 	( (E3Renderer*) theRenderer )->instanceData.interactiveDoubleBufferBypass = bypass ;
 	Q3Shared_Edited ( theRenderer ) ;
-	
+
 	return kQ3Success ;
 	}
 
@@ -1131,7 +1131,7 @@ E3InteractiveRenderer_GetDoubleBufferBypass(TQ3RendererObject theRenderer, TQ3Bo
 	{
 	// Get the field
 	*bypass = ( (E3Renderer*) theRenderer )->instanceData.interactiveDoubleBufferBypass ;
-	
+
 	return kQ3Success ;
 	}
 
@@ -1148,7 +1148,7 @@ E3InteractiveRenderer_SetRAVEContextHints(TQ3RendererObject theRenderer, TQ3Uns3
 	// Set the field
 	( (E3Renderer*) theRenderer )->instanceData.raveContextHints = RAVEContextHints ;
 	Q3Shared_Edited ( theRenderer ) ;
-	
+
 	return kQ3Success ;
 	}
 
@@ -1164,7 +1164,7 @@ E3InteractiveRenderer_GetRAVEContextHints(TQ3RendererObject theRenderer, TQ3Uns3
 	{
 	// Get the field
 	*RAVEContextHints = ( (E3Renderer*) theRenderer )->instanceData.raveContextHints ;
-	
+
 	return kQ3Success ;
 	}
 
@@ -1179,7 +1179,7 @@ TQ3Status
 E3InteractiveRenderer_SetRAVETextureFilter(TQ3RendererObject inRenderer, TQ3TextureFilter raveTextureFilterValue)
 {
 	E3Renderer*	theRenderer = (E3Renderer*) inRenderer;
-	
+
 	if (theRenderer->instanceData.raveTextureFilter != raveTextureFilterValue)
 	{
 		// Set the field, and flag that we need to reset the draw context state.
@@ -1190,7 +1190,7 @@ E3InteractiveRenderer_SetRAVETextureFilter(TQ3RendererObject inRenderer, TQ3Text
 		// It doesn't look like this reset stuff is needed, at least with the OpenGL renderer.
 		// The texture filtering gets set each time the texture changes anyway.
 	}
-	
+
 	return kQ3Success ;
 }
 
@@ -1206,7 +1206,7 @@ E3InteractiveRenderer_GetRAVETextureFilter(TQ3RendererObject theRenderer, TQ3Tex
 	{
 	// Get the field
 	*raveTextureFilterValue = ( (E3Renderer*) theRenderer )->instanceData.raveTextureFilter ;
-	
+
 	return kQ3Success ;
 	}
 
@@ -1322,7 +1322,7 @@ E3XView_EndFrame(TQ3ViewObject theView)
 	{
 	// Tell the view we've finished
 	E3View_EndFrame ( theView ) ;
-	
+
 	return kQ3Success ;
 	}
 
