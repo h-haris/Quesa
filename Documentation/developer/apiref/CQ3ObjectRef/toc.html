@@ -15,20 +15,6 @@ marginheight="0">
 </table><br>
 <nobr>&nbsp;<a href="CQ3ObjectRef.html" target="doc">Introduction</a>
 <h4>Classes</h4>
-<nobr>&nbsp;<a href="Classes/CQ3ObjectRef_The_main_purpose_for_using_a_C_wrapper_for_a_Quesa_object_is_to_prevent_memory_leaks._The_wrapper_s_destructor__a_CQ3ObjectRef_holding_an_object_of_a_non_shared_type_will_result_in_a_fatal_assertion_failure_inside_Q3Shared_GetReference./index.html" target="_top">CQ3ObjectRef The main purpose for using a C++ wrapper for a Quesa object is to
-prevent memory leaks.  The wrapper's destructor disposes the object.
-This class is designed to be usable in STL container classes, in a way similar
-to std::shared_ptr.  One could base such a wrapper on boost::intrusive_pointer,
-but I chose not to require Boost.
-<br><br>
-Due to a HeaderDoc bug, it is not possible to automatically
-document more than one constructor.  Besides the constructor from
-a TQ3Object, there is a default constructor (which holds nullptr)
-and a copy constructor.
-<br><br>
-This wrapper is not fully functional with objects that are not
-reference-counted (such as Views and Picks).  Calling the copy constructor
-or copy assignment operator on a CQ3ObjectRef holding an object of a non-shared
-type will result in a fatal assertion failure inside Q3Shared_GetReference.</a></nobr><br>
+<nobr>&nbsp;<a href="Classes/CQ3ObjectRef/index.html" target="_top">CQ3ObjectRef</a></nobr><br>
 <br><hr><a href="CompositePage.html" target="_blank">[Printable HTML Page]</a>
 </body></html>

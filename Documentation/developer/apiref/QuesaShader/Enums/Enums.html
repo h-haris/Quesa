@@ -11,6 +11,7 @@
 typedef enum TQ3ShaderUVBoundary QUESA_ENUM_BASE(TQ3Uns32) {
     kQ3ShaderUVBoundaryWrap                     = 0,
     kQ3ShaderUVBoundaryClamp                    = 1,
+    kQ3ShaderUVBoundaryMirrorRepeat             = 2,
     kQ3ShaderUVBoundarySize32                   = 0xFFFFFFFF
 } TQ3ShaderUVBoundary;
 </pre>
@@ -21,8 +22,10 @@ typedef enum TQ3ShaderUVBoundary QUESA_ENUM_BASE(TQ3Uns32) {
 <h4>Constants</h4>
 <blockquote>
 <dl>
-<dt><a name="//Quesa/c/econst/kQ3ShaderUVBoundaryWrap"><tt>kQ3ShaderUVBoundaryWrap</tt></a></dt><dd>Wrap UV values outside of 0..1.</dd>
-<dt><a name="//Quesa/c/econst/kQ3ShaderUVBoundaryClamp"><tt>kQ3ShaderUVBoundaryClamp</tt></a></dt><dd>Clamp UV values to 0..1.</dd>
+<dt><a name="//Quesa/c/econst/kQ3ShaderUVBoundaryWrap"><tt>kQ3ShaderUVBoundaryWrap</tt></a></dt><dd>Wrap UV values outside of [0, 1].</dd>
+<dt><a name="//Quesa/c/econst/kQ3ShaderUVBoundaryClamp"><tt>kQ3ShaderUVBoundaryClamp</tt></a></dt><dd>Clamp UV values to [0, 1].</dd>
+<dt><a name="//Quesa/c/econst/kQ3ShaderUVBoundaryMirrorRepeat"><tt>kQ3ShaderUVBoundaryMirrorRepeat</tt></a></dt><dd>Wrap values outside of [0, 1], but mirror values
+if the integer part is odd.</dd>
 </dl>
 </blockquote>
 <hr><a name="//Quesa/c/tag/Texture&nbsp;Property&nbsp;Types"></a>
@@ -79,5 +82,5 @@ the threshold is considered completely transparent.
 Data type: TQ3Float32.</dd>
 </dl>
 </blockquote>
-<p><p>&#169; 1999-2021 Quesa Developers (Last Updated 12/9/2021)
+<p><p>&#169; 1999-2021 Quesa Developers (Last Updated 12/17/2021)
 </p></body></html>
