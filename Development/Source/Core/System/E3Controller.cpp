@@ -185,7 +185,7 @@ e3tracker_duplicate(TQ3Object fromObject, const void *fromPrivateData,
 	return(kQ3Success);
 */
 
-#warning not certain if e3tracker_duplicate has to be implemented...
+//TODO: not certain if e3tracker_duplicate has to be implemented...
 	return(kQ3Failure);
 }
 
@@ -298,7 +298,7 @@ e3controllerstate_duplicate(TQ3Object fromObject, const void *fromPrivateData,
 	return(kQ3Success);
 */
 
-#warning not certain if e3controllerstate_duplicate has to be implemented...
+//TODO:  not certain if e3controllerstate_duplicate has to be implemented...
 	return(kQ3Failure);
 }
 

@@ -77,8 +77,8 @@
     if (!driverSignatureKnown)
     {
         _controllerData = *controllerData;
-        _hasSetChannelMethod = (TQ3Boolean)(_controllerData.channelSetMethod!=NULL);
-        _hasGetChannelMethod = (TQ3Boolean)(_controllerData.channelGetMethod!=NULL);
+        _hasSetChannelMethod = (TQ3Boolean)(_controllerData.channelSetMethod!=nullptr);
+        _hasGetChannelMethod = (TQ3Boolean)(_controllerData.channelGetMethod!=nullptr);
         _signature = [NSString stringWithCString:controllerData->signature encoding:NSASCIIStringEncoding];
 
         //create own UUID
@@ -139,7 +139,7 @@
     if (self==aControllerRef)
         return _proxyCTRL;
     else
-        return NULL;
+        return nullptr;
 };
 
 
@@ -164,7 +164,7 @@
         if (theData)
             status = _controllerData.channelSetMethod((TQ3ControllerRef)_nameInDB, channel, [theData bytes], dataSize);
         else //theData==NULL is valid!
-            status = _controllerData.channelSetMethod((TQ3ControllerRef)_nameInDB, channel, NULL, dataSize);
+            status = _controllerData.channelSetMethod((TQ3ControllerRef)_nameInDB, channel, nullptr, dataSize);
     }
 
     return status;
@@ -275,7 +275,7 @@
         {
             //--set channel data to NULL
             dataSize=0;
-            status = [self setChannel:channel withData:NULL ofSize:dataSize];
+            status = [self setChannel:channel withData:nullptr ofSize:dataSize];
         }
     }
 
