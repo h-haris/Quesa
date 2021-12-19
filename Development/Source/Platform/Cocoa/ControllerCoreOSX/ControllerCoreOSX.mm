@@ -152,9 +152,9 @@ static TQ3Status proxyOfDeviceDB(id *theID)
 
 //proxy object id for key in controllerRef
 static id proxyOfControllerRef(TQ3ControllerRef controllerRef)
+//FIXME: currently every time when proxyOfControllerRef() is called, it will hunt again
 //TODO: proxyOfControllerRef: change in a way that the library's local data supports more than one controller, local or remote
 //TODO: cache the proxy in a dictionary, controllerRef would be the key
-//FIXME: currently every time when proxyOfControllerRef() is called, it will hunt again
 {
     //hunt for the connection name as given by the controllerRef and return the proxy
 #if Q3_DEBUG
