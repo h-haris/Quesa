@@ -116,7 +116,7 @@ static CFComparisonResult CmpEventStamp_CF (const void *val1, const void *val2, 
 {
     if (self = [super init]) {
         // init my own stuff
-        theNotifyFunc = NULL;
+        theNotifyFunc = nullptr;
         isActive = kQ3False;
         eventsRingBuffer = [NSMutableArray arrayWithCapacity:NUMTRACKEREVENTS];
         
@@ -139,10 +139,10 @@ static CFComparisonResult CmpEventStamp_CF (const void *val1, const void *val2, 
 - (NSString*) newWithNotificationFunction:(TQ3TrackerNotifyFunc) notifyFunc
                          selfOfNotifyFunc:(voidPtr) aSpecialSelf
 {
-    if (notifyFunc!=NULL)
+    if (notifyFunc!=nullptr)
         theNotifyFunc = notifyFunc;
     else
-        theNotifyFunc = NULL;
+        theNotifyFunc = nullptr;
     
     notifyFuncSelf=aSpecialSelf;//TODO: TBC notifyFuncSelf implemented correctly?
     
@@ -207,7 +207,7 @@ static CFComparisonResult CmpEventStamp_CF (const void *val1, const void *val2, 
 
 - (TQ3Status)callNotificationWithController:(TQ3ControllerRef) controllerRef
 {
-    if (theNotifyFunc!=NULL)
+    if (theNotifyFunc!=nullptr)
         //TODO: TQ3TrackerObject might be wrong type!
         return theNotifyFunc((TQ3TrackerObject)notifyFuncSelf,controllerRef);
     else
@@ -280,7 +280,7 @@ static CFComparisonResult CmpEventStamp_CF (const void *val1, const void *val2, 
         
         //theSerialNum++;//would make sense; see "activation count" inside Apple QD3D doc
         
-        if ((isActive==kQ3True)&&(theNotifyFunc!=NULL))
+        if ((isActive==kQ3True)&&(theNotifyFunc!=nullptr))
             [self callNotificationWithController:controllerRef];
     }
     
@@ -300,15 +300,15 @@ static CFComparisonResult CmpEventStamp_CF (const void *val1, const void *val2, 
     if (isActive==kQ3True)
     {
         //serialNumber NULL or not
-        if (serNum==NULL)
+        if (serNum==nullptr)
         {
-            if (aPosition!=NULL)
+            if (aPosition!=nullptr)
                 *aPosition = thePosition;
             
-            if (aDelta!=NULL)
+            if (aDelta!=nullptr)
                 *aDelta = accuMoving;
             
-            if (isChanged!=NULL)
+            if (isChanged!=nullptr)
                 *isChanged=kQ3True;
         }
         else
@@ -316,17 +316,17 @@ static CFComparisonResult CmpEventStamp_CF (const void *val1, const void *val2, 
             //if (*serialNumber!=trackerObject->theSerialNum)
             if (*serNum!=posSerialNum)
             {
-                if (aPosition!=NULL)
+                if (aPosition!=nullptr)
                     *aPosition = thePosition;
                 
-                if (aDelta!=NULL)
+                if (aDelta!=nullptr)
                     *aDelta = accuMoving;
                 
-                if (isChanged!=NULL)
+                if (isChanged!=nullptr)
                     *isChanged=kQ3True;
             }
             else
-                if (isChanged!=NULL)
+                if (isChanged!=nullptr)
                     *isChanged=kQ3False;
             
             //serial number
@@ -341,21 +341,21 @@ static CFComparisonResult CmpEventStamp_CF (const void *val1, const void *val2, 
     }
     else
     {
-        if (aPosition!=NULL)
+        if (aPosition!=nullptr)
         {
             aPosition->x = 0.0;
             aPosition->y = 0.0;
             aPosition->z = 0.0;
         };
         
-        if (aDelta!=NULL)
+        if (aDelta!=nullptr)
         {
             aDelta->x = 0.0;
             aDelta->y = 0.0;
             aDelta->z = 0.0;
         };
         
-        if (isChanged!=NULL)
+        if (isChanged!=nullptr)
             *isChanged=kQ3False;
     }
     
@@ -427,15 +427,15 @@ static CFComparisonResult CmpEventStamp_CF (const void *val1, const void *val2, 
     if (isActive==kQ3True)
     {
         //serialNumber NULL or not
-        if (serNum==NULL)
+        if (serNum==nullptr)
         {
-            if (anOrientation!=NULL)
+            if (anOrientation!=nullptr)
                 *anOrientation = theOrientation;
             
-            if (aDelta!=NULL)
+            if (aDelta!=nullptr)
                 *aDelta = accuOrientation;
             
-            if (isChanged!=NULL)
+            if (isChanged!=nullptr)
                 *isChanged=kQ3True;
         }
         else
@@ -443,17 +443,17 @@ static CFComparisonResult CmpEventStamp_CF (const void *val1, const void *val2, 
             //if (*serialNumber!=trackerObject->theSerialNum)
             if (*serNum!=oriSerialNum)
             {
-                if (anOrientation!=NULL)
+                if (anOrientation!=nullptr)
                     *anOrientation = theOrientation;
                 
-                if (aDelta!=NULL)
+                if (aDelta!=nullptr)
                     *aDelta = accuOrientation;
                 
-                if (isChanged!=NULL)
+                if (isChanged!=nullptr)
                     *isChanged=kQ3True;
             }
             else
-                if (isChanged!=NULL)
+                if (isChanged!=nullptr)
                     *isChanged=kQ3False;
             
             //serial number
@@ -469,7 +469,7 @@ static CFComparisonResult CmpEventStamp_CF (const void *val1, const void *val2, 
     }
     else
     {
-        if (anOrientation!=NULL)
+        if (anOrientation!=nullptr)
         {
             anOrientation->w = 1.0;
             anOrientation->x = 0.0;
@@ -477,7 +477,7 @@ static CFComparisonResult CmpEventStamp_CF (const void *val1, const void *val2, 
             anOrientation->z = 0.0;
         };
         
-        if (aDelta!=NULL)
+        if (aDelta!=nullptr)
         {
             aDelta->w = 1.0;
             aDelta->x = 0.0;
@@ -485,7 +485,7 @@ static CFComparisonResult CmpEventStamp_CF (const void *val1, const void *val2, 
             aDelta->z = 0.0;
         }
         
-        if (isChanged!=NULL)
+        if (isChanged!=nullptr)
             *isChanged=kQ3False;
     }
     
@@ -568,7 +568,7 @@ static CFComparisonResult CmpEventStamp_CF (const void *val1, const void *val2, 
     
     workEvent.EventTimeStampKey=timeStamp;
     workEvent.EventButtons=someButtons;
-    if (aPosition==NULL)
+    if (aPosition==nullptr)
     {
         workEvent.EventPositionIsNULL=kQ3True;
     }
@@ -578,7 +578,7 @@ static CFComparisonResult CmpEventStamp_CF (const void *val1, const void *val2, 
         workEvent.EventPosition=*aPosition;
     }
     
-    if (anOrientation==NULL)
+    if (anOrientation==nullptr)
     {
         workEvent.EventOrientationIsNULL=kQ3True;
     }
@@ -590,7 +590,7 @@ static CFComparisonResult CmpEventStamp_CF (const void *val1, const void *val2, 
     
     NSData* packedEvent = [NSData dataWithBytes:&workEvent length:sizeof(workEvent)];
     [eventsRingBuffer addObject:packedEvent];
-    [eventsRingBuffer sortUsingFunction:cmpEventStamp context:NULL];
+    [eventsRingBuffer sortUsingFunction:cmpEventStamp context:nullptr];
     
     status=kQ3Success;
     
@@ -619,7 +619,7 @@ static CFComparisonResult CmpEventStamp_CF (const void *val1, const void *val2, 
         
         //-do bsearch
         CFRange SearchRange	= CFRangeMake(0,Count);
-        CFIndex EventIndex	= CFArrayBSearchValues((CFArrayRef)eventsRingBuffer,SearchRange,packedEventRef,CmpEventStamp_CF,NULL);
+        CFIndex EventIndex	= CFArrayBSearchValues((CFArrayRef)eventsRingBuffer,SearchRange,packedEventRef,CmpEventStamp_CF,nullptr);
         CFRelease(packedEventRef);
         //END toll free bridged
         
@@ -641,13 +641,13 @@ static CFComparisonResult CmpEventStamp_CF (const void *val1, const void *val2, 
             //-extract Event
             returnEvent = (TC3TrackerEventPtr)[[eventsRingBuffer objectAtIndex:EventIndex] bytes];
             //-and extract return values
-            if (retButtons!=NULL)
+            if (retButtons!=nullptr)
                 *retButtons=returnEvent->EventButtons;
             
-            if ((retPosition!=NULL)&&(returnEvent->EventPositionIsNULL==kQ3False))
+            if ((retPosition!=nullptr)&&(returnEvent->EventPositionIsNULL==kQ3False))
                 *retPosition=returnEvent->EventPosition;
             
-            if ((retOrientation!=NULL)&&(returnEvent->EventOrientationIsNULL==kQ3False))
+            if ((retOrientation!=nullptr)&&(returnEvent->EventOrientationIsNULL==kQ3False))
                 *retOrientation=returnEvent->EventOrientation;
             //-remove Events older than timeStamp
             for (int i=0; i<=EventIndex; i++)

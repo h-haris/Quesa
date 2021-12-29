@@ -104,7 +104,7 @@
         _hasGetChannelMethod=hasGCMthd;
 
         valuesRef = new float[_valueCount]();
-        _trackerUUID = NULL;
+        _trackerUUID = nullptr;
     }
     return self;
 }
@@ -144,7 +144,7 @@
     TQ3Status status = kQ3Success;
 
     if (isDecommissioned==kQ3True)
-        *signature = NULL;
+        *signature = nullptr;
     else
         *signature = _signature;//retain? release by receiver?
 
@@ -186,7 +186,7 @@
     //lock?
     [_publicDB incControllerListSerialNumber];//message to db
     //unlock?
-    if (_trackerUUID!=NULL)
+    if (_trackerUUID!=nullptr)
         [trackerProxy callNotificationWithController:_controllerRef];
     status = kQ3Success;
 
@@ -229,7 +229,7 @@
         buttonMask = theButtons^buttons;
         theButtons = buttons;
 
-        if (_trackerUUID!=NULL)
+        if (_trackerUUID!=nullptr)
             [trackerProxy changeButtonsWithController:_controllerRef
                                               buttons:buttons
                                            buttonMask:buttonMask];
@@ -259,7 +259,7 @@
     TQ3Status status = kQ3Failure;
     TQ3Boolean trackerIsActive;
 
-    if (_trackerUUID!=NULL)
+    if (_trackerUUID!=nullptr)
     {
         [trackerProxy activation:&trackerIsActive];
 
@@ -288,7 +288,7 @@
 {
     TQ3Status status = kQ3Success;
 
-    if ((_trackerUUID!=NULL)||(isActive==kQ3False))
+    if ((_trackerUUID!=nullptr)||(isActive==kQ3False))
         *track2DCursor=kQ3False;
     else
         *track2DCursor=kQ3True;
@@ -304,7 +304,7 @@
 {
     TQ3Status status = kQ3Success;
 
-    if ((_trackerUUID!=NULL)||(isActive==kQ3False))
+    if ((_trackerUUID!=nullptr)||(isActive==kQ3False))
         *track3DCursor=kQ3False;
     else
         *track3DCursor=kQ3True;
@@ -321,7 +321,7 @@
     TQ3Vector3D dummyDelta;
     TQ3Boolean  dummyChanged;
 
-    if ((isActive==kQ3True)&&(_trackerUUID!=NULL))
+    if ((isActive==kQ3True)&&(_trackerUUID!=nullptr))
         status = [trackerProxy positionWithSerialNumber:&dummySerNum
                                                Position:position
                                                   Delta:&dummyDelta
@@ -345,7 +345,7 @@
     //- (TQ3Status) setPositionWithController:(TQ3ControllerRef) controllerRef position:(TQ3Point3D) aPosition;
 
     TQ3Status status = kQ3Failure;
-    if ((isActive==kQ3True)&&(_trackerUUID!=NULL))
+    if ((isActive==kQ3True)&&(_trackerUUID!=nullptr))
         [trackerProxy setPositionWithController:_controllerRef
                                        position:position];
     /*
@@ -368,7 +368,7 @@
 - (TQ3Status) moveTrackerPosition:(TQ3Vector3D) delta
 {
     TQ3Status status = kQ3Failure;
-    if ((isActive==kQ3True)&&(_trackerUUID!=NULL))
+    if ((isActive==kQ3True)&&(_trackerUUID!=nullptr))
         [trackerProxy movePositionWithController:_controllerRef delta:delta];
     /*
      }
@@ -391,7 +391,7 @@
     TQ3Quaternion dummyDelta;
     TQ3Boolean    dummyChanged;
 
-    if ((isActive==kQ3True)&&(_trackerUUID!=NULL))
+    if ((isActive==kQ3True)&&(_trackerUUID!=nullptr))
         status = [trackerProxy orientationWithSerialNumber:&dummySerNum
                                                Orientation:orientation
                                                      Delta:&dummyDelta
@@ -418,7 +418,7 @@
 - (TQ3Status) setTrackerOrientation:(TQ3Quaternion) orientation
 {
     TQ3Status status = kQ3Failure;
-    if ((isActive==kQ3True)&&(_trackerUUID!=NULL))
+    if ((isActive==kQ3True)&&(_trackerUUID!=nullptr))
         [trackerProxy setOrientationWithController:_controllerRef
                                        orientation:orientation];
     /*
@@ -441,7 +441,7 @@
 - (TQ3Status) moveTrackerOrientation:(TQ3Quaternion) delta
 {
     TQ3Status status = kQ3Failure;
-    if ((isActive==kQ3True)&&(_trackerUUID!=NULL))
+    if ((isActive==kQ3True)&&(_trackerUUID!=nullptr))
         [trackerProxy moveOrientationWithController:_controllerRef delta:delta];
     /*
      }
@@ -467,7 +467,7 @@
     TQ3Status status = kQ3Success;
     TQ3Uns32    maxCount,index;
 
-    *values=NULL;//or [NSNull null]?
+    *values=nullptr;//or [NSNull null]?
 
     if (_valueCount>0)
     {
@@ -522,14 +522,14 @@
     TQ3Status status = kQ3Failure;
 
     //call notification function of old...
-    if (_trackerUUID!=NULL)
+    if (_trackerUUID!=nullptr)
     {
         [trackerProxy callNotificationWithController:_controllerRef];
         [_trackerUUID release];
         [trackerProxy release];
     }
 
-    if (aTrackerUUID!=NULL)
+    if (aTrackerUUID!=nullptr)
     {
         _trackerUUID = [NSString stringWithString:aTrackerUUID];
 
@@ -557,13 +557,13 @@
 {
     TQ3Status status = kQ3Success;
 
-    if (_trackerUUID!=NULL)
+    if (_trackerUUID!=nullptr)
     {
         [_trackerUUID release];
-        _trackerUUID=NULL;
+        _trackerUUID=nullptr;
 
         [trackerProxy release];
-        trackerProxy=NULL;
+        trackerProxy=nullptr;
     }
 
     /*TBC

@@ -152,6 +152,7 @@ static TQ3Status proxyOfDeviceDB(id *theID)
 
 //proxy object id for key in controllerRef
 static id proxyOfControllerRef(TQ3ControllerRef controllerRef)
+//FIXME: currently every time when proxyOfControllerRef() is called, it will hunt again
 //TODO: proxyOfControllerRef: change in a way that the library's local data supports more than one controller, local or remote
 //TODO: cache the proxy in a dictionary, controllerRef would be the key
 {
@@ -185,7 +186,7 @@ TQ3ControllerRef
 CC3OSXController_New(const TQ3ControllerData *controllerData)
 {
     TQ3Status               status;
-    TQ3ControllerRef        controllerRef = (TQ3ControllerRef)NULL; //TQ3ControllerRef is a *void !!
+    TQ3ControllerRef        controllerRef = (TQ3ControllerRef)nullptr; //TQ3ControllerRef is a *void !!
     id                      proxyDB;
 
     status = proxyOfDeviceDB(&proxyDB);
@@ -317,7 +318,7 @@ CC3OSXController_GetSignature(TQ3ControllerRef controllerRef, char *signature, T
 {
     TQ3Status status = kQ3Failure;
 
-    NSString *aSignature = NULL;
+    NSString *aSignature = nullptr;
 
     //object id for key in controllerRef
     id controllerProxy = proxyOfControllerRef(controllerRef);
@@ -384,7 +385,7 @@ CC3OSXController_GetChannel(TQ3ControllerRef controllerRef, TQ3Uns32 channel, vo
 {
     TQ3Status status = kQ3Failure;
 
-    NSData *theData = NULL;
+    NSData *theData = nullptr;
 
     //object id for key in controllerRef
     id controllerProxy = proxyOfControllerRef(controllerRef);
@@ -434,9 +435,9 @@ CC3OSXController_SetTracker(TQ3ControllerRef controllerRef, TC3TrackerInstanceDa
     //object id for key in controllerRef
     id controllerProxy = proxyOfControllerRef(controllerRef);
 
-    if (tracker==NULL)
+    if (tracker==nullptr)
     {
-        status = [controllerProxy setTracker:NULL
+        status = [controllerProxy setTracker:nullptr
                            attachToSysCursor:kQ3True];
     }
     else
@@ -690,7 +691,7 @@ CC3OSXController_GetValues(TQ3ControllerRef controllerRef, TQ3Uns32 valueCount, 
     TQ3Boolean  tempChanged = kQ3False;
     TQ3Boolean  active;
     TQ3Boolean  unload;
-    NSArray     *valAr = NULL;
+    NSArray     *valAr = nullptr;
 
     //object id for key in controllerRef
     id controllerProxy = proxyOfControllerRef(controllerRef);
@@ -704,7 +705,7 @@ CC3OSXController_GetValues(TQ3ControllerRef controllerRef, TQ3Uns32 valueCount, 
     {
         unload=kQ3False;
         //serialNumber NULL or not
-        if (serialNumber==NULL)
+        if (serialNumber==nullptr)
         {
             unload=kQ3True;
             tempChanged=kQ3True;
@@ -736,12 +737,12 @@ CC3OSXController_GetValues(TQ3ControllerRef controllerRef, TQ3Uns32 valueCount, 
             [valAr release]; // CFRelease(valAr);
         }
 
-        if (serialNumber!=NULL)
+        if (serialNumber!=nullptr)
             if (*serialNumber!=tempSerNum)
                 *serialNumber = tempSerNum;
     }
 
-    if (changed!=NULL)
+    if (changed!=nullptr)
         *changed=tempChanged;
 
     return(status);
@@ -795,8 +796,8 @@ CC3OSXTracker_New(TQ3Object theObject, TQ3TrackerNotifyFunc notifyFunc)
     TC3TrackerInstanceDataPtr theInstanceData
         = (TC3TrackerInstanceDataPtr)malloc(sizeof(TC3TrackerInstanceData));
 
-    if (theInstanceData==NULL)
-        return NULL;
+    if (theInstanceData==nullptr)
+        return nullptr;
 
     //alloc init
     theInstanceData->instance = [[[TrackerCoreOSX alloc] init] autorelease];
@@ -1090,7 +1091,7 @@ TC3ControllerStateInstanceDataPtr
 CC3OSXControllerState_New(TQ3Object theObject, TQ3ControllerRef theController)
 {
     TC3ControllerStateInstanceDataPtr   theInstanceData = nullptr;
-    NSString    *aUUID = NULL;
+    NSString    *aUUID = nullptr;
     TQ3Status   status = kQ3Failure;
 
     //object id for key in controllerRef
