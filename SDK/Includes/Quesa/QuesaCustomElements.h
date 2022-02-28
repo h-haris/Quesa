@@ -1,6 +1,6 @@
 /*! @header QuesaCustomElements.h
         Declares the standard Quesa custom elements, most inherited from QD3D.
-
+        
 	@ignore	_Nullable
 	@ignore _Nonnull
 	@ignore	_Null_unspecified
@@ -17,23 +17,23 @@
         For the current release of Quesa, please see:
 
             <https://github.com/jwwalker/Quesa>
-
+        
         Redistribution and use in source and binary forms, with or without
         modification, are permitted provided that the following conditions
         are met:
-
+        
             o Redistributions of source code must retain the above copyright
               notice, this list of conditions and the following disclaimer.
-
+        
             o Redistributions in binary form must reproduce the above
               copyright notice, this list of conditions and the following
               disclaimer in the documentation and/or other materials provided
               with the distribution.
-
+        
             o Neither the name of Quesa nor the names of its contributors
               may be used to endorse or promote products derived from this
               software without specific prior written permission.
-
+        
         THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
         "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
         LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
@@ -81,7 +81,7 @@ extern "C" {
 /*!
 	@constant	CEcNameElementName
 	@discussion	Class name of the name element.
-
+	
 				Ordinarily you will not need to use the class name, because you
 				can manipulate name elements using the functions
 				CENameElement_SetData, CENameElement_GetData, and
@@ -92,7 +92,7 @@ extern "C" {
 /*!
 	@constant	CEcUrlElementName
 	@discussion	Class name of the URL element.
-
+	
 				Ordinarily you will not need to use the class name, because you
 				can manipulate name elements using the functions
 				CEUrlElement_SetData, CEUrlElement_GetData, and
@@ -164,7 +164,7 @@ typedef enum TCEUrlOptions QUESA_ENUM_BASE(TQ3Uns32) {
  *      TCEUrlData
  *  @discussion
  *      Describes the data for a URL.
-
+ 
  *  @field url              C string containing the full (scheme + path) URL.
  *  @field description      Human readable description of the URL.
  *  @field options          Options for the URL.
@@ -183,7 +183,7 @@ typedef struct TCEUrlData {
 				the plane is negative.  For example, if you want fog to exist
 				where y < 5, you could use a plane (0, 1, 0, -5), and to have
 				fog where y > 5, you could use (0, -1, 0, 5).
-
+	
 	@field		rate		A measure of the rate of increase in fog as you
 							move farther from the plane.
 	@field		plane		A plane defining a halfspace in world coordinates,
@@ -228,7 +228,7 @@ CENameElement_SetData (
 
 /*!
  *  @function
- *      CENameElement_GetData
+ *      CENameElement_GetData  
  *  @discussion
  *      Get the name element for an object.
  *
@@ -363,14 +363,14 @@ CEUrlElement_EmptyData (
 				optimization for rendering TriMesh objects.  If you have not
 				already provided a triangle strip for a TriMesh, the renderer
 				will compute one, but this can take a little time.
-
+				
 				When you assign a triangle strip, the element also records the
 				current edit index of the object.
-
+				
 				You can pass 0 for inNumIndices and NULL for inIndices to
 				indicate that you want to avoid using a triangle strip, perhaps
 				because there is no efficient strip for this geometry.
-
+				
 				<em>This function is not available in QD3D.</em>
 	@param		ioObject		An object, normally a TriMesh.
 	@param		inNumIndices	Count of indices in the following array.
@@ -391,15 +391,15 @@ CETriangleStripElement_SetData(
 	@abstract	Get a triangle strip for the object.
 	@discussion	Triangle strips are used by the OpenGL renderer as a speed
 				optimization for rendering TriMesh objects.
-
+				
 				If the current edit index of the object is not the same as
 				when a strip was assigned, the strip will be considered stale
 				and this function will return kQ3Failure.
-
+				
 				This function returns the actual triangle strip data within
 				the element, not a copy.  The data should be considered
 				read-only and temporary.
-
+				
 				<em>This function is not available in QD3D.</em>
 	@param		inObject		An object, normally a TriMesh.
 	@param		outNumIndices	Receives count of indices.
@@ -449,7 +449,7 @@ CESpecularMapElement_Copy( TQ3ShaderObject _Nonnull inShader );
 				while the alpha value is bounded. To be exact,
 				an alpha value in the range [0.0, 1.0] is multiplied
 				by 128.0 and used as the OpenGL specular exponent.
-
+				
 				A specular map may only be used with the OpenGL
 				renderer, and requires that per-pixel lighting be
 				enabled.

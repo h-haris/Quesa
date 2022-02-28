@@ -1,6 +1,6 @@
 /*!
 	@header		CQ3ObjectRef_Gets.h
-
+	
 	This header provides C++ wrappers for Quesa functions that return an object
 	reference in an output parameter, as a convenience.  In failure conditions,
 	the CQ3ObjectRef may contain nullptr.  The name of the wrapper is the name of
@@ -13,30 +13,30 @@
     DESCRIPTION:
         C++ wrappers for Quesa functions that return an object reference in an
 		output parameter.
-
+		    
     COPYRIGHT:
         Copyright (c) 2007-2021, Quesa Developers. All rights reserved.
 
         For the current release of Quesa, please see:
 
             <https://github.com/jwwalker/Quesa>
-
+        
         Redistribution and use in source and binary forms, with or without
         modification, are permitted provided that the following conditions
         are met:
-
+        
             o Redistributions of source code must retain the above copyright
               notice, this list of conditions and the following disclaimer.
-
+        
             o Redistributions in binary form must reproduce the above
               copyright notice, this list of conditions and the following
               disclaimer in the documentation and/or other materials provided
               with the distribution.
-
+        
             o Neither the name of Quesa nor the names of its contributors
               may be used to endorse or promote products derived from this
               software without specific prior written permission.
-
+        
         THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
         "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
         LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
@@ -467,7 +467,7 @@ inline CQ3ObjectRef CQ3Triangle_GetVertexAttributeSet(
  *  @discussion
  *      Get the object located at a certain position in a group.
  *
- *		This function obtains a reference to the group member at a
+ *		This function obtains a reference to the group member at a 
  *		specified position.
  *
  *      Returns nullptr if there is no object at the given position.

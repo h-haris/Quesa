@@ -1,6 +1,6 @@
 /*! @header QuesaShader.h
         Declares the Quesa shader objects.
-
+          
 	@ignore	_Nullable
 	@ignore _Nonnull
 	@ignore	_Null_unspecified
@@ -17,23 +17,23 @@
         For the current release of Quesa, please see:
 
             <https://github.com/jwwalker/Quesa>
-
+        
         Redistribution and use in source and binary forms, with or without
         modification, are permitted provided that the following conditions
         are met:
-
+        
             o Redistributions of source code must retain the above copyright
               notice, this list of conditions and the following disclaimer.
-
+        
             o Redistributions in binary form must reproduce the above
               copyright notice, this list of conditions and the following
               disclaimer in the documentation and/or other materials provided
               with the distribution.
-
+        
             o Neither the name of Quesa nor the names of its contributors
               may be used to endorse or promote products derived from this
               software without specific prior written permission.
-
+        
         THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
         "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
         LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
@@ -101,10 +101,10 @@ typedef enum TQ3ShaderUVBoundary QUESA_ENUM_BASE(TQ3Uns32) {
 /*!
 	@enum
 		Texture&nbsp;Property&nbsp;Types
-
+	
 	@abstract
 		Object properties that may be set on texture objects.
-
+	
 	@constant		kQ3TexturePropertyCallbackAfterUpload
 					The data of this property must be a structure of type
 					TQ3TextureUploadPropertyData, containing a callback function
@@ -122,10 +122,10 @@ enum QUESA_ENUM_BASE(TQ3Int32)
 
 /*!
 	@enum	Texture&nbsp;shader&nbsp;element&nbsp;types
-
+	
 	@abstract
 			Custom elements that may be set on texture shader objects.
-
+	
 	@constant	kQ3ElementTypeTextureShaderAlphaTest
 					Normally, geometry using a texture with an alpha
 					channel must be broken into triangles to be sorted by depth
@@ -1226,37 +1226,37 @@ Q3MipmapTexture_SetMipmap (
 		__Q3FastColorARGB_Set(color, a, r, g, b);
 		return(color);
 	}
-
+	
 	inline TQ3ColorARGB * _Nonnull Q3FastColorARGB_Add(const TQ3ColorARGB * _Nonnull c1, const TQ3ColorARGB * _Nonnull c2, TQ3ColorARGB * _Nonnull result)
 	{
 		__Q3FastColorARGB_Add(c1, c2, result);
 		return(result);
 	}
-
+	
 	inline TQ3ColorARGB * _Nonnull Q3FastColorARGB_Subtract(const TQ3ColorARGB * _Nonnull c1, const TQ3ColorARGB * _Nonnull c2, TQ3ColorARGB * _Nonnull result)
 	{
 		__Q3FastColorARGB_Subtract(c1, c2, result);
 		return(result);
 	}
-
+	
 	inline TQ3ColorARGB * _Nonnull Q3FastColorARGB_Scale(const TQ3ColorARGB * _Nonnull color, float scale, TQ3ColorARGB * _Nonnull result)
 	{
 		__Q3FastColorARGB_Scale(color, scale, result);
 		return(result);
 	}
-
+	
 	inline TQ3ColorARGB * _Nonnull Q3FastColorARGB_Clamp(const TQ3ColorARGB * _Nonnull color, TQ3ColorARGB * _Nonnull result)
 	{
 		__Q3FastColorARGB_Clamp(color, result);
 		return(result);
 	}
-
+	
 	inline TQ3ColorARGB * _Nonnull Q3FastColorARGB_Lerp(const TQ3ColorARGB * _Nonnull first, const TQ3ColorARGB * _Nonnull last, float alpha, TQ3ColorARGB * _Nonnull result)
 	{
 		__Q3FastColorARGB_Lerp(first, last, alpha, result);
 		return(result);
 	}
-
+	
 	inline TQ3ColorARGB * _Nonnull Q3FastColorARGB_Accumulate(const TQ3ColorARGB * _Nonnull src, TQ3ColorARGB * _Nonnull result)
 	{
 		__Q3FastColorARGB_Accumulate(src, result);
@@ -1268,43 +1268,43 @@ Q3MipmapTexture_SetMipmap (
 		__Q3FastColorRGB_Set(color, r, g, b);
 		return(color);
 	}
-
+	
 	inline TQ3ColorRGB * _Nonnull Q3FastColorRGB_Add(const TQ3ColorRGB * _Nonnull c1, const TQ3ColorRGB * _Nonnull c2, TQ3ColorRGB * _Nonnull result)
 	{
 		__Q3FastColorRGB_Add(c1, c2, result);
 		return(result);
 	}
-
+	
 	inline TQ3ColorRGB * _Nonnull Q3FastColorRGB_Subtract(const TQ3ColorRGB * _Nonnull c1, const TQ3ColorRGB * _Nonnull c2, TQ3ColorRGB * _Nonnull result)
 	{
 		__Q3FastColorRGB_Subtract(c1, c2, result);
 		return(result);
 	}
-
+	
 	inline TQ3ColorRGB * _Nonnull Q3FastColorRGB_Scale(const TQ3ColorRGB * _Nonnull color, float scale, TQ3ColorRGB * _Nonnull result)
 	{
 		__Q3FastColorRGB_Scale(color, scale, result);
 		return(result);
 	}
-
+	
 	inline TQ3ColorRGB * _Nonnull Q3FastColorRGB_Clamp(const TQ3ColorRGB * _Nonnull color, TQ3ColorRGB * _Nonnull result)
 	{
 		__Q3FastColorRGB_Clamp(color, result);
 		return(result);
 	}
-
+	
 	inline TQ3ColorRGB * _Nonnull Q3FastColorRGB_Lerp(const TQ3ColorRGB * _Nonnull first, const TQ3ColorRGB * _Nonnull last, float alpha, TQ3ColorRGB * _Nonnull result)
 	{
 		__Q3FastColorRGB_Lerp(first, last, alpha, result);
 		return(result);
 	}
-
+	
 	inline TQ3ColorRGB * _Nonnull Q3FastColorRGB_Accumulate(const TQ3ColorRGB * _Nonnull src, TQ3ColorRGB * _Nonnull result)
 	{
 		__Q3FastColorRGB_Accumulate(src, result);
 		return(result);
 	}
-
+	
 	inline float * _Nonnull Q3FastColorRGB_Luminance(const TQ3ColorRGB * _Nonnull color, float * _Nonnull luminance)
 	{
 		__Q3FastColorRGB_Luminance(color, luminance);
