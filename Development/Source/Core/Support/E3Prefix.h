@@ -5,7 +5,7 @@
         Global prefix file for Quesa.
 
     COPYRIGHT:
-        Copyright (c) 1999-2019, Quesa Developers. All rights reserved.
+        Copyright (c) 1999-2021, Quesa Developers. All rights reserved.
 
         For the current release of Quesa, please see:
 

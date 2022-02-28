@@ -7,30 +7,30 @@
 
     DESCRIPTION:
         C++ wrapper class for a Quesa shared object.
-
+    
     COPYRIGHT:
         Copyright (c) 2004-2021, Quesa Developers. All rights reserved.
 
         For the current release of Quesa, please see:
 
             <https://github.com/jwwalker/Quesa>
-
+        
         Redistribution and use in source and binary forms, with or without
         modification, are permitted provided that the following conditions
         are met:
-
+        
             o Redistributions of source code must retain the above copyright
               notice, this list of conditions and the following disclaimer.
-
+        
             o Redistributions in binary form must reproduce the above
               copyright notice, this list of conditions and the following
               disclaimer in the documentation and/or other materials provided
               with the distribution.
-
+        
             o Neither the name of Quesa nor the names of its contributors
               may be used to endorse or promote products derived from this
               software without specific prior written permission.
-
+        
         THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
         "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
         LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
@@ -67,12 +67,12 @@
 				This class is designed to be usable in STL container classes, in a way similar
 				to std::shared_ptr.  One could base such a wrapper on boost::intrusive_pointer,
 				but I chose not to require Boost.
-
+				
 				Due to a HeaderDoc bug, it is not possible to automatically
 				document more than one constructor.  Besides the constructor from
 				a TQ3Object, there is a default constructor (which holds nullptr)
 				a copy constructor, and a move constructor.
-
+				
 				This wrapper is not fully functional with objects that are not
 				reference-counted (such as Views and Picks).  Calling the copy constructor
 				or copy assignment operator on a CQ3ObjectRef holding an object of a non-shared
@@ -104,7 +104,7 @@ public:
 							*/
 							CQ3ObjectRef( CQ3ObjectRef&& ioOther ) noexcept;
 #endif
-
+							
 							/*!
 								@function	CQ3ObjectRef
 								@abstract	Constructor from a TQ3Object.
@@ -115,14 +115,14 @@ public:
 							*/
 	explicit				CQ3ObjectRef( TQ3Object _Nullable inObject )
 									: mObject( inObject ) {}
-
+	
 							/*!
 								@function	~CQ3ObjectRef
 								@abstract	Destructor.
 								@discussion	Disposes the object if it is not nullptr.
 							*/
 							~CQ3ObjectRef();
-
+	
 							/*!
 								@function	operator=
 								@abstract	Copy Assignment operator.
@@ -132,7 +132,7 @@ public:
 								@param		inOther		Another CQ3ObjectRef.
 							*/
 	CQ3ObjectRef&			operator=( const CQ3ObjectRef& inOther );
-
+	
 #if QUESA_CPP11
 							/*
 								@function	operator=
@@ -148,21 +148,21 @@ public:
 								@param		ioOther		Another CQ3ObjectRef.
 							*/
 	void					swap( CQ3ObjectRef& ioOther );
-
+	
 							/*!
 								@function	isvalid
 								@abstract	Test whether this object holds a Quesa object.
 								@result		True if it holds a non-nullptr Quesa object.
 							*/
 	bool					isvalid() const { return mObject != nullptr; }
-
+	
 							/*!
 								@function	get
 								@abstract	Get the value held by the wrapper.
 								@result		A TQ3Object, or nullptr.
 							*/
 	TQ3Object _Nullable		get() const { return mObject; }
-
+	
 private:
 							/*!
 								@var		mObject

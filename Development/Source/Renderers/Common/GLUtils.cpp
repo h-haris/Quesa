@@ -10,23 +10,23 @@
         For the current release of Quesa, please see:
 
             <https://github.com/jwwalker/Quesa>
-
+        
         Redistribution and use in source and binary forms, with or without
         modification, are permitted provided that the following conditions
         are met:
-
+        
             o Redistributions of source code must retain the above copyright
               notice, this list of conditions and the following disclaimer.
-
+        
             o Redistributions in binary form must reproduce the above
               copyright notice, this list of conditions and the following
               disclaimer in the documentation and/or other materials provided
               with the distribution.
-
+        
             o Neither the name of Quesa nor the names of its contributors
               may be used to endorse or promote products derived from this
               software without specific prior written permission.
-
+        
         THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
         "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
         LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
@@ -64,7 +64,7 @@
 
 	#include <mach-o/dyld.h>
 	#include <cstring>
-
+	
 	#define DLOPEN_NO_WARN	1
 	#include <dlfcn.h>
 #endif
@@ -109,20 +109,20 @@ isOpenGLExtensionPresent( const char* inNames, const char* inExtName )
 {
 	TQ3Boolean	foundExtension = kQ3False;
 	size_t	nameLength = strlen( inExtName );
-
+	
 	if (inNames != nullptr)
 	{
 		while (inNames[0] != '\0')
 		{
 			unsigned long	firstExtLength = strcspn( inNames, " " );
-
+			
 			if ( (nameLength == firstExtLength) &&
 				(strncmp( inExtName, inNames, firstExtLength ) == 0) )
 			{
 				foundExtension = kQ3True;
 				break;
 			}
-
+			
 			inNames += firstExtLength;
 			if (inNames[0] == ' ')
 			{
@@ -130,7 +130,7 @@ isOpenGLExtensionPresent( const char* inNames, const char* inExtName )
 			}
 		}
 	}
-
+	
 	return foundExtension;
 }
 
@@ -182,11 +182,11 @@ GLUtils_ConvertUVBoundary(TQ3ShaderUVBoundary qd3dBounds, GLint *glBounds )
 		case kQ3ShaderUVBoundaryWrap:
 			*glBounds = GL_REPEAT;
 			break;
-
+		
 		case kQ3ShaderUVBoundaryMirrorRepeat:
 			*glBounds = GL_MIRRORED_REPEAT;
 			break;
-
+		
 		case kQ3ShaderUVBoundaryClamp:
 		default:
 			*glBounds = GL_CLAMP_TO_EDGE;
@@ -225,7 +225,7 @@ GLUtils_ConvertPixelType(TQ3PixelType pixelType)
 			// version of OpenGL you are using.s
 			glPixelType = GL_RGBA8;
 			break;
-
+	
 		case kQ3PixelTypeRGB32:
 		case kQ3PixelTypeRGB24:
 			glPixelType = GL_RGB8;
@@ -252,7 +252,7 @@ GLUtils_ConvertPixelType(TQ3PixelType pixelType)
 			glPixelType = GL_RGB8;
 			break;
 		}
-
+	
 	return(glPixelType);
 }
 
@@ -291,7 +291,7 @@ GLUtils_SizeOfPixelType(TQ3PixelType pixelType)
 			theSize = 0;
 			break;
 		}
-
+	
 	return(theSize);
 }
 
@@ -306,13 +306,13 @@ void
 GLUtils_CheckExtensions( TQ3GLExtensions* featureFlags )
 {
 	//const char*	openGLVendor = (const char*)glGetString( GL_VENDOR );
-
+	
 	short j = 0;
 	short shiftVal = 8;
-
+	
 	// Initialize to default value, all off.
 	memset( featureFlags, 0, sizeof(TQ3GLExtensions) );
-
+	
 	GLint	sampleBuffers = 0;
 	glGetIntegerv( GL_SAMPLE_BUFFERS_ARB, &sampleBuffers );
 	featureFlags->multiSample = (sampleBuffers > 0)? kQ3True : kQ3False;
@@ -334,7 +334,7 @@ GLUtils_LoadShaderUVTransform( const TQ3Matrix3x3* qMatrix,
 			{ qMatrix->value[1][0], qMatrix->value[1][1], 0.0f, qMatrix->value[1][2] },
 			{ 0.0f, 0.0f, 1.0f, 0.0f },
 			{ qMatrix->value[2][0], qMatrix->value[2][1], 0.0f, qMatrix->value[2][2] },
-		}
+		}	
 	};
 	inPPL.SetTextureMatrix( textureMtx );
 }
@@ -355,13 +355,13 @@ GLUtils_LoadShaderUVTransform( const TQ3Matrix3x3* qMatrix,
 GLfloat		GLUtils_SpecularControlToGLShininess( float inSpecControl )
 {
 	GLfloat		shininess;
-
+	
 	if (inSpecControl < 0.0f)
 		inSpecControl = 0.0f;
 
 
 	shininess = 128.0f - (20.0f * 128.0f)/(inSpecControl + 20.0f);
-
+	
 	return shininess;
 }
 
@@ -397,27 +397,27 @@ const char* GLUtils_GLErrorToString( GLenum inGLError )
 		case GL_INVALID_ENUM:
 			result = "GL_INVALID_ENUM";
 			break;
-
+			
 		case GL_INVALID_VALUE:
 			result = "GL_INVALID_VALUE";
 			break;
-
+			
 		case GL_INVALID_OPERATION:
 			result = "GL_INVALID_OPERATION";
 			break;
-
+			
 		case GL_STACK_OVERFLOW:
 			result = "GL_STACK_OVERFLOW";
 			break;
-
+			
 		case GL_STACK_UNDERFLOW:
 			result = "GL_STACK_UNDERFLOW";
 			break;
-
+			
 		case GL_OUT_OF_MEMORY:
 			result = "GL_OUT_OF_MEMORY";
 			break;
-
+		
 		default:
 			{
 				static char sMsg[200];
@@ -426,7 +426,7 @@ const char* GLUtils_GLErrorToString( GLenum inGLError )
 			}
 			break;
 	}
-
+	
 	return result;
 }
 
@@ -438,9 +438,9 @@ void	GLUtils_CheckGLError( const char* inFileName, int inLineNum )
 	if (error != GL_NO_ERROR)
 	{
 		char xmsg[200];
-
+		
 		snprintf( xmsg, sizeof(xmsg), "glGetError() is %s", GLUtils_GLErrorToString(error) );
-
+		
 		E3Assert( inFileName, inLineNum, xmsg );
 	}
 }
@@ -452,12 +452,12 @@ void	GLUtils_CheckGLErrorFmt( const char* inFileName, int inLineNum, const char*
 	if (error != GL_NO_ERROR)
 	{
 		char customMsg[600]; char wholeMsg[800];
-
+		
 		va_list arglist;
 		va_start( arglist, inFormat );
 		vsnprintf( customMsg, sizeof(customMsg), inFormat, arglist );
 		va_end( arglist );
-
+		
 		snprintf( wholeMsg, sizeof(wholeMsg), "%s error=%s", GLUtils_GLErrorToString(error), customMsg );
 		E3Assert( inFileName, inLineNum, wholeMsg );
 	}
@@ -488,7 +488,7 @@ void*	GLGetProcAddress( const char* funcName )
 {
 	// dlsym is available on 10.3 and later, and preferred on 10.4 and later.
 	void*	thePtr = dlsym( RTLD_DEFAULT, funcName );
-
+	
 	return thePtr;
 }
 

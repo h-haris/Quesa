@@ -18,3 +18,4 @@ INFOPLIST_PREFIX_HEADER = ../../Source/Core/Support/E3Version.h
 // Functions whose declarations use the Q3_EXTERN_API_C macro will be exported
 // from the framework.
 GCC_PREPROCESSOR_DEFINITIONS = $(inherited) Q3_EXPORT_SYMBOLS=1
+

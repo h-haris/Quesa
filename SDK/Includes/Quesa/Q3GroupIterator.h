@@ -3,30 +3,30 @@
 
     DESCRIPTION:
         C++ utility header to aid in traversing Quesa groups.
-
+		    
     COPYRIGHT:
         Copyright (c) 2007, Quesa Developers. All rights reserved.
 
         For the current release of Quesa, please see:
 
             <https://github.com/jwwalker/Quesa>
-
+        
         Redistribution and use in source and binary forms, with or without
         modification, are permitted provided that the following conditions
         are met:
-
+        
             o Redistributions of source code must retain the above copyright
               notice, this list of conditions and the following disclaimer.
-
+        
             o Redistributions in binary form must reproduce the above
               copyright notice, this list of conditions and the following
               disclaimer in the documentation and/or other materials provided
               with the distribution.
-
+        
             o Neither the name of Quesa nor the names of its contributors
               may be used to endorse or promote products derived from this
               software without specific prior written permission.
-
+        
         THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
         "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
         LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
@@ -52,7 +52,7 @@
 	@class		Q3GroupIterator
 	@abstract	Class to simplify iterating through a Quesa group.
 	@discussion	Example:
-
+	
 				<blockquote><pre><code>
 				Q3GroupIterator		iter( aGroup, kQ3ShapeTypeGeometry );
 				CQ3ObjectRef	theItem;
@@ -75,21 +75,21 @@ public:
 						Q3GroupIterator(
 								TQ3GroupObject inGroup,
 								TQ3ObjectType inType = kQ3ObjectTypeShared );
-
+	
 	/*!
 		@function	NextObject
 		@abstract	Get a reference to the next member of the group.
 		@result		A reference to a member object, or nullptr if done.
 	*/
 	CQ3ObjectRef		NextObject();
-
+	
 	/*!
 		@function	CurrentPosition
 		@abstract	Get the position of the member most recently returned by <code>NextObject</code>.
 		@result		The current group position, or NULL if none.
 	*/
 	TQ3GroupPosition	CurrentPosition() const { return mPos; }
-
+	
 private:
 	TQ3GroupObject		mGroup;
 	TQ3ObjectType		mType;
