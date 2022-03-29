@@ -10,23 +10,23 @@
         For the current release of Quesa, please see:
 
             <https://github.com/jwwalker/Quesa>
-        
+
         Redistribution and use in source and binary forms, with or without
         modification, are permitted provided that the following conditions
         are met:
-        
+
             o Redistributions of source code must retain the above copyright
               notice, this list of conditions and the following disclaimer.
-        
+
             o Redistributions in binary form must reproduce the above
               copyright notice, this list of conditions and the following
               disclaimer in the documentation and/or other materials provided
               with the distribution.
-        
+
             o Neither the name of Quesa nor the names of its contributors
               may be used to endorse or promote products derived from this
               software without specific prior written permission.
-        
+
         THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
         "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
         LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
@@ -105,9 +105,9 @@ enum QUESA_ENUM_BASE( uint64_t ) {
 	kQ3ViewStateAttributeMetallic			= 1 << 29,		// Metallic attribute changed
 	kQ3ViewStateStyleDepthRange				= 1 << 30,		// Depth range style changed
 	kQ3ViewStateStyleWriteSwitch 			= 1U << 31,		// Write switch style changed
-	kQ3ViewStateStyleDepthCompare			= 1UL << 32,	// Depth compare style changed
+	kQ3ViewStateStyleDepthCompare			= 1ULL << 32,	// Depth compare style changed
 	kQ3ViewStateNone						= 0,			// Nothing changed
-	kQ3ViewStateAll							= 0xFFFFFFFFFFUL,	// Everything changed
+	kQ3ViewStateAll							= 0xFFFFFFFFFFULL,	// Everything changed
 	kQ3ViewStateMatrixAny					= kQ3ViewStateMatrixLocalToWorld  |	// Any matrix changed
 											  kQ3ViewStateMatrixWorldToCamera |
 											  kQ3ViewStateMatrixCameraToFrustum
@@ -131,8 +131,8 @@ class E3View ;
 typedef struct TQ3ViewStackItem {
 	// Next stack item
 	struct TQ3ViewStackItem*	next;
-	
-	
+
+
 	// Stack item state
 	TQ3ViewStackState			stackState;
 	TQ3Matrix4x4				matrixLocalToWorld;
@@ -201,16 +201,16 @@ typedef struct TQ3ViewData {
 	TQ3SlabObject				boundingPointsSlab;
 	TQ3BoundingSphere			boundingSphere;
 	E3FastArray<TQ3Point3D>*	boundingPointsArray;
-	
-	
+
+
 	// Derived cached matrices
 	TQ3Matrix4x4				matrixLocalToFrustum;
 	bool						isLocalToFrustumValid;
 	TQ3RationalPoint4D			localFrustumPlanes[6];
 	TQ3Matrix4x4				matrixLocalToFrustumInverse;
 	bool						isLocalToFrustumInverseValid;
-	
-	
+
+
 	// Pick state
 	TQ3PickObject				thePick;
 	TQ3HitPath					pickedPath;
@@ -221,14 +221,14 @@ typedef struct TQ3ViewData {
 
 	// Write state
 	TQ3FileObject				theFile;
-	
+
 
 	// Rendering resources
 	TQ3RendererObject			viewRenderer;
 	TQ3CameraObject				theCamera;
 	TQ3GroupObject				theLights;
 	TQ3DrawContextObject		theDrawContext;
-	TQ3AttributeSet				defaultAttributeSet;	
+	TQ3AttributeSet				defaultAttributeSet;
 	TQ3Boolean					rendererFinishedFrame;
 	TQ3XRendererSubmitGeometryMethod	submitTriMeshMethod;
 	TQ3XRendererUpdateMatrixMethod		updateMtxLocalToWorld;
@@ -261,7 +261,7 @@ public :
 
 	TQ3ViewData					instanceData ;
 	} ;
-	
+
 
 
 class E3StateOperator : public E3Shape // This is not a leaf class, but only classes in this,
@@ -275,7 +275,7 @@ public :
 
 	// There is no extra data for this class
 	} ;
-	
+
 
 
 class E3Push : public E3StateOperator  // This is a leaf class so no other classes use this,
@@ -288,7 +288,7 @@ public :
 
 	// There is no extra data for this class
 	} ;
-	
+
 
 
 class E3Pop : public E3StateOperator  // This is a leaf class so no other classes use this,
@@ -301,7 +301,7 @@ public :
 
 	// There is no extra data for this class
 	} ;
-	
+
 
 
 //=============================================================================
@@ -416,7 +416,7 @@ e3view_stack_update_attribute(TQ3ViewObject				theView,
 
 	// Update the renderer
 	qd3dStatus = E3Renderer_Method_UpdateAttribute(theView, attributeType, paramData);
-	
+
 	return qd3dStatus ;
 }
 
@@ -504,14 +504,14 @@ e3view_stack_update ( E3View* view, TQ3ViewStackState stateChange )
 
 		if ( ( stateChange & kQ3ViewStateShaderIllumination ) && qd3dStatus != kQ3Failure )
 			qd3dStatus = E3Renderer_Method_UpdateShader ( view, kQ3ShaderTypeIllumination, &theItem->shaderIllumination ) ;
-		
+
 		if ( ( stateChange & kQ3ViewStateShaderSurface ) && qd3dStatus != kQ3Failure )
 			{
 			// QD3D only submits textures when in kQ3FillStyleFilled mode, so we do the same
 			if ( theItem->styleFill == kQ3FillStyleFilled )
 				qd3dStatus = E3Renderer_Method_UpdateShader ( view, kQ3ShaderTypeSurface, &theItem->shaderSurface ) ;
 			}
-	
+
 		if ( ( stateChange & kQ3ViewStateStyleBackfacing ) && qd3dStatus != kQ3Failure )
 			qd3dStatus = E3Renderer_Method_UpdateStyle ( view, kQ3StyleTypeBackfacing, &theItem->styleBackfacing ) ;
 
@@ -611,8 +611,8 @@ e3view_stack_update ( E3View* view, TQ3ViewStackState stateChange )
 		if ( ( stateChange & kQ3ViewStateAttributeHighlightState ) && qd3dStatus != kQ3Failure )
 			qd3dStatus = e3view_stack_update_attribute ( view, theItem, kQ3AttributeTypeHighlightState, &theItem->attributeHighlightState ) ;
 		}
-	
-	
+
+
 
 	// Update what has changed since the last push.
 	theItem->stackState |= stateChange ;
@@ -658,7 +658,7 @@ e3view_stack_push ( E3View* view )
 	}
 	TQ3ViewStackItem* oldTop = instanceData.viewStack;
 	instanceData.viewStack = newTop;
-	
+
 
 	// If this is the first item, initialise it
 	if ( oldTop == nullptr )
@@ -668,7 +668,7 @@ e3view_stack_push ( E3View* view )
 		instanceData.isLocalToFrustumValid = false;
 		instanceData.isLocalToFrustumInverseValid = false;
 		}
-	
+
 	// Otherwise, clone what was on the top to the new top
 	else
 		{
@@ -685,7 +685,7 @@ e3view_stack_push ( E3View* view )
 
 		// Adjust the reference counts of the shared objects. The Q3Memory_Copy will have
 		// have copied them without adjusting the reference counts, which is incorrect.
-		
+
 		E3Shared_Acquire ( &newTop->shaderIllumination,     oldTop->shaderIllumination ) ;
 		E3Shared_Acquire ( &newTop->shaderSurface,          oldTop->shaderSurface ) ;
 		E3Shared_Acquire ( &newTop->styleHighlight,         oldTop->styleHighlight ) ;
@@ -741,10 +741,10 @@ e3view_stack_pop ( E3View* view )
 
 	// Update the renderer, using the state of the previously top
 	// item as the mask indicating what's changed.
-	
+
 	// In so doing, the mask of changes to view state after the last push
 	// will be ORed with the mask of changes before the push.
-	
+
 	// One might think that the mask could be kept the same as before the
 	// push, since we are undoing those state changes.  However, with the
 	// current design, it is not quite possible, because the renderer state
@@ -789,10 +789,10 @@ e3view_init_matrix_state( TQ3ViewObject theView )
 	TQ3Matrix4x4	worldToCamera, cameraToFrustum;
 	TQ3Status		qd3dStatus;
 	E3View*			viewOb = (E3View*) theView;
-	
+
 	qd3dStatus = Q3Camera_GetWorldToView( viewOb->instanceData.theCamera,
 		&worldToCamera );
-		
+
 	if ( qd3dStatus != kQ3Failure )
 	{
 		TQ3Status viewToFrustumStatus = Q3Camera_GetViewToFrustum( viewOb->instanceData.theCamera,
@@ -801,7 +801,7 @@ e3view_init_matrix_state( TQ3ViewObject theView )
 			kQ3MatrixStateWorldToCamera | kQ3MatrixStateCameraToFrustum, nullptr, &worldToCamera,
 			(viewToFrustumStatus == kQ3Success)? &cameraToFrustum : nullptr );
 	}
-	
+
 	return qd3dStatus;
 }
 
@@ -836,13 +836,13 @@ e3view_bounds_box_exact ( E3View* view, TQ3Uns32 numPoints, TQ3Uns32 pointStride
 	}
 	E3FastArray<TQ3Point3D>& workArray( *(view->instanceData.boundingPointsArray) );
 	workArray.resizeNotPreserving( numPoints );
-	
-	
+
+
 	// Transform the points to world space.
 	E3Point3D_To3DTransformArray( thePoints, localToWorld, &workArray[0],
 		numPoints, pointStride, sizeof(TQ3Point3D) );
-	
-	
+
+
 	// Find the bounds of the points in the buffer, and union with the accumulating bounds.
 	TQ3BoundingBox thisBox;
 	E3BoundingBox_SetFromPoints3D( &thisBox, &workArray[0], numPoints, sizeof(TQ3Point3D) );
@@ -889,36 +889,36 @@ e3view_bounds_box_approx ( E3View* view, TQ3Uns32 numPoints, TQ3Uns32 pointStrid
 	// Transform the bounding box to world coordinates
 	Q3Point3D_Transform ( & localBounds.min, localToWorld, &tempPoint ) ;
 	Q3BoundingBox_Set ( & transformedBounds,&tempPoint,&tempPoint,kQ3False ) ;
-		
+
 	Q3Point3D_Set ( & tempPoint, localBounds.min.x,localBounds.min.y,localBounds.max.z ) ;
 	Q3Point3D_Transform ( & tempPoint, localToWorld, &tempPoint ) ;
 	Q3BoundingBox_UnionPoint3D ( & transformedBounds,&tempPoint,&transformedBounds ) ;
-	
+
 	Q3Point3D_Set ( & tempPoint, localBounds.max.x,localBounds.min.y,localBounds.max.z ) ;
 	Q3Point3D_Transform ( & tempPoint, localToWorld, &tempPoint ) ;
 	Q3BoundingBox_UnionPoint3D ( & transformedBounds,&tempPoint,&transformedBounds ) ;
-	
+
 	Q3Point3D_Set ( & tempPoint, localBounds.max.x,localBounds.min.y,localBounds.min.z ) ;
 	Q3Point3D_Transform ( & tempPoint, localToWorld, &tempPoint ) ;
 	Q3BoundingBox_UnionPoint3D ( & transformedBounds,&tempPoint,&transformedBounds ) ;
-	
+
 	Q3Point3D_Transform ( & localBounds.max, localToWorld, &tempPoint ) ;
 	Q3BoundingBox_UnionPoint3D ( & transformedBounds,&tempPoint,&transformedBounds ) ;
-	
+
 	Q3Point3D_Set ( & tempPoint, localBounds.max.x,localBounds.max.y,localBounds.min.z ) ;
 	Q3Point3D_Transform ( & tempPoint, localToWorld, &tempPoint ) ;
 	Q3BoundingBox_UnionPoint3D ( & transformedBounds,&tempPoint,&transformedBounds ) ;
-	
+
 	Q3Point3D_Set ( & tempPoint, localBounds.min.x,localBounds.max.y,localBounds.min.z ) ;
 	Q3Point3D_Transform ( & tempPoint, localToWorld, &tempPoint ) ;
 	Q3BoundingBox_UnionPoint3D ( & transformedBounds,&tempPoint,&transformedBounds ) ;
-	
+
 	Q3Point3D_Set ( & tempPoint, localBounds.min.x,localBounds.max.y,localBounds.max.z ) ;
 	Q3Point3D_Transform ( & tempPoint, localToWorld, &tempPoint ) ;
 	Q3BoundingBox_UnionPoint3D ( & transformedBounds,&tempPoint,&transformedBounds ) ;
-	
-	
-	
+
+
+
 
 	// Accumulate the bounding box
 	Q3BoundingBox_Union ( & transformedBounds, & view->instanceData.boundingBox, & view->instanceData.boundingBox ) ;
@@ -948,7 +948,7 @@ e3view_bounds_sphere_exact ( E3View* view, TQ3Uns32 numPoints, TQ3Uns32 pointStr
 	Q3_ASSERT_VALID_PTR(localToWorld);
 
 	if ( view->instanceData.boundingPointsSlab != nullptr )
-		{	
+		{
 
 		// Transform the points to world coordinates, and store them in the slab
 		TQ3Point3D* worldPoints = (TQ3Point3D *) Q3SlabMemory_AppendData ( view->instanceData.boundingPointsSlab, numPoints, nullptr ) ;
@@ -1031,7 +1031,7 @@ e3view_submit_retained_error ( TQ3ViewObject inView, TQ3Object theObject )
 	E3View* view = (E3View*) inView;
 	#pragma unused( theObject )
 	TQ3Error theError ;
-	
+
  	// We get called is app writer tries to submit when viewState != kQ3ViewStateSubmitting
  	// Error, decide which error to post
 	switch ( view->instanceData.viewMode )
@@ -1078,8 +1078,8 @@ e3view_submit_retained_pick ( TQ3ViewObject inView, TQ3Object theObject )
 	// for that top-level object.
 	if ( view->instanceData.pickDecomposeCount == 0 )
 		E3View_PickStack_SaveObject ( view, theObject ) ;
-	
-	
+
+
 	// Call the method
 	TQ3Status qd3dStatus = kQ3Success ;
 	if ( theClass->submitPickMethod != nullptr )
@@ -1094,7 +1094,7 @@ e3view_submit_retained_pick ( TQ3ViewObject inView, TQ3Object theObject )
 		E3View_PickStack_SaveObject ( view, nullptr ) ;
 
 
-	
+
 	return qd3dStatus ;
 }
 
@@ -1116,7 +1116,7 @@ e3view_submit_retained_write ( TQ3ViewObject inView, TQ3Object theObject)
 	// Call the method
 	if ( theClass->submitWriteMethod == nullptr )
 		return kQ3Success ;
-		
+
 	return theClass->submitWriteMethod ( theView, theClass->GetType (), theObject, theObject->FindLeafInstanceData () ) ;
 }
 
@@ -1138,7 +1138,7 @@ e3view_submit_retained_bounds ( TQ3ViewObject inView, TQ3Object theObject )
 	// Call the method
 	if ( theClass->submitBoundsMethod == nullptr )
 		return kQ3Success ;
-	
+
 	return theClass->submitBoundsMethod ( theView, theClass->GetType (), theObject, theObject->FindLeafInstanceData () ) ;
 }
 
@@ -1197,7 +1197,7 @@ e3view_submit_immediate_error ( TQ3ViewObject inView , TQ3ObjectType objectType 
 	#pragma unused( objectType, objectData )
 	E3View* view = (E3View*) inView;
 	TQ3Error theError ;
-	
+
  	// We get called is app writer tries to submit when viewState != kQ3ViewStateSubmitting
  	// Error, decide which error to post
 	switch ( view->instanceData.viewMode )
@@ -1245,7 +1245,7 @@ e3view_submit_immediate_render ( TQ3ViewObject theView , TQ3ObjectType objectTyp
 	// Call the rendering submit method unless it is nullptr
 	if ( theClass->submitRenderMethod == nullptr )
 		return kQ3Success ;
-		
+
 	return theClass->submitRenderMethod ( theView, objectType, nullptr, objectData ) ;
 	}
 
@@ -1260,7 +1260,7 @@ static TQ3Status
 e3view_submit_immediate_pick ( TQ3ViewObject inView , TQ3ObjectType objectType , const void* objectData )
 {
 	E3View* view = (E3View*) inView;
-	
+
 	// Find the object class
 	E3Root* theClass = (E3Root*) E3ClassTree::GetClass ( objectType ) ;
 	if ( theClass == nullptr )
@@ -1284,7 +1284,7 @@ e3view_submit_immediate_pick ( TQ3ViewObject inView , TQ3ObjectType objectType ,
 		qd3dStatus = theClass->submitPickMethod ( view, objectType, nullptr, objectData ) ;
 	else
 		qd3dStatus = kQ3Success ;
-		
+
 	// Reset the current hit target. Not strictly necessary (since we
 	// will release our reference on the next object or at the end of the picking loop)
 	// but this helps keep our internal state easily debuggable (the tracked object
@@ -1306,7 +1306,7 @@ static TQ3Status
 e3view_submit_immediate_write ( TQ3ViewObject inView , TQ3ObjectType objectType , const void* objectData )
 {
 	E3View* theView = (E3View*) inView;
-	
+
 	// Find the object class
 	E3Root* theClass = (E3Root*) E3ClassTree::GetClass ( objectType ) ;
 	if ( theClass == nullptr )
@@ -1319,7 +1319,7 @@ e3view_submit_immediate_write ( TQ3ViewObject inView , TQ3ObjectType objectType 
 	// Call the method
 	if ( theClass->submitWriteMethod == nullptr )
 		return kQ3Success ;
-	
+
 	return theClass->submitWriteMethod ( theView, objectType, nullptr, objectData ) ;
 }
 
@@ -1334,7 +1334,7 @@ static TQ3Status
 e3view_submit_immediate_bounds ( TQ3ViewObject inView, TQ3ObjectType objectType , const void* objectData )
 {
 	E3View* theView = (E3View*) inView;
-	
+
 	// Find the object class
 	E3Root* theClass = (E3Root*) E3ClassTree::GetClass ( objectType ) ;
 	if ( theClass == nullptr )
@@ -1348,7 +1348,7 @@ e3view_submit_immediate_bounds ( TQ3ViewObject inView, TQ3ObjectType objectType 
 	// Call the method
 	if ( theClass->submitBoundsMethod == nullptr )
 		return kQ3Success ;
-	
+
 	return theClass->submitBoundsMethod ( theView, objectType, nullptr, objectData ) ;
 }
 
@@ -1389,7 +1389,7 @@ e3view_submit_begin ( E3View* view, TQ3ViewMode viewMode )
 		view->instanceData.viewMode  = viewMode ;
 		view->instanceData.viewState = kQ3ViewStateSubmitting ;
 		view->instanceData.viewPass  = 1 ;
-		
+
 		// Find the appropriate submit method
 		switch ( viewMode )
 			{
@@ -1527,12 +1527,12 @@ e3view_submit_end ( E3View* view, TQ3ViewStatus submitStatus )
 	if ( viewStatus == kQ3ViewStatusRetraverse )
 		{
 		// Restart the submit
-		view->instanceData.viewState = kQ3ViewStateSubmitting ; 
+		view->instanceData.viewState = kQ3ViewStateSubmitting ;
 		view->instanceData.viewPass++ ;
 		TQ3Status qd3dStatus = e3view_submit_begin ( view, view->instanceData.viewMode )  ;
 
 
-		// Invoke the start pass method		
+		// Invoke the start pass method
 		if ( qd3dStatus != kQ3Failure )
 			{
 			view->instanceData.rendererFinishedFrame = kQ3False ;
@@ -1607,7 +1607,7 @@ e3view_pick_begin ( E3View* view, TQ3PickObject thePick )
 
 
 	// Initialise our state
-	Q3Memory_Clear(& view->instanceData.pickedPath, sizeof( view->instanceData.pickedPath)); 
+	Q3Memory_Clear(& view->instanceData.pickedPath, sizeof( view->instanceData.pickedPath));
 	view->instanceData.pickedObject       = nullptr;
 	view->instanceData.pickDecomposeCount = 0;
 
@@ -1626,9 +1626,9 @@ e3view_pick_begin ( E3View* view, TQ3PickObject thePick )
 
 
 
-		switch( Q3Camera_GetType( view->instanceData.theCamera )	)	
+		switch( Q3Camera_GetType( view->instanceData.theCamera )	)
 		{
-		
+
 			default:
 			case kQ3CameraTypeViewPlane:
 			case kQ3CameraTypeViewAngleAspect:
@@ -1636,19 +1636,19 @@ e3view_pick_begin ( E3View* view, TQ3PickObject thePick )
 				// Find the camera location and range
 				Q3Camera_GetPlacement( view->instanceData.theCamera, &thePlacement);
 				Q3Camera_GetRange( view->instanceData.theCamera, &theRange );
-				
+
 				// Initialise the ray direction - from the camera to the world point
 				view->instanceData.rayThroughPick.direction = Q3Normalize3D( worldPoint - thePlacement.cameraLocation );
-				
+
 				// Although it may seem natural to set the ray origin at the camera location, that is before
 				// the near plane, so it cannot be transformed into window or frustum coordinates.  Safer to
 				// go a bit beyond the near plane.
 				view->instanceData.rayThroughPick.origin = thePlacement.cameraLocation +
 					theRange.hither * 1.0001f * view->instanceData.rayThroughPick.direction;
 				break;
-			
+
 			case kQ3CameraTypeOrthographic:
-			
+
 				// Set origin of pick to the pick loc in world coordinates
 				Q3Camera_GetPlacement( view->instanceData.theCamera, &thePlacement);
 				view->instanceData.rayThroughPick.origin = worldPoint;
@@ -1800,7 +1800,7 @@ e3view_new(TQ3Object theObject, void *privateData, const void *paramData)
 	instanceData->submitRetainedMethod  = (TQ3XViewSubmitRetainedMethod) e3view_submit_retained_error;
 	instanceData->submitImmediateMethod = (TQ3XViewSubmitImmediateMethod) e3view_submit_immediate_error;
 	instanceData->allowGroupCulling = kQ3True;
-	
+
 	instanceData->viewAttributes = Q3AttributeSet_New();
 	if (instanceData->viewAttributes != nullptr)
 		{
@@ -1808,11 +1808,11 @@ e3view_new(TQ3Object theObject, void *privateData, const void *paramData)
 		Q3AttributeSet_Add(instanceData->viewAttributes,
 							kQ3AttributeTypeAmbientCoefficient,
 							&defaultAmbientCoefficient);
-		
+
 		Q3AttributeSet_Add(instanceData->viewAttributes,
 							kQ3AttributeTypeHighlightState,
 							&defaultHighlightState);
-		
+
 		Q3AttributeSet_Add(instanceData->viewAttributes,
 							kQ3AttributeTypeSpecularControl,
 							&defaultSpecularControl);
@@ -1824,11 +1824,11 @@ e3view_new(TQ3Object theObject, void *privateData, const void *paramData)
 		Q3AttributeSet_Add(instanceData->viewAttributes,
 							kQ3AttributeTypeDiffuseColor,
 							&defaultDiffuseColour);
-		
+
 		Q3AttributeSet_Add(instanceData->viewAttributes,
 							kQ3AttributeTypeSpecularColor,
 							&defaultSpecularColour);
-		
+
 		Q3AttributeSet_Add(instanceData->viewAttributes,
 							kQ3AttributeTypeTransparencyColor,
 							&defaultTransparencyColour);
@@ -1862,7 +1862,7 @@ e3view_delete ( TQ3ViewObject view, void *privateData )
 	delete instanceData->boundingPointsArray;
 
 	e3view_stack_pop_clean ( (E3View*) view ) ;
-	
+
 	// Clear the free list
 	while (instanceData->viewStackFreeList != nullptr)
 	{
@@ -1894,41 +1894,41 @@ e3view_metahandler(TQ3XMethodType methodType)
 		case kQ3XMethodTypeObjectDelete:
 			theMethod = (TQ3XFunctionPointer) e3view_delete;
 			break;
-		
+
 		case kQ3XMethodTypeViewSubmitRetainedRender:
 			theMethod = (TQ3XFunctionPointer) e3view_submit_retained_render;
 			break;
-		
+
 		case kQ3XMethodTypeViewSubmitRetainedPick:
 			theMethod = (TQ3XFunctionPointer) e3view_submit_retained_pick;
 			break;
-		
+
 		case kQ3XMethodTypeViewSubmitRetainedBound:
 			theMethod = (TQ3XFunctionPointer) e3view_submit_retained_bounds;
 			break;
-		
+
 		case kQ3XMethodTypeViewSubmitRetainedWrite:
 			theMethod = (TQ3XFunctionPointer) e3view_submit_retained_write;
 			break;
-		
+
 		case kQ3XMethodTypeViewSubmitImmediateRender:
 			theMethod = (TQ3XFunctionPointer) e3view_submit_immediate_render;
 			break;
-		
+
 		case kQ3XMethodTypeViewSubmitImmediatePick:
 			theMethod = (TQ3XFunctionPointer) e3view_submit_immediate_pick;
 			break;
-		
+
 		case kQ3XMethodTypeViewSubmitImmediateBound:
 			theMethod = (TQ3XFunctionPointer) e3view_submit_immediate_bounds;
 			break;
-		
+
 		case kQ3XMethodTypeViewSubmitImmediateWrite:
 			theMethod = (TQ3XFunctionPointer) e3view_submit_immediate_write;
 			break;
-		
+
 		}
-	
+
 	return(theMethod);
 }
 
@@ -1973,7 +1973,7 @@ e3push_metahandler(TQ3XMethodType methodType)
 			theMethod = (TQ3XFunctionPointer) e3push_submit;
 			break;
 		}
-	
+
 	return(theMethod);
 }
 
@@ -2026,7 +2026,7 @@ e3pop_metahandler(TQ3XMethodType methodType)
 			theMethod = (TQ3XFunctionPointer) e3pop_submit;
 			break;
 		}
-	
+
 	return(theMethod);
 }
 
@@ -2050,17 +2050,17 @@ E3View_RegisterClass(void)
 	qd3dStatus = Q3_REGISTER_CLASS (	kQ3ClassNameView,
 										e3view_metahandler,
 										E3View ) ;
-	
+
 	if (qd3dStatus != kQ3Failure)
 		qd3dStatus = Q3_REGISTER_CLASS_NO_DATA (	kQ3ClassNameStateOperator,
 											nullptr,
 											E3StateOperator ) ;
-	
+
 	if (qd3dStatus != kQ3Failure)
 		qd3dStatus = Q3_REGISTER_CLASS_NO_DATA (	kQ3ClassNameStateOperatorPush,
 											e3push_metahandler,
 											E3Push ) ;
-	
+
 	if (qd3dStatus != kQ3Failure)
 		qd3dStatus = Q3_REGISTER_CLASS_NO_DATA (	kQ3ClassNameStateOperatorPop,
 											e3pop_metahandler,
@@ -2111,7 +2111,7 @@ E3View_SubmitRetained ( TQ3ViewObject theView , TQ3Object theObject )
 //      E3View_SubmitImmediate : Submit an immediate mode object to a view.
 //-----------------------------------------------------------------------------
 TQ3Status
-E3View_SubmitImmediate ( TQ3ViewObject theView , TQ3ObjectType objectType , const void* objectData ) 
+E3View_SubmitImmediate ( TQ3ViewObject theView , TQ3ObjectType objectType , const void* objectData )
 	{
 	return ( (E3View*) theView )->instanceData.submitImmediateMethod ( theView , objectType , objectData ) ;
 	}
@@ -2129,7 +2129,7 @@ E3View_SubmitImmediate ( TQ3ViewObject theView , TQ3ObjectType objectType , cons
 TQ3Status
 E3View_CallIdleMethod(TQ3ViewObject theView, TQ3Uns32 current, TQ3Uns32 completed)
 	{
-	E3View* view = (E3View*) theView ;	
+	E3View* view = (E3View*) theView ;
 
 
 	// Make sure we're in the correct state
@@ -2140,7 +2140,7 @@ E3View_CallIdleMethod(TQ3ViewObject theView, TQ3Uns32 current, TQ3Uns32 complete
 
 	// If we have an idle progress method, call it
 	if ( view->instanceData.idleProgressMethod != nullptr )
-		return view->instanceData.idleProgressMethod ( theView, 
+		return view->instanceData.idleProgressMethod ( theView,
 													  view->instanceData.idleProgressData,
 													  current,
 													  completed ) ;
@@ -2390,7 +2390,7 @@ TQ3BoundingMethod
 E3View_GetBoundingMethod(TQ3ViewObject theView)
 	{
 	// Validate our state
-	Q3_ASSERT( ( (E3View*) theView )->instanceData.viewMode == kQ3ViewModeCalcBounds ); 
+	Q3_ASSERT( ( (E3View*) theView )->instanceData.viewMode == kQ3ViewModeCalcBounds );
 
 
 
@@ -2504,8 +2504,8 @@ E3View_PickStack_PushGroup(TQ3ViewObject theView, TQ3GroupObject theGroup)
 		// Validate our state - the path should be empty
 		Q3_ASSERT ( pickedPath->rootGroup == nullptr ) ;
 		Q3_ASSERT ( pickedPath->depth     == 0 ) ;
-		
-		
+
+
 		// Save the group as the current root
 		pickedPath->rootGroup = Q3Shared_GetReference ( theGroup ) ;
 		}
@@ -2532,7 +2532,7 @@ E3View_PickStack_PushGroup(TQ3ViewObject theView, TQ3GroupObject theGroup)
 
 	// Save a nullptr position to initialise the slot
 	pickedPath->positions [ pickedPath->depth - 1 ] = nullptr ;
-	
+
 	return qd3dStatus ;
 	}
 
@@ -2573,7 +2573,7 @@ E3View_PickStack_GetPickedObject(TQ3ViewObject theView)
 	// Return a new reference to the picked object
 	if ( ( (E3View*) theView )->instanceData.pickedObject != nullptr )
 		return Q3Shared_GetReference ( ( (E3View*) theView )->instanceData.pickedObject ) ;
-	
+
 	return nullptr ;
 	}
 
@@ -2799,20 +2799,20 @@ const TQ3Matrix4x4&
 E3View_State_GetMatrixLocalToFrustum( TQ3ViewObject inView )
 {
 	E3View*	theView = (E3View*) inView;
-	
+
 	if (! theView->instanceData.isLocalToFrustumValid)
 	{
 		theView->instanceData.matrixLocalToFrustum =
 			theView->instanceData.viewStack->matrixLocalToCamera *
 			theView->instanceData.viewStack->matrixCameraToFrustum;
-		
+
 		E3Math_CalcLocalFrustumPlanes(
 			theView->instanceData.matrixLocalToFrustum,
 			theView->instanceData.localFrustumPlanes );
-		
+
 		theView->instanceData.isLocalToFrustumValid = true;
 	}
-	
+
 	return theView->instanceData.matrixLocalToFrustum;
 }
 
@@ -2830,7 +2830,7 @@ E3View_State_GetFrustumPlanesInLocalSpace( TQ3ViewObject inView )
 	{
 		(void) E3View_State_GetMatrixLocalToFrustum( theView );
 	}
-	
+
 	return viewData.localFrustumPlanes;
 }
 
@@ -2853,15 +2853,15 @@ const TQ3Matrix4x4&
 E3View_State_GetMatrixFrustumToLocal( TQ3ViewObject inView )
 {
 	E3View*	theView = (E3View*) inView;
-	
+
 	if (! theView->instanceData.isLocalToFrustumInverseValid)
 	{
 		Q3Matrix4x4_Invert( &E3View_State_GetMatrixLocalToFrustum( inView ),
 			&theView->instanceData.matrixLocalToFrustumInverse );
-		
+
 		theView->instanceData.isLocalToFrustumInverseValid = true;
 	}
-	
+
 	return theView->instanceData.matrixLocalToFrustumInverse;
 }
 
@@ -2926,14 +2926,14 @@ E3View_State_SetMatrix(TQ3ViewObject			theView,
 
 	// Set the matrices which have changed
 	TQ3ViewStackState stateChange = kQ3ViewStateNone;
-	
+
 	if (theState & kQ3MatrixStateLocalToWorld)
 		{
 		Q3_ASSERT(Q3_VALID_PTR(localToWorld));
 		stateChange                                 |= kQ3ViewStateMatrixLocalToWorld;
 		instanceData.viewStack->matrixLocalToWorld = *localToWorld;
 		}
-	
+
 	if (theState & kQ3MatrixStateWorldToCamera)
 		{
 		Q3_ASSERT(Q3_VALID_PTR(worldToCamera));
@@ -2941,13 +2941,13 @@ E3View_State_SetMatrix(TQ3ViewObject			theView,
 		Q3_ASSERT( isfinite( worldToCamera->value[0][0] ) );
 		instanceData.viewStack->matrixWorldToCamera = *worldToCamera;
 		}
-	
+
 	if ( (theState & (kQ3MatrixStateLocalToWorld | kQ3MatrixStateWorldToCamera)) != 0 )
 	{
 		instanceData.viewStack->matrixLocalToCamera =
 			instanceData.viewStack->matrixLocalToWorld * instanceData.viewStack->matrixWorldToCamera;
 	}
-	
+
 	if (theState & kQ3MatrixStateCameraToFrustum)
 	{
 		stateChange                                    |= kQ3ViewStateMatrixCameraToFrustum;
@@ -2981,9 +2981,9 @@ E3View_State_SetShaderIllumination(TQ3ViewObject theView, const TQ3IlluminationS
 	{
 	// Validate our state
 	Q3_ASSERT ( Q3_VALID_PTR ( ( (E3View*) theView )->instanceData.viewStack ) ) ;
-	
-	
-	
+
+
+
 	// Get type of old and new illumination
 	TQ3ObjectType oldType = ( ( (E3View*) theView )->instanceData.viewStack->shaderIllumination == nullptr ) ? kQ3ObjectTypeInvalid :
 		Q3IlluminationShader_GetType ( ( (E3View*) theView )->instanceData.viewStack->shaderIllumination ) ;
@@ -3271,7 +3271,7 @@ E3View_State_SetStyleHighlight(TQ3ViewObject theView, TQ3AttributeSet highlightA
 //-----------------------------------------------------------------------------
 void
 E3View_State_SetStyleOrientation(TQ3ViewObject theView, TQ3OrientationStyle frontFacingDirection)
-	{	
+	{
 	// Validate our state
 	Q3_ASSERT ( Q3_VALID_PTR ( ( (E3View*) theView )->instanceData.viewStack ) ) ;
 
@@ -3340,7 +3340,7 @@ E3View_State_SetStyleFog(TQ3ViewObject theView, const TQ3FogStyleData *theData,
 	fogExtended.density = theData->density;
 	fogExtended.color = theData->color;
 	fogExtended.maxOpacity = CEFogMaxElement_Get( theFogObject );
-	
+
 	TCEHalfspaceFogData halfspaceData;
 	TQ3Status halfspaceStatus = CEHalfspaceFogElement_GetData( theFogObject,
 		&halfspaceData );
@@ -3360,12 +3360,12 @@ E3View_State_SetStyleFog(TQ3ViewObject theView, const TQ3FogStyleData *theData,
 	// Multiple submits of a style within a group simply override each other, and
 	// so we can avoid updating the renderer if the style state does not change.
 	TQ3ViewStackItem* stackTop = ( (E3View*) theView )->instanceData.viewStack;
-	
+
 	if ( memcmp( & stackTop->styleFogExtended, &fogExtended,
 		sizeof( TQ3FogStyleExtendedData ) ) != 0 )
 	{
 		stackTop->styleFogExtended = fogExtended;
-		
+
 		e3view_stack_update( (E3View*) theView, kQ3ViewStateStyleFog ) ;
 	}
 }
@@ -3731,7 +3731,7 @@ E3View_State_SetAttributeSurfaceTangent(TQ3ViewObject theView, const TQ3Tangent2
 
 	// Update the renderer
 	e3view_stack_update ( (E3View*) theView, kQ3ViewStateAttributeSurfaceTangent ) ;
-	}	
+	}
 
 
 
@@ -3861,7 +3861,7 @@ E3View_NewWithDefaults(TQ3ObjectType drawContextType, void *drawContextTarget)
 //-----------------------------------------------------------------------------
 TQ3Status
 E3View_Cancel(TQ3ViewObject theView)
-	{	
+	{
 	// Cancel the view
 	if ( ( (E3View*) theView )->instanceData.viewState == kQ3ViewStateInactive )
 		return kQ3Failure ;
@@ -3926,8 +3926,8 @@ E3View_SetRenderer(TQ3ViewObject theView, TQ3RendererObject theRenderer)
 	// Reset the draw context state
 	if ( instanceData->theDrawContext != nullptr )
 		E3DrawContext_ResetState ( instanceData->theDrawContext ) ;
-		
-	
+
+
 
 	// Fetch cached method pointers
 	if (theRenderer != nullptr)
@@ -4002,13 +4002,13 @@ E3View_StartRendering(TQ3ViewObject theView)
 		{
 		if ( ( (E3View*) theView )->instanceData.theDrawContext == nullptr )
 			E3ErrorManager_PostError ( kQ3ErrorDrawContextNotSet, kQ3False ) ;
-			
+
 		if ( ( (E3View*) theView )->instanceData.viewRenderer == nullptr )
 			E3ErrorManager_PostError ( kQ3ErrorRendererNotSet, kQ3False ) ;
-			
+
 		if ( ( (E3View*) theView )->instanceData.theCamera == nullptr )
 			E3ErrorManager_PostError ( kQ3ErrorCameraNotSet, kQ3False ) ;
-		
+
 		Q3_MESSAGE_FMT("E3View_StartRendering failing due to missing objects");
 		return kQ3Failure ;
 		}
@@ -4050,17 +4050,17 @@ E3View_StartRendering(TQ3ViewObject theView)
 		if ( qd3dStatus != kQ3Failure )
 		{
 			qd3dStatus = E3Renderer_Method_StartFrame ( theView, ( (E3View*) theView )->instanceData.theDrawContext ) ;
-			
+
 			if (qd3dStatus == kQ3Failure)
 			{
 				Q3_MESSAGE_FMT("E3Renderer_Method_StartFrame failed");
 			}
 		}
-		
+
 		if ( qd3dStatus != kQ3Failure )
 		{
 			qd3dStatus = e3view_init_matrix_state( theView );
-			
+
 			if (qd3dStatus == kQ3Failure)
 			{
 				Q3_MESSAGE_FMT("e3view_init_matrix_state failed");
@@ -4088,7 +4088,7 @@ E3View_StartRendering(TQ3ViewObject theView)
 	if ( qd3dStatus != kQ3Failure )
 	{
 		qd3dStatus = e3view_submit_initial_state( (E3View*) theView ) ;
-		
+
 		if (qd3dStatus == kQ3Failure)
 		{
 			Q3_MESSAGE_FMT("e3view_submit_initial_state failed");
@@ -4102,7 +4102,7 @@ E3View_StartRendering(TQ3ViewObject theView)
 		(void) e3view_submit_end ( (E3View*) theView, kQ3ViewStatusError ) ;
 
 	return qd3dStatus ;
-	}	
+	}
 
 
 
@@ -4223,7 +4223,7 @@ E3View_StartBoundingBox(TQ3ViewObject theView, TQ3ComputeBounds computeBounds)
 			( (E3View*) theView )->instanceData.boundingMethod = kQ3BoxBoundsExact ;
 		else
 			( (E3View*) theView )->instanceData.boundingMethod = kQ3BoxBoundsApprox ;
-		
+
 		( (E3View*) theView )->instanceData.boundingBox.min.x   = 0.0f ;
 		( (E3View*) theView )->instanceData.boundingBox.min.y   = 0.0f ;
 		( (E3View*) theView )->instanceData.boundingBox.min.z   = 0.0f ;
@@ -4288,18 +4288,18 @@ E3View_StartBoundingSphere(TQ3ViewObject theView, TQ3ComputeBounds computeBounds
 		{
 		// clean previous points from an aborted operation...
 		Q3Object_CleanDispose ( & ( (E3View*) theView )->instanceData.boundingPointsSlab ) ;
-		
+
 		// allocate new Slab to hold the points
 		( (E3View*) theView )->instanceData.boundingPointsSlab = Q3SlabMemory_New ( sizeof ( TQ3Point3D ), 0, nullptr ) ;
 		if ( ( (E3View*) theView )->instanceData.boundingPointsSlab == nullptr )
 			return qd3dStatus ;
-		
-		
+
+
 		if ( computeBounds == kQ3ComputeBoundsExact )
 			( (E3View*) theView )->instanceData.boundingMethod = kQ3SphereBoundsExact ;
 		else
 			( (E3View*) theView )->instanceData.boundingMethod = kQ3SphereBoundsApprox ;
-		
+
 		( (E3View*) theView )->instanceData.boundingSphere.origin.x = 0.0f ;
 		( (E3View*) theView )->instanceData.boundingSphere.origin.y = 0.0f ;
 		( (E3View*) theView )->instanceData.boundingSphere.origin.z = 0.0f ;
@@ -4401,14 +4401,14 @@ E3View_EndPicking(TQ3ViewObject theView)
 	// If we're still in the submit loop, end the pass
 	if ( ( (E3View*) theView )->instanceData.viewState == kQ3ViewStateSubmitting )
 		viewStatus = kQ3ViewStatusDone ; // What is the point of this? It is already kQ3ViewStatusDone
-		
+
 
 
 	// End the submit loop
 	viewStatus = e3view_submit_end ( (E3View*) theView, viewStatus ) ;
 	if ( viewStatus != kQ3ViewStatusRetraverse )
 		e3view_pick_end ( (E3View*) theView ) ;
-	
+
 	return viewStatus ;
 	}
 
@@ -4597,7 +4597,7 @@ E3View_AddLight(TQ3ViewObject theView, TQ3ObjectType lightType, void *lightData)
 		lightGroup = Q3LightGroup_New();
 		if (lightGroup == nullptr)
 			return kQ3Failure ;
-		
+
 		Q3View_SetLightGroup(theView, lightGroup);
 		}
 
@@ -4623,7 +4623,7 @@ E3View_AddLight(TQ3ViewObject theView, TQ3ObjectType lightType, void *lightData)
 		case kQ3LightTypeSpot:
 			theLight = Q3SpotLight_New((TQ3SpotLightData *) lightData);
 			break;
-		
+
 		case kQ3ShapeTypeLight:
 			theLight = *((TQ3LightObject *) lightData);
 			if (theLight != nullptr)
@@ -4640,7 +4640,7 @@ E3View_AddLight(TQ3ViewObject theView, TQ3ObjectType lightType, void *lightData)
 	// Add the light to the light group
 	Q3Group_AddObjectAndDispose(lightGroup, &theLight);
 	Q3Object_Dispose(lightGroup);
-	
+
 	return kQ3Success ;
 }
 
@@ -4657,7 +4657,7 @@ E3View_SetIdleMethod(TQ3ViewObject theView, TQ3ViewIdleMethod idleMethod, const 
 	// Update the object
 	( (E3View*) theView )->instanceData.idleMethod = idleMethod ;
 	( (E3View*) theView )->instanceData.idleData   = idleData ;
-	
+
 	return kQ3Success ;
 	}
 
@@ -4674,7 +4674,7 @@ E3View_SetIdleProgressMethod(TQ3ViewObject theView, TQ3ViewIdleProgressMethod id
 	// Update the object
 	( (E3View*) theView )->instanceData.idleProgressMethod = idleMethod ;
 	( (E3View*) theView )->instanceData.idleProgressData   = idleData ;
-	
+
 	return kQ3Success ;
 	}
 
@@ -4693,7 +4693,7 @@ E3View_SetEndFrameMethod(TQ3ViewObject theView, TQ3ViewEndFrameMethod endFrame, 
 	// Update the object
 	( (E3View*) theView )->instanceData.endFrameMethod = endFrame ;
 	( (E3View*) theView )->instanceData.endFrameData   = endFrameData ;
-	
+
 	return kQ3Success ;
 	}
 
@@ -4791,8 +4791,8 @@ E3View_TransformLocalToWindow(TQ3ViewObject theView, const TQ3Point3D *localPoin
 	TQ3Matrix4x4 localToWorld;
 	E3View_GetLocalToWorldMatrixState( theView, &localToWorld );
 	TQ3Point3D worldPt = *localPoint * localToWorld;
-	
-	
+
+
 	return E3View_TransformWorldToWindow( theView, &worldPt, windowPoint );
 }
 
@@ -4804,13 +4804,13 @@ E3View_TransformLocalToFrustum(TQ3ViewObject theView, const TQ3Point3D *localPoi
 	// Make sure we're in the correct state
 	if ( ( (E3View*) theView )->instanceData.viewState != kQ3ViewStateSubmitting )
 		return kQ3Failure ;
-	
+
 	const TQ3Matrix4x4* localToWorld = E3View_State_GetMatrixLocalToWorld( theView );
 	TQ3CameraObject camera = E3View_AccessCamera( theView );
 	TQ3Matrix4x4 worldToView;
 	( (E3Camera*) camera )->GetWorldToView( &worldToView );
 	TQ3Point3D viewPt = *localPoint * (*localToWorld) * worldToView;
-	
+
 	*frustumPoint = E3Camera_ViewToFrustum( camera, viewPt );
 	return kQ3Success;
 }
@@ -4827,11 +4827,11 @@ E3View_TransformFrustumToWorld(TQ3ViewObject theView, const TQ3Point3D *frustumP
 	TQ3CameraObject camera = E3View_AccessCamera( theView );
 
 	TQ3Point3D viewPt = E3Camera_FrustumToView( camera, *frustumPoint );
-	
+
 	 TQ3Matrix4x4 worldToView;
 	 ( (E3Camera*) camera )->GetWorldToView( &worldToView );
 	 TQ3Matrix4x4 viewToWorld = Q3Invert( worldToView );
-	 
+
 	 *worldPoint = viewPt * viewToWorld;
 	return kQ3Success;
 }
@@ -4850,9 +4850,9 @@ E3View_TransformArrayLocalToWindow(TQ3ViewObject theView, TQ3Uns32 inCount,
 	{
 		return kQ3Success;
 	}
-	
+
 	TQ3Uns32 i;
-	
+
 	// Get some matrices.
 	TQ3Matrix4x4 localToWorld, worldToView, frustumToWindow;
 	TQ3CameraObject camera = E3View_AccessCamera( theView );
@@ -4860,7 +4860,7 @@ E3View_TransformArrayLocalToWindow(TQ3ViewObject theView, TQ3Uns32 inCount,
 	E3View_GetLocalToWorldMatrixState( theView, &localToWorld );
 	TQ3Matrix4x4 localToView = localToWorld * worldToView;
 	E3View_GetFrustumToWindowMatrixState( theView, &frustumToWindow );
-	
+
 	E3FastArray< TQ3Point3D > windowPts3D( inCount );
 
 	// In the case of a camera with a nonlinear projection, we can't do the whole
@@ -4871,14 +4871,14 @@ E3View_TransformArrayLocalToWindow(TQ3ViewObject theView, TQ3Uns32 inCount,
 		E3FastArray< TQ3Point3D > viewPts( inCount );
 		E3Point3D_To3DTransformArray( localPoints, &localToView, &viewPts[0], inCount,
 			sizeof(TQ3Point3D), sizeof(TQ3Point3D) );
-		
+
 		// Transform to frustum space.
 		E3FastArray< TQ3Point3D > frustumPts( inCount );
 		for (i = 0; i < inCount; ++i)
 		{
 			frustumPts[i] = E3Camera_ViewToFrustum( camera, viewPts[i] );
 		}
-		
+
 		// Transform to window space.
 		E3Point3D_To3DTransformArray( &frustumPts[0], &frustumToWindow, &windowPts3D[0], inCount,
 			sizeof(TQ3Point3D), sizeof(TQ3Point3D) );
@@ -4891,14 +4891,14 @@ E3View_TransformArrayLocalToWindow(TQ3ViewObject theView, TQ3Uns32 inCount,
 		E3Point3D_To3DTransformArray( localPoints, &localToWindow, &windowPts3D[0], inCount,
 			sizeof(TQ3Point3D), sizeof(TQ3Point3D) );
 	}
-	
+
 	// Convert window points from 3D to 2D
 	for (i = 0; i < inCount; ++i)
 	{
 		windowPoints[i].x = windowPts3D[i].x;
 		windowPoints[i].y = windowPts3D[i].y;
 	}
-	
+
 	return kQ3Success;
 }
 
@@ -4957,13 +4957,13 @@ E3View_TransformWindowToWorld(TQ3ViewObject theView,
 	( (E3Camera*) camera )->GetWorldToView( &worldToView );
 	TQ3Matrix4x4 windowToFrustum = Q3Invert( frustumToWindow );
 	TQ3Matrix4x4 viewToWorld = Q3Invert( worldToView );
-	
+
 	// Transform
 	TQ3Point3D windowPt3D = { windowPoint->x, windowPoint->y, 0.0f };
 	TQ3Point3D frustumPt = windowPt3D * windowToFrustum;
 	TQ3Point3D viewPt = E3Camera_FrustumToView( camera, frustumPt );
 	*worldPoint = viewPt * viewToWorld;
-	
+
 	return kQ3Success;
 }
 
@@ -5054,14 +5054,27 @@ E3View_GetLocalToWorldMatrixState(TQ3ViewObject theView, TQ3Matrix4x4 *theMatrix
 TQ3Status
 E3View_GetWorldToFrustumMatrixState(TQ3ViewObject theView, TQ3Matrix4x4 *theMatrix)
 {
+	TQ3ViewData& viewData( ( (E3View*) theView )->instanceData );
+
 	// Make sure we're in the correct state
-	if ( ( (E3View*) theView )->instanceData.viewState != kQ3ViewStateSubmitting )
+	if ( viewData.viewState != kQ3ViewStateSubmitting )
 		return kQ3Failure ;
 
 
+	// Make sure there is a well defined camera to frustum matrix
+	if ( ! viewData.viewStack->hasMatrixCameraToFrustum )
+	{
+		return kQ3Failure;
+	}
+
 
 	// Get the matrix
-	return Q3Camera_GetWorldToFrustum ( ( (E3View*) theView )->instanceData.theCamera, theMatrix ) ;
+	// (At one point, we were using Q3Camera_GetWorldToFrustum here.  But that
+	// does not respect the action of a camera transform.)
+	*theMatrix = viewData.viewStack->matrixWorldToCamera * viewData.viewStack->matrixCameraToFrustum;
+
+
+	return kQ3Success;
 }
 
 
@@ -5116,11 +5129,11 @@ E3View_GetIlluminationShaderState( TQ3ViewObject theView, TQ3ObjectType* outType
 	// Make sure we're in the correct state
 	if ( ( (E3View*) theView )->instanceData.viewState != kQ3ViewStateSubmitting )
 		return kQ3Failure ;
-	
+
 	// Validate our state
 	Q3_ASSERT ( Q3_VALID_PTR ( ( (E3View*) theView )->instanceData.viewStack ) );
-	
-	
+
+
 	// Get the illumination type
 	TQ3ShaderObject theShader = ( (E3View*) theView )->instanceData.viewStack->shaderIllumination;
 	if (theShader == nullptr) // shouldn't happen
@@ -5131,7 +5144,7 @@ E3View_GetIlluminationShaderState( TQ3ViewObject theView, TQ3ObjectType* outType
 	{
 		*outType = E3IlluminationShader_GetType( theShader );
 	}
-	
+
 	return kQ3Success;
 }
 
@@ -5511,9 +5524,9 @@ E3View_GetDepthRangeStyleState(TQ3ViewObject theView, TQ3DepthRangeStyleData *ou
 
 	// Get the value
 	*outData = ( (E3View*) theView )->instanceData.viewStack->styleDepthRange ;
-	
-	
-	
+
+
+
 	return kQ3Success ;
 }
 
@@ -5542,9 +5555,9 @@ E3View_State_GetStyleDepthCompare(TQ3ViewObject theView, TQ3DepthCompareFunc *ou
 
 	// Get the value
 	*outFunc = ( (E3View*) theView )->instanceData.viewStack->styleDepthCompare;
-	
-	
-	
+
+
+
 	return kQ3Success ;
 }
 
@@ -5572,9 +5585,9 @@ E3View_State_GetStyleWriteSwitch(TQ3ViewObject theView, TQ3Uns32 *outMask)
 
 	// Get the value
 	*outMask = ( (E3View*) theView )->instanceData.viewStack->styleWriteSwitch ;
-	
-	
-	
+
+
+
 	return kQ3Success ;
 }
 
@@ -5638,7 +5651,7 @@ E3View_GetAttributeSetState(TQ3ViewObject theView, TQ3AttributeSet *attributeSet
 	if ( ( (E3View*) theView )->instanceData.viewStack != nullptr )
 		{
 		Q3_ASSERT ( Q3_VALID_PTR ( ( (E3View*) theView )->instanceData.viewStack ) ) ;
-		
+
 		// Start with the view's default attribute set, in case it contains any
 		// custom attributes that were not set in the view state stack.
 		*attributeSet = Q3Object_Duplicate(
@@ -5687,17 +5700,17 @@ E3View_GetAttributeState(TQ3ViewObject theView, TQ3AttributeType attributeType, 
 
 	// Get a pointer to the data for the attribute
 	*((void **) data) = Q3XAttributeSet_GetPointer(attributeSet, attributeType);
-	
-	
-	
+
+
+
 	// Since the attribute set was created by Q3View_GetAttributeSetState, we must
 	// do something to avoid leaking it.  But since we are returning a pointer to
 	// data within the set, we can't just dispose the set.  So we keep a reference to it.
 	// Even so, we must hope that the client will not keep the pointer very long.
 	E3Shared_Replace( &((E3View*) theView )->instanceData.stateAttributes, attributeSet );
 	Q3Object_Dispose( attributeSet );
-	
-	
+
+
 	return kQ3Success ;
 }
 
@@ -5717,10 +5730,10 @@ E3View_IsOfMyClass ( TQ3Object object )
 	{
 	if ( object == nullptr )
 		return kQ3False ;
-		
+
 	if ( object->IsObjectValid () )
 		return Q3_OBJECT_IS_CLASS ( object, E3View ) ;
-		
+
 	return kQ3False ;
 	}
 
@@ -5810,7 +5823,7 @@ TQ3Status
 E3StateOperator_Submit(TQ3StateOperatorObject stateOperator, TQ3ViewObject theView)
 	{
 	// Submit the object to the view
-	
+
 	return ( (E3View*) theView )->instanceData.submitRetainedMethod ( (E3View*) theView , stateOperator ) ;
 	}
 
