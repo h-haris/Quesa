@@ -3,7 +3,7 @@
 
     DESCRIPTION:
         Quesa OpenGL texture caching.
-       
+
     REMARKS:
     	The TQ3InteractiveData structure contains the current GL context
     	pointer and the current texture cache pointer.  It would have been
@@ -13,28 +13,28 @@
     	performance optimization.
 
     COPYRIGHT:
-        Copyright (c) 1999-2019, Quesa Developers. All rights reserved.
+        Copyright (c) 1999-2021, Quesa Developers. All rights reserved.
 
         For the current release of Quesa, please see:
 
             <https://github.com/jwwalker/Quesa>
-        
+
         Redistribution and use in source and binary forms, with or without
         modification, are permitted provided that the following conditions
         are met:
-        
+
             o Redistributions of source code must retain the above copyright
               notice, this list of conditions and the following disclaimer.
-        
+
             o Redistributions in binary form must reproduce the above
               copyright notice, this list of conditions and the following
               disclaimer in the documentation and/or other materials provided
               with the distribution.
-        
+
             o Neither the name of Quesa nor the names of its contributors
               may be used to endorse or promote products derived from this
               software without specific prior written permission.
-        
+
         THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
         "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
         LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
@@ -108,7 +108,7 @@ namespace
 
 #if Q3_DEBUG
 	int			sCachedTextureCount = 0;
-	long long	sCachedTextureByteCount = 0;	
+	long long	sCachedTextureByteCount = 0;
 #endif
 }
 
@@ -140,7 +140,7 @@ static TQ3Object GetMipmapTextureStorage( TQ3TextureObject inTexture )
 {
 	TQ3Object	imageStorage = nullptr;
 	TQ3Mipmap		dataRec;
-	
+
 	if (kQ3Success == E3MipmapTexture_GetMipmap( inTexture, &dataRec ))
 	{
 		imageStorage = dataRec.image;
@@ -157,18 +157,18 @@ static TQ3Object GetMipmapTextureStorage( TQ3TextureObject inTexture )
 static TQ3Object	GetTextureStorage( TQ3TextureObject inTexture )
 {
 	TQ3Object	imageStorage = nullptr;
-	
+
 	switch (Q3Texture_GetType( inTexture ))
 	{
 		case kQ3TextureTypePixmap:
 			imageStorage = GetPixmapTextureStorage( inTexture );
 			break;
-		
+
 		case kQ3TextureTypeMipmap:
 			imageStorage = GetMipmapTextureStorage( inTexture );
 			break;
 	}
-	
+
 	return imageStorage;
 }
 
@@ -277,14 +277,14 @@ static void			RemoveCachedTexture( TQ3TextureCachePtr txCache,
 	TRY
 	{
 		TQ3CachedTexturePtr theRec = *toRemove;
-		
+
 		GLuint	textureName = GLTextureMgr_GetOpenGLTexture( theRec );
 		Q3_ASSERT( glIsTexture( textureName ) );
 		//Q3_MESSAGE_FMT("RemoveCachedTexture %d", (int)textureName);
-		
+
 		txCache->cachedTextures.erase( toRemove );
 		delete theRec;
-		
+
 		Q3_ASSERT( !glIsTexture( textureName ) );
 	}
 	CATCH_ALL
@@ -301,12 +301,12 @@ static void			RemoveCachedTexture( TQ3TextureCachePtr txCache,
 static TQ3Boolean			IsValidTextureCache( TQ3TextureCachePtr txCache )
 {
 	TQ3Boolean	isValid = kQ3False;
-	
+
 	if (GLGPUSharing_IsCacheValid( txCache, kTextureCacheKey ))
 	{
 		isValid = kQ3True;
 	}
-	
+
 	return isValid;
 }
 #endif
@@ -330,15 +330,15 @@ TQ3TextureCachePtr	GLTextureMgr_GetTextureCache( TQ3GLContext glContext )
 {
 	TQ3TextureCachePtr	theCache = static_cast<TQ3TextureCachePtr>(
 		GLGPUSharing_GetCache( glContext, kTextureCacheKey ) );
-	
+
 	if (theCache == nullptr)
 	{
 		TQ3TextureCache*	newCache = new(std::nothrow) TQ3TextureCache;
-		
+
 		if (newCache != nullptr)
 		{
 			GLGPUSharing_AddCache( glContext, kTextureCacheKey, newCache );
-			
+
 			theCache = newCache;
 		}
 	}
@@ -367,14 +367,14 @@ TQ3CachedTexturePtr	GLTextureMgr_FindCachedTexture( TQ3TextureCachePtr txCache,
 								TQ3TextureObject texture )
 {
 	TQ3CachedTexturePtr	theRecord = nullptr;
-	
+
 	TRY
 	{
 		TQ3CachedTexture	toFind;
 		toFind.sortKey = texture;
-		
+
 		CachedTextureList::iterator	foundIt = txCache->cachedTextures.find( &toFind );
-		
+
 		if (foundIt != txCache->cachedTextures.end())
 		{
 			theRecord = *foundIt;
@@ -385,7 +385,7 @@ TQ3CachedTexturePtr	GLTextureMgr_FindCachedTexture( TQ3TextureCachePtr txCache,
 		{
 			TQ3Uns32 curTextureEditIndex = Q3Shared_GetEditIndex( texture );
 			TQ3Uns32 curStorageEditIndex = GetStorageEditIndex( texture );
-			
+
 			if ( (curTextureEditIndex != theRecord->editIndexTexture)
 			||
 				(curStorageEditIndex != theRecord->editIndexStorage) )
@@ -396,7 +396,7 @@ TQ3CachedTexturePtr	GLTextureMgr_FindCachedTexture( TQ3TextureCachePtr txCache,
 		}
 	}
 	CATCH_ALL
-	
+
 	return theRecord;
 }
 
@@ -418,16 +418,16 @@ TQ3CachedTexturePtr		GLTextureMgr_CacheTexture(
 								GLuint inGLTextureName )
 {
 	TQ3CachedTexturePtr theResult = nullptr;
-	
+
 	TRY
 	{
 		//Q3_MESSAGE_FMT("CacheTexture %d", (int)inGLTextureName);
 		theResult = new TQ3CachedTexture( inTexture, inGLTextureName );
-		
+
 		txCache->cachedTextures.insert( theResult );
 	}
 	CATCH_ALL
-	
+
 	return theResult;
 }
 
@@ -462,9 +462,9 @@ void				GLTextureMgr_FlushUnreferencedTextures(
 	{
 		CachedTextureList::iterator nextIter = iter;
 		++nextIter;
-		
+
 		TQ3CachedTexturePtr cachedTexture = *iter;
-		
+
 		// If we our reference to this texture has been zeroed, forget it.
 		if ( ! cachedTexture->cachedTextureObject.isvalid() )
 		{

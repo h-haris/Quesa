@@ -3,34 +3,34 @@
 
     DESCRIPTION:
         Interface to NSOpenGLContext for Cocoa support.
-        
+
         Note that this code should really live as another branch inside
         GLDrawContext.c, however since we need to use Objective-C to
         access the Cocoa OpenGL API then this is handled as a special case.
 
     COPYRIGHT:
-        Copyright (c) 1999-2021, Quesa Developers. All rights reserved.
+        Copyright (c) 1999-2022, Quesa Developers. All rights reserved.
 
         For the current release of Quesa, please see:
 
             <https://github.com/jwwalker/Quesa>
-        
+
         Redistribution and use in source and binary forms, with or without
         modification, are permitted provided that the following conditions
         are met:
-        
+
             o Redistributions of source code must retain the above copyright
               notice, this list of conditions and the following disclaimer.
-        
+
             o Redistributions in binary form must reproduce the above
               copyright notice, this list of conditions and the following
               disclaimer in the documentation and/or other materials provided
               with the distribution.
-        
+
             o Neither the name of Quesa nor the names of its contributors
               may be used to endorse or promote products derived from this
               software without specific prior written permission.
-        
+
         THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
         "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
         LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
@@ -137,7 +137,7 @@ CocoaGLContext::CocoaGLContext(
 				theView = (NSView*) nsView;
 				// Previously I checked here that theView has a window, now I do that
 				// earlier when the TQ3DrawContextObject is created.
-				
+
 				// Check whether an NSOpenGLContext was provided by the client
 				if ([theView isKindOfClass: [NSOpenGLView class]])
 				{
@@ -148,7 +148,7 @@ CocoaGLContext::CocoaGLContext(
 					Q3Object_GetProperty( theDrawContext, kQ3DrawContextPropertyNSOpenGLContext,
 						sizeof(glContext), nullptr, &glContext );
 				}
-				
+
 				if (glContext == nil)
 				{
 					// Check whether a pixel format was provided by the client
@@ -163,7 +163,7 @@ CocoaGLContext::CocoaGLContext(
 							initWithAttributes: (NSOpenGLPixelFormatAttribute *)glAttributes]
 							autorelease];
 					}
-					
+
 					// Set up and create the NSOpenGLContext
 					if (shareTextures)
 					{
@@ -185,22 +185,26 @@ CocoaGLContext::CocoaGLContext(
 							}
 						}
 					}
-					
+
 					if (glContext == nil)
 					{
 						glContext = [[NSOpenGLContext alloc] initWithFormat: pixelFormat
 															shareContext: nil];
 						//Q3_LOG_FMT("Quesa created unshared context %p", glContext);
 					}
-					
+
 					GLGPUSharing_AddContext( this, sharingContext );
-					
+
 					createdContext = YES;
 				} // end of case that the client did not provide an NSOpenGLContext
 				else // the client did provide an NSOpenGLContext
 				{
+					// Retain the context, so that whether or not we created it,
+					// we will have a reference to it.
+					[glContext retain];
+
 					sharingContext = nullptr;
-					
+
 					NSArray<NSOpenGLContext*>* sharingPartners = nil;
 					if ([glContext respondsToSelector: @selector(sharingPartners)])
 					{
@@ -210,7 +214,7 @@ CocoaGLContext::CocoaGLContext(
 					{
 						std::vector<TQ3GLContext> allContexts;
 						GLGPUSharing_GetAllContexts( allContexts );
-						
+
 						for (NSOpenGLContext* aPartner in sharingPartners)
 						{
 							for (TQ3GLContext oldContext : allContexts)
@@ -234,14 +238,14 @@ CocoaGLContext::CocoaGLContext(
 							}
 						}
 					}
-					
+
 					Q3_MESSAGE_FMT("New context %p shares with old %p", this, sharingContext );
 					GLGPUSharing_AddContext( this, sharingContext );
 				}
 
 				// Associate the NSOpenGLContext with the Quesa context in case the client app needs it
 				Q3Object_SetProperty( theDrawContext, kQ3DrawContextPropertyNSOpenGLContext, sizeof(glContext), &glContext );
-	
+
 				// Set the NSView as the NSOpenGLContext's drawable
 				[glContext setView: theView];
 				[glContext makeCurrentContext];
@@ -262,7 +266,7 @@ CocoaGLContext::CocoaGLContext(
 				// Quesa rendering off the main thread.
 			  break;
 
-			
+
 			// Unsupported
 			default:
 				throw std::exception();
@@ -292,7 +296,7 @@ CocoaGLContext::CocoaGLContext(
 
 		// Set the viewport
 		viewPort[0] = (GLint) drawContextData.pane.min.x;
-		viewPort[1] = (GLint) ((viewFrame.origin.y+viewFrame.size.height)            
+		viewPort[1] = (GLint) ((viewFrame.origin.y+viewFrame.size.height)
 										  - drawContextData.pane.max.y);
 		viewPort[2] = (GLint) (drawContextData.pane.max.x - drawContextData.pane.min.x);
 		viewPort[3] = (GLint) (drawContextData.pane.max.y - drawContextData.pane.min.y);
@@ -328,7 +332,7 @@ CocoaGLContext::CocoaGLContext(
 			{
 				enable = 0;
 			}
-			
+
 			[glContext	setValues:&enable forParameter:NSOpenGLCPSwapInterval];
 		}
 	} // end autoreleasepool
@@ -345,7 +349,7 @@ CocoaGLContext::~CocoaGLContext()
 		// window, where it will likely be hidden.
 		GLint order = -1;
 		[glContext setValues: &order forParameter: NSOpenGLCPSurfaceOrder];
-		
+
 
 		// Close down the context
 		if (createdContext)
@@ -355,15 +359,13 @@ CocoaGLContext::~CocoaGLContext()
 		[NSOpenGLContext clearCurrentContext];
 
 
-		// Release the context
-		if (createdContext)
-		{
-			Q3_LOG_FMT("NSOpenGLContext release %p", glContext);
-			[glContext release];
-		}
+		// Release the context.  We have a reference to it, whether or not
+		// we created it.
+		Q3_LOG_FMT("NSOpenGLContext release %p by ~CocoaGLContext", glContext);
+		[glContext release];
 	}
 }
-	
+
 void	CocoaGLContext::SwapBuffers()
 {
 	// Previously there was a glFlush call here, with a comment that it doesn't
@@ -404,7 +406,7 @@ void	CocoaGLContext::SetCurrent( TQ3Boolean inForceSet )
 	// Activate the context
 	SetCurrentBase( inForceSet );
 	CHECK_GL_ERROR;
-	
+
 	// Make sure that no FBO is active
 	if (BindFrameBuffer( GL_FRAMEBUFFER, 0 ))
 	{
@@ -418,32 +420,32 @@ void	CocoaGLContext::SetCurrent( TQ3Boolean inForceSet )
 bool	CocoaGLContext::UpdateWindowSize()
 {
 	[glContext update];
-	
+
 	NSView* theView = (NSView*) nsView;
 	NSRect viewFrame = theView.bounds;
 	if (E3CocoaDrawContext_IsConvertToBackingNeeded())
 	{
 		viewFrame = [theView convertRectToBacking: viewFrame];
 	}
-	
+
 	TQ3DrawContextData				drawContextData;
 	Q3DrawContext_GetData( quesaDrawContext, &drawContextData );
-	
+
 	viewPort[0] = (GLint) drawContextData.pane.min.x;
-	viewPort[1] = (GLint) ((viewFrame.origin.y+viewFrame.size.height)            
+	viewPort[1] = (GLint) ((viewFrame.origin.y+viewFrame.size.height)
                                       - drawContextData.pane.max.y);
 	viewPort[2] = (GLint) (drawContextData.pane.max.x - drawContextData.pane.min.x);
 	viewPort[3] = (GLint) (drawContextData.pane.max.y - drawContextData.pane.min.y);
 
 	glViewport( viewPort[0], viewPort[1], viewPort[2], viewPort[3] );
-	
+
 	[glContext setValues: viewPort
 					forParameter:NSOpenGLCPSwapRectangle];
-	
+
 	//NSLog(@"CocoaGLContext::UpdateWindowSize %p view bounds %@, glViewport (%d, %d, %d, %d)",
 	//	this, NSStringFromRect(viewFrame),
 	//	viewPort[0], viewPort[1], viewPort[2], viewPort[3] );
-	
+
 	return true;
 }
 

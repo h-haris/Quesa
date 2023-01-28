@@ -1,6 +1,6 @@
 /*! @header QuesaDrawContext.h
         Declares the Quesa draw context objects.
-        
+
 	@ignore	_Nullable
 	@ignore _Nonnull
 	@ignore	_Null_unspecified
@@ -12,28 +12,28 @@
         Quesa public header.
 
     COPYRIGHT:
-        Copyright (c) 1999-2021, Quesa Developers. All rights reserved.
+        Copyright (c) 1999-2023, Quesa Developers. All rights reserved.
 
         For the current release of Quesa, please see:
 
             <https://github.com/jwwalker/Quesa>
-        
+
         Redistribution and use in source and binary forms, with or without
         modification, are permitted provided that the following conditions
         are met:
-        
+
             o Redistributions of source code must retain the above copyright
               notice, this list of conditions and the following disclaimer.
-        
+
             o Redistributions in binary form must reproduce the above
               copyright notice, this list of conditions and the following
               disclaimer in the documentation and/or other materials provided
               with the distribution.
-        
+
             o Neither the name of Quesa nor the names of its contributors
               may be used to endorse or promote products derived from this
               software without specific prior written permission.
-        
+
         THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
         "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
         LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
@@ -76,7 +76,7 @@
 
 #if QUESA_OS_WIN32
     #include <Windows.h>
-    
+
     #if !defined(QD3D_NO_DIRECTDRAW)
         #include <ddraw.h>
     #endif
@@ -188,7 +188,7 @@ extern "C" {
  *															Data type: TQ3Boolean.
  *															Default: kQ3False.
  *	@constant	kQ3DrawContextPropertyNSOpenGLContext		In the case of a Cocoa draw context, this
- *					is the NSOpenGLContext object associated with the context and its view.  
+ *					is the NSOpenGLContext object associated with the context and its view.
  *					Preferably, the view is an instance of a subclass of NSOpenGLView, and owns an
  *					NSOpenGLContext which will be used by Quesa.  But if you use a different kind of
  *					view and still want to create the NSOpenGLContext in client code rather than letting
@@ -353,10 +353,10 @@ typedef struct TQ3AcceleratedOffscreenPropertyData
 				it will be called when an OpenGL context is just about to be
 				destroyed.  This will happen when a renderer is destroyed, and
 				may happen at other times too.
-				
+
 				If you are making OpenGL calls in client code, you may need this
 				opportunity to clean up OpenGL objects or other data.
-				
+
 				When the function is called, the OpenGL context will have been
 				made active.
 	@param		inQuesaDC	The Quesa draw context associated with the OpenGL
@@ -411,7 +411,7 @@ typedef struct TQ3DDSurfaceDescriptor {
         LPDIRECTDRAW                            lpDirectDraw;
         LPDIRECTDRAW2                           lpDirectDraw2;
     };
-    
+
     union {
         LPDIRECTDRAWSURFACE                     lpDirectDrawSurface;
         LPDIRECTDRAWSURFACE2                    lpDirectDrawSurface2;
@@ -1364,6 +1364,11 @@ Q3DDSurfaceDrawContext_GetDirectDrawSurface (
  *		NSOpenGLView.  In that case, the view owns an NSOpenGLContext and an
  *		NSOpenGLPixelFormat, so that Quesa does not need to create them.
  *
+ *		The Quesa draw context object will retain a strong reference to the NSView pointer
+ *		provided in the TQ3CocoaDrawContextData structure.  That reference will be retained
+ *		until the draw context is destroyed, or until the NSView pointer is changed using
+ *		Q3CocoaDrawContext_SetNSView.
+ *
  *  @param drawContextData  The data for the Cocoa draw context object.
  *  @result                 The new draw context object.
  */
@@ -1381,6 +1386,10 @@ Q3CocoaDrawContext_New (
  *      Set the NSView for a Cocoa draw context.
  *
  *      <em>This function is not available in QD3D.</em>
+ *
+ *  	The new NSView pointer provided by this function will be retained
+ *  	by the draw context, and the old NSView pointer previously held by
+ *  	the draw context will be released.
  *
  *  @param drawContext      The draw context to update.
  *  @param nsView           The new NSView for the draw context.
