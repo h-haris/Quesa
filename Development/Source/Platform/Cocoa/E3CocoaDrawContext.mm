@@ -5,28 +5,28 @@
         Cocoa specific draw context implementation.
 
     COPYRIGHT:
-        Copyright (c) 1999-2021, Quesa Developers. All rights reserved.
+        Copyright (c) 1999-2023, Quesa Developers. All rights reserved.
 
         For the current release of Quesa, please see:
 
             <https://github.com/jwwalker/Quesa>
-        
+
         Redistribution and use in source and binary forms, with or without
         modification, are permitted provided that the following conditions
         are met:
-        
+
             o Redistributions of source code must retain the above copyright
               notice, this list of conditions and the following disclaimer.
-        
+
             o Redistributions in binary form must reproduce the above
               copyright notice, this list of conditions and the following
               disclaimer in the documentation and/or other materials provided
               with the distribution.
-        
+
             o Neither the name of Quesa nor the names of its contributors
               may be used to endorse or promote products derived from this
               software without specific prior written permission.
-        
+
         THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
         "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
         LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
@@ -86,7 +86,7 @@ public :
 
 	TQ3DrawContextUnionData				instanceData ;
 	} ;
-	
+
 
 
 ///=============================================================================
@@ -119,7 +119,7 @@ public :
 		viewBounds = [_view convertRectToBacking: viewBounds];
 	}
 
-	// Reset our state, and update the size of the draw context pane    
+	// Reset our state, and update the size of the draw context pane
 	TQ3DrawContextUnionData		*instanceData = (TQ3DrawContextUnionData *)
 		_drawContext->FindLeafInstanceData();
 	instanceData->theState |= kQ3XDrawContextValidationWindowSize;
@@ -141,7 +141,7 @@ public :
 - (void) drawContextWillClose: (NSNotification*)note
 {
 	[[NSNotificationCenter defaultCenter] removeObserver: self];
-	
+
 	[self release];
 }
 
@@ -165,15 +165,18 @@ e3drawcontext_cocoa_new(TQ3Object theObject, void *privateData, const void *para
 	E3DrawContext_InitialiseData(&instanceData->data.cocoaData.theData.drawContextData);
 
 
+	// Retain a reference to the NSView*
+	NSView* viewToWatch = (NSView*)cocoaData->nsView;
+	[viewToWatch retain];
+
 
 	// Register our notification callback
-	NSView* viewToWatch = (NSView*)cocoaData->nsView;
 	QuesaViewWatcher* watcher = [[QuesaViewWatcher alloc]
 		initWithDrawContext: theObject
 		view: viewToWatch];
 
 	NSNotificationCenter* defaultCenter = [NSNotificationCenter defaultCenter];
-	
+
 	[defaultCenter addObserver: watcher
 						selector: @selector(viewDidResize:)
 						name: NSViewFrameDidChangeNotification
@@ -213,6 +216,9 @@ e3drawcontext_cocoa_delete(TQ3Object theObject, void *privateData)
 	}
 
 
+	// Release our reference to the NSView*
+	[(NSView*) instanceData->data.cocoaData.theData.nsView release];
+
 
 	// Dispose of the common instance data
 	if (instanceData->data.common.maskState)
@@ -234,7 +240,7 @@ e3drawcontext_cocoa_update(TQ3DrawContextObject theDrawContext)
 	// check it here.  If we wanted to check for other changes, such as a
 	// display device going offline, this would be the place to update the draw
 	// context validation state.
-	
+
 	return kQ3Success;
 }
 
@@ -293,7 +299,7 @@ e3drawcontext_cocoa_metahandler(TQ3XMethodType methodType)
 			theMethod = (TQ3XFunctionPointer) e3drawcontext_cocoa_get_dimensions;
 			break;
 		}
-	
+
 	return(theMethod);
 }
 
@@ -353,7 +359,7 @@ E3CocoaDrawContext_New(const TQ3CocoaDrawContextData *drawContextData)
 	NSView* theView = (NSView*) drawContextData->nsView;
 	if ( (theView != nil) && ([theView window] != nil) && ([[theView window] windowNumber] > 0) )
 	{
-		theDC = E3ClassTree::CreateInstance(kQ3DrawContextTypeCocoa, 
+		theDC = E3ClassTree::CreateInstance(kQ3DrawContextTypeCocoa,
 											   kQ3False, drawContextData);
 	}
 	else
@@ -433,13 +439,20 @@ E3CocoaDrawContext_NewWithWindow(TQ3ObjectType drawContextType, void *drawContex
 //-----------------------------------------------------------------------------
 TQ3Status
 E3CocoaDrawContext_SetNSView(TQ3DrawContextObject drawContext, void *nsView)
-{	TQ3DrawContextUnionData		*instanceData = (TQ3DrawContextUnionData *) drawContext->FindLeafInstanceData () ;
+{
+	TQ3DrawContextUnionData		*instanceData = (TQ3DrawContextUnionData *) drawContext->FindLeafInstanceData () ;
 
 
 
 	// Set the field and reset our flag
 	if (instanceData->data.cocoaData.theData.nsView != nsView)
 	{
+		// Retain the new NSView* and release the old one.
+		// We know they are not identical, so the order of the retain and
+		// release does not matter.  Nor is it a problem if one is nil.
+		[(NSView*) nsView retain];
+		[(NSView*) instanceData->data.cocoaData.theData.nsView release];
+
 		instanceData->data.cocoaData.theData.nsView = nsView;
 		instanceData->theState                     |= kQ3XDrawContextValidationAll;
 		Q3Shared_Edited(drawContext);
@@ -474,7 +487,7 @@ E3CocoaDrawContext_GetNSView(TQ3DrawContextObject drawContext, void **nsView)
 				the Cocoa view.
 	@discussion	In macOS 10.15 (Catalina), Apple made a change in the way that NSOpenGLView
 				behaves on a Retina display that made this step necessary.
-				
+
 				The reason for not using @available( macOS 10.15, * ) is that it apparently creates
 				a compatibility problem when using a library built with a newer Xcode within an older
 				version of Xcode.  <https://developer.apple.com/forums/thread/123003>
