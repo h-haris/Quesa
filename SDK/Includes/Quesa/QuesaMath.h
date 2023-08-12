@@ -1,6 +1,6 @@
 /*! @header QuesaMath.h
         Declares the Quesa math utilities.
-         
+
 	@ignore	_Nullable
 	@ignore _Nonnull
 	@ignore	_Null_unspecified
@@ -12,28 +12,28 @@
         Quesa public header.
 
     COPYRIGHT:
-        Copyright (c) 1999-2020, Quesa Developers. All rights reserved.
+        Copyright (c) 1999-2023, Quesa Developers. All rights reserved.
 
         For the current release of Quesa, please see:
 
             <https://github.com/jwwalker/Quesa>
-        
+
         Redistribution and use in source and binary forms, with or without
         modification, are permitted provided that the following conditions
         are met:
-        
+
             o Redistributions of source code must retain the above copyright
               notice, this list of conditions and the following disclaimer.
-        
+
             o Redistributions in binary form must reproduce the above
               copyright notice, this list of conditions and the following
               disclaimer in the documentation and/or other materials provided
               with the distribution.
-        
+
             o Neither the name of Quesa nor the names of its contributors
               may be used to endorse or promote products derived from this
               software without specific prior written permission.
-        
+
         THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
         "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
         LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
@@ -147,7 +147,7 @@ extern "C" {
  *
  *      Available in inline form as Q3FastVector2D_Set.
  *
- *  @param vector2D         Address of vector to set (may be nullptr).
+ *  @param vector2D         Address of vector to set.
  *  @param x                X coordinate to set into vector2D.
  *  @param y                Y coordinate to set into vector2D.
  *  @result                 Convenience copy of vector2D parameter.
@@ -169,7 +169,7 @@ Q3Vector2D_Set (
  *
  *      Available in inline form as Q3FastVector3D_Set.
  *
- *  @param vector3D         Address of vector to set (may be nullptr).
+ *  @param vector3D         Address of vector to set.
  *  @param x                X coordinate to set into vector3D.
  *  @param y                Y coordinate to set into vector3D.
  *  @param z                Z coordinate to set into vector3D.
@@ -193,7 +193,7 @@ Q3Vector3D_Set (
  *
  *      Available in inline form as Q3FastPoint2D_Set.
  *
- *  @param point2D          Address of point to set (may be nullptr).
+ *  @param point2D          Address of point to set.
  *  @param x                X coordinate to set into vector2D.
  *  @param y                Y coordinate to set into vector2D.
  *  @result                 Convenience copy of point2D parameter.
@@ -215,7 +215,7 @@ Q3Point2D_Set (
  *
  *      Available in inline form as Q3FastParam2D_Set.
  *
- *  @param param2D          Address of param2D to set (may be nullptr).
+ *  @param param2D          Address of param2D to set.
  *  @param u                U coordinate to set into param2D.
  *  @param v                V coordinate to set into param2D.
  *  @result                 Convenience copy of param2D parameter.
@@ -237,7 +237,7 @@ Q3Param2D_Set (
  *
  *      Available in inline form as Q3FastRationalPoint3D_Set.
  *
- *  @param rationalPoint3D  Address of rational point to set (may be nullptr).
+ *  @param rationalPoint3D  Address of rational point to set.
  *  @param x                X coordinate to set into rationalPoint3D.
  *  @param y                Y coordinate to set into rationalPoint3D.
  *  @param w                W coordinate to set into rationalPoint3D.
@@ -261,7 +261,7 @@ Q3RationalPoint3D_Set (
  *
  *      Available in inline form as Q3FastPoint3D_Set.
  *
- *  @param point3D          Address of point to set (may be nullptr).
+ *  @param point3D          Address of point to set.
  *  @param x                X coordinate to set into point3D.
  *  @param y                Y coordinate to set into point3D.
  *  @param z                Z coordinate to set into point3D.
@@ -310,7 +310,7 @@ Q3RationalPoint4D_Set (
  *
  *      Available in inline form as Q3FastPolarPoint_Set.
  *
- *  @param polarPoint       Address of point to set (may be nullptr).
+ *  @param polarPoint       Address of point to set.
  *  @param r                Radius coordinate to set into polarPoint.
  *  @param theta            Angle coordinate (in radians) to set into polarPoint.
  *  @result                 Convenience copy of polarPoint parameter.
@@ -332,7 +332,7 @@ Q3PolarPoint_Set (
  *
  *      Available in inline form as Q3FastSphericalPoint_Set.
  *
- *  @param sphericalPoint   Address of point to set (may be nullptr).
+ *  @param sphericalPoint   Address of point to set.
  *  @param rho              Rho coordinate to set into sphericalPoint.
  *  @param theta            Theta coordinate to set into sphericalPoint.
  *  @param phi              Phi coordinate to set into sphericalPoint.
@@ -3198,6 +3198,9 @@ Q3Quaternion_SetRotateVectorToVector (
  *		QD3D's result is something ridiculous; in Quesa, this function
  *		returns the original quaternion (or something equivalent).
  *
+ *		This function only looks at the upper left 3x3 part of the matrix.
+ *		Any translation part is ignored.
+ *
  *  @param quaternion       Address of a quaternion to set.
  *  @param matrix4x4        Address of a rotation matrix to imitate.
  *  @result                 Convenience copy of quaternion parameter.
@@ -3401,7 +3404,7 @@ Q3Quaternion_InterpolateFast (
  *		interpolation) from q1 to q2.
  *		It falls back on a straight linear interpolation only when the
  *		cosine of the angle between them is less than 0.01.
- *		
+ *
  *		The cut-off point was chosen arbitrarily, and may not match
  *		that of QD3D.
  *
@@ -3449,11 +3452,11 @@ Q3Quaternion_InterpolateLinear (
  */
 #if QUESA_ALLOW_QD3D_EXTENSIONS
 
-Q3_EXTERN_API_C ( TQ3Vector3D * _Nonnull )
+Q3_EXTERN_API_C ( TQ3Vector3D * _Nullable )
 Q3Quaternion_GetAxisAndAngle (
 	const TQ3Quaternion           * _Nonnull quaternion,
-	TQ3Vector3D                   * _Nonnull outAxis,
-	float                         * _Nonnull outAngle
+	TQ3Vector3D                   * _Nullable outAxis,
+	float                         * _Nullable outAngle
 );
 
 #endif // QUESA_ALLOW_QD3D_EXTENSIONS
@@ -4183,7 +4186,7 @@ Q3Math_InvSquareRoot (
 		(_v)->y = (_p)->y;													\
 		}																	\
 	while (0)
-	
+
 #define __Q3FastVector3D_ToRationalPoint4D(_v, _p)							\
 	do																		\
 		{																	\
@@ -4789,97 +4792,97 @@ Q3Math_InvSquareRoot (
 		__Q3FastPoint2D_Set(point2D, x, y);
 		return(point2D);
 	}
-	
+
 	inline TQ3Param2D * _Nonnull Q3FastParam2D_Set(TQ3Param2D * _Nonnull param2D, float u, float v)
 	{
 		__Q3FastParam2D_Set(param2D, u, v);
 		return(param2D);
 	}
-	
+
 	inline TQ3RationalPoint3D * _Nonnull Q3FastRationalPoint3D_Set(TQ3RationalPoint3D * _Nonnull rationalPoint3D, float x, float y, float w)
 	{
 		__Q3FastRationalPoint3D_Set(rationalPoint3D, x, y, w);
 		return(rationalPoint3D);
 	}
-	
+
 	inline TQ3Point3D * _Nonnull Q3FastPoint3D_Set(TQ3Point3D * _Nonnull point3D, float x, float y, float z)
 	{
 		__Q3FastPoint3D_Set(point3D, x, y, z);
 		return(point3D);
 	}
-	
+
 	inline TQ3RationalPoint4D * _Nonnull Q3FastRationalPoint4D_Set(TQ3RationalPoint4D * _Nonnull rationalPoint4D, float x, float y, float z, float w)
 	{
 		__Q3FastRationalPoint4D_Set(rationalPoint4D, x, y, z, w);
 		return(rationalPoint4D);
 	}
-	
+
 	inline TQ3PolarPoint * _Nonnull Q3FastPolarPoint_Set(TQ3PolarPoint * _Nonnull polarPoint, float r, float theta)
 	{
 		__Q3FastPolarPoint_Set(polarPoint, r, theta);
 		return(polarPoint);
 	}
-	
+
 	inline TQ3SphericalPoint * _Nonnull Q3FastSphericalPoint_Set(TQ3SphericalPoint * _Nonnull sphericalPoint, float rho, float theta, float phi)
 	{
 		__Q3FastSphericalPoint_Set(sphericalPoint, rho, theta, phi);
 		return(sphericalPoint);
 	}
-	
+
 	inline TQ3Vector3D * _Nonnull Q3FastVector2D_To3D(const TQ3Vector2D * _Nonnull vector2D, TQ3Vector3D * _Nonnull result)
 	{
 		__Q3FastVector2D_To3D(vector2D, result);
 		return(result);
 	}
-	
+
 	inline TQ3RationalPoint3D * _Nonnull Q3FastVector2D_ToRationalPoint3D(const TQ3Vector2D * _Nonnull vector2D, TQ3RationalPoint3D * _Nonnull result)
 	{
 		__Q3FastVector2D_ToRationalPoint3D(vector2D, result);
 		return(result);
 	}
-	
+
 	inline TQ3Vector2D * _Nonnull Q3FastVector3D_To2D(const TQ3Vector3D * _Nonnull vector3D, TQ3Vector2D * _Nonnull result)
 	{
 		__Q3FastVector3D_To2D(vector3D, result);
 		return(result);
 	}
-	
+
 	inline TQ3Vector2D * _Nonnull Q3FastRationalPoint3D_ToVector2D(const TQ3RationalPoint3D * _Nonnull rationalPoint3D, TQ3Vector2D * _Nonnull result)
 	{
 		__Q3FastRationalPoint3D_ToVector2D(rationalPoint3D, result);
 		return(result);
 	}
-	
+
 	inline TQ3RationalPoint4D * _Nonnull Q3FastVector3D_ToRationalPoint4D(const TQ3Vector3D * _Nonnull vector3D, TQ3RationalPoint4D * _Nonnull result)
 	{
 		__Q3FastVector3D_ToRationalPoint4D(vector3D, result);
 		return(result);
 	}
-	
+
 	inline TQ3Vector3D * _Nonnull Q3FastRationalPoint4D_ToVector3D(const TQ3RationalPoint4D * _Nonnull rationalPoint4D, TQ3Vector3D * _Nonnull result)
 	{
 		__Q3FastRationalPoint4D_ToVector3D(rationalPoint4D, result);
 		return(result);
 	}
-	
+
 	inline TQ3RationalPoint3D * _Nonnull Q3FastPoint2D_To3D(const TQ3Point2D * _Nonnull point2D, TQ3RationalPoint3D * _Nonnull result)
 	{
 		__Q3FastPoint2D_To3D(point2D, result);
 		return(result);
 	}
-	
+
 	inline TQ3Point2D * _Nonnull Q3FastRationalPoint3D_To2D(const TQ3RationalPoint3D * _Nonnull rationalPoint3D, TQ3Point2D * _Nonnull result)
 	{
 		__Q3FastRationalPoint3D_To2D(rationalPoint3D, result);
 		return(result);
 	}
-	
+
 	inline TQ3RationalPoint4D * _Nonnull Q3FastPoint3D_To4D(const TQ3Point3D * _Nonnull point3D, TQ3RationalPoint4D * _Nonnull result)
 	{
 		__Q3FastPoint3D_To4D(point3D, result);
 		return(result);
 	}
-	
+
 	inline TQ3Point3D * _Nonnull Q3FastRationalPoint4D_To3D(const TQ3RationalPoint4D * _Nonnull rationalPoint4D, TQ3Point3D * _Nonnull result)
 	{
 		__Q3FastRationalPoint4D_To3D(rationalPoint4D, result);
@@ -4891,229 +4894,229 @@ Q3Math_InvSquareRoot (
 		__Q3FastPolarPoint_ToPoint2D(polarPoint, result);
 		return(result);
 	}
-	
+
 	inline float Q3FastVector2D_Dot(const TQ3Vector2D * _Nonnull v1, const TQ3Vector2D * _Nonnull v2)
 	{
 		return(__Q3FastVector2D_Dot(v1, v2));
 	}
-	
+
 	inline float Q3FastVector3D_Dot(const TQ3Vector3D * _Nonnull v1, const TQ3Vector3D * _Nonnull v2)
 	{
 		return(__Q3FastVector3D_Dot(v1, v2));
 	}
-	
+
 	inline float Q3FastVector2D_Cross(const TQ3Vector2D * _Nonnull v1, const TQ3Vector2D * _Nonnull v2)
 	{
 		return(__Q3FastVector2D_Cross(v1, v2));
 	}
-	
+
 	inline float Q3FastPoint2D_CrossProductTri(const TQ3Point2D * _Nonnull p1, const TQ3Point2D * _Nonnull p2, const TQ3Point2D * _Nonnull p3)
 	{
 		return(__Q3FastPoint2D_CrossProductTri(p1, p2, p3));
 	}
-	
+
 	inline TQ3Vector3D * _Nonnull Q3FastVector3D_Cross(const TQ3Vector3D * _Nonnull v1, const TQ3Vector3D * _Nonnull v2, TQ3Vector3D * _Nonnull result)
 	{
 		__Q3FastVector3D_Cross(v1, v2, result);
 		return(result);
 	}
-	
+
 	inline TQ3Vector3D * _Nonnull Q3FastPoint3D_CrossProductTri(const TQ3Point3D * _Nonnull p1, const TQ3Point3D * _Nonnull p2, const TQ3Point3D * _Nonnull p3, TQ3Vector3D * _Nonnull result)
 	{
 		__Q3FastPoint3D_CrossProductTri(p1, p2, p3, result);
 		return(result);
 	}
-	
+
 	inline float Q3FastVector2D_Length(const TQ3Vector2D * _Nonnull vector2D)
 	{
 		return(__Q3FastVector2D_Length(vector2D));
 	}
-	
+
 	inline float Q3FastVector2D_LengthSquared(const TQ3Vector2D * _Nonnull vector2D)
 	{
 		return(__Q3FastVector2D_LengthSquared(vector2D));
 	}
-	
+
 	inline float Q3FastVector3D_Length(const TQ3Vector3D * _Nonnull vector3D)
 	{
 		return(__Q3FastVector3D_Length(vector3D));
 	}
-	
+
 	inline float Q3FastVector3D_LengthSquared(const TQ3Vector3D * _Nonnull vector3D)
 	{
 		return(__Q3FastVector3D_LengthSquared(vector3D));
 	}
-	
+
 	inline float Q3FastPoint2D_Distance(const TQ3Point2D * _Nonnull p1, const TQ3Point2D * _Nonnull p2)
 	{
 		return(__Q3FastPoint2D_Distance(p1, p2));
 	}
-	
+
 	inline float Q3FastPoint2D_DistanceSquared(const TQ3Point2D * _Nonnull p1, const TQ3Point2D * _Nonnull p2)
 	{
 		return(__Q3FastPoint2D_DistanceSquared(p1, p2));
 	}
-	
+
 	inline float Q3FastParam2D_Distance(const TQ3Param2D * _Nonnull p1, const TQ3Param2D * _Nonnull p2)
 	{
 		return(__Q3FastParam2D_Distance(p1, p2));
 	}
-	
+
 	inline float Q3FastParam2D_DistanceSquared(const TQ3Param2D * _Nonnull p1, const TQ3Param2D * _Nonnull p2)
 	{
 		return(__Q3FastParam2D_DistanceSquared(p1, p2));
 	}
-	
+
 	inline float Q3FastRationalPoint3D_Distance(const TQ3RationalPoint3D * _Nonnull p1, const TQ3RationalPoint3D * _Nonnull p2)
 	{
 		return(__Q3FastRationalPoint3D_Distance(p1, p2));
 	}
-	
+
 	inline float Q3FastRationalPoint3D_DistanceSquared(const TQ3RationalPoint3D * _Nonnull p1, const TQ3RationalPoint3D * _Nonnull p2)
 	{
 		return(__Q3FastRationalPoint3D_DistanceSquared(p1, p2));
 	}
-	
+
 	inline float Q3FastPoint3D_Distance(const TQ3Point3D * _Nonnull p1, const TQ3Point3D * _Nonnull p2)
 	{
 		return(__Q3FastPoint3D_Distance(p1, p2));
 	}
-	
+
 	inline float Q3FastPoint3D_DistanceSquared(const TQ3Point3D * _Nonnull p1, const TQ3Point3D * _Nonnull p2)
 	{
 		return(__Q3FastPoint3D_DistanceSquared(p1, p2));
 	}
-	
+
 	inline float Q3FastRationalPoint4D_Distance(const TQ3RationalPoint4D * _Nonnull p1, const TQ3RationalPoint4D * _Nonnull p2)
 	{
 		return(__Q3FastRationalPoint4D_Distance(p1, p2));
 	}
-	
+
 	inline float Q3FastRationalPoint4D_DistanceSquared(const TQ3RationalPoint4D * _Nonnull p1, const TQ3RationalPoint4D * _Nonnull p2)
 	{
 		return(__Q3FastRationalPoint4D_DistanceSquared(p1, p2));
 	}
-	
+
 	inline TQ3Vector2D * _Nonnull Q3FastVector2D_Negate(const TQ3Vector2D * _Nonnull vector2D, TQ3Vector2D * _Nonnull result)
 	{
 		__Q3FastVector2D_Negate(vector2D, result);
 		return(result);
 	}
-	
+
 	inline TQ3Vector3D * _Nonnull Q3FastVector3D_Negate(const TQ3Vector3D * _Nonnull vector3D, TQ3Vector3D * _Nonnull result)
 	{
 		__Q3FastVector3D_Negate(vector3D, result);
 		return(result);
 	}
-	
+
 	inline TQ3Vector2D * _Nonnull Q3FastVector2D_Scale(const TQ3Vector2D * _Nonnull vector2D, float scalar, TQ3Vector2D * _Nonnull result)
 	{
 		__Q3FastVector2D_Scale(vector2D, scalar, result);
 		return(result);
 	}
-	
+
 	inline TQ3Vector3D * _Nonnull Q3FastVector3D_Scale(const TQ3Vector3D * _Nonnull vector3D, float scalar, TQ3Vector3D * _Nonnull result)
 	{
 		__Q3FastVector3D_Scale(vector3D, scalar, result);
 		return(result);
 	}
-	
+
 	inline TQ3Vector2D * _Nonnull Q3FastVector2D_Normalize(const TQ3Vector2D * _Nonnull vector2D, TQ3Vector2D * _Nonnull result)
 	{
 		__Q3FastVector2D_Normalize(vector2D, result);
 		return(result);
 	}
-	
+
 	inline TQ3Vector3D * _Nonnull Q3FastVector3D_Normalize(const TQ3Vector3D * _Nonnull vector3D, TQ3Vector3D * _Nonnull result)
 	{
 		__Q3FastVector3D_Normalize(vector3D, result);
 		return(result);
 	}
-	
+
 	inline TQ3Vector2D * _Nonnull Q3FastVector2D_Add(const TQ3Vector2D * _Nonnull v1, const TQ3Vector2D * _Nonnull v2, TQ3Vector2D * _Nonnull result)
 	{
 		__Q3FastVector2D_Add(v1, v2, result);
 		return(result);
 	}
-	
+
 	inline TQ3Vector3D * _Nonnull Q3FastVector3D_Add(const TQ3Vector3D * _Nonnull v1, const TQ3Vector3D * _Nonnull v2, TQ3Vector3D * _Nonnull result)
 	{
 		__Q3FastVector3D_Add(v1, v2, result);
 		return(result);
 	}
-	
+
 	inline TQ3Vector2D * _Nonnull Q3FastVector2D_Subtract(const TQ3Vector2D * _Nonnull v1, const TQ3Vector2D * _Nonnull v2, TQ3Vector2D * _Nonnull result)
 	{
 		__Q3FastVector2D_Subtract(v1, v2, result);
 		return(result);
 	}
-	
+
 	inline TQ3Vector3D * _Nonnull Q3FastVector3D_Subtract(const TQ3Vector3D * _Nonnull v1, const TQ3Vector3D * _Nonnull v2, TQ3Vector3D * _Nonnull result)
 	{
 		__Q3FastVector3D_Subtract(v1, v2, result);
 		return(result);
 	}
-	
+
 	inline TQ3Point2D * _Nonnull Q3FastPoint2D_Vector2D_Add(const TQ3Point2D * _Nonnull point2D, const TQ3Vector2D * _Nonnull vector2D, TQ3Point2D * _Nonnull result)
 	{
 		__Q3FastPoint2D_Vector2D_Add(point2D, vector2D, result);
 		return(result);
 	}
-	
+
 	inline TQ3Param2D * _Nonnull Q3FastParam2D_Vector2D_Add(const TQ3Param2D * _Nonnull param2D, const TQ3Vector2D * _Nonnull vector2D, TQ3Param2D * _Nonnull result)
 	{
 		__Q3FastParam2D_Vector2D_Add(param2D, vector2D, result);
 		return(result);
 	}
-	
+
 	inline TQ3Point3D * _Nonnull Q3FastPoint3D_Vector3D_Add(const TQ3Point3D * _Nonnull point3D, const TQ3Vector3D * _Nonnull vector3D, TQ3Point3D * _Nonnull result)
 	{
 		__Q3FastPoint3D_Vector3D_Add(point3D, vector3D, result);
 		return(result);
 	}
-	
+
 	inline TQ3Point2D * _Nonnull Q3FastPoint2D_Vector2D_Subtract(const TQ3Point2D * _Nonnull point2D, const TQ3Vector2D * _Nonnull vector2D, TQ3Point2D * _Nonnull result)
 	{
 		__Q3FastPoint2D_Vector2D_Subtract(point2D, vector2D, result);
 		return(result);
 	}
-	
+
 	inline TQ3Param2D * _Nonnull Q3FastParam2D_Vector2D_Subtract(const TQ3Param2D * _Nonnull param2D, const TQ3Vector2D * _Nonnull vector2D, TQ3Param2D * _Nonnull result)
 	{
 		__Q3FastParam2D_Vector2D_Subtract(param2D, vector2D, result);
 		return(result);
 	}
-	
+
 	inline TQ3Point3D * _Nonnull Q3FastPoint3D_Vector3D_Subtract(const TQ3Point3D * _Nonnull point3D, const TQ3Vector3D * _Nonnull vector3D, TQ3Point3D * _Nonnull result)
 	{
 		__Q3FastPoint3D_Vector3D_Subtract(point3D, vector3D, result);
 		return(result);
 	}
-	
+
 	inline TQ3Vector2D * _Nonnull Q3FastPoint2D_Subtract(const TQ3Point2D * _Nonnull p1, const TQ3Point2D * _Nonnull p2, TQ3Vector2D * _Nonnull result)
 	{
 		__Q3FastPoint2D_Subtract(p1, p2, result);
 		return(result);
 	}
-	
+
 	inline TQ3Vector2D * _Nonnull Q3FastParam2D_Subtract(const TQ3Param2D * _Nonnull p1, const TQ3Param2D * _Nonnull p2, TQ3Vector2D * _Nonnull result)
 	{
 		__Q3FastParam2D_Subtract(p1, p2, result);
 		return(result);
 	}
-	
+
 	inline TQ3Vector3D * _Nonnull Q3FastPoint3D_Subtract(const TQ3Point3D * _Nonnull p1, const TQ3Point3D * _Nonnull p2, TQ3Vector3D * _Nonnull result)
 	{
 		__Q3FastPoint3D_Subtract(p1, p2, result);
 		return(result);
 	}
-	
+
 	inline TQ3Point2D * _Nonnull Q3FastPoint2D_RRatio(const TQ3Point2D * _Nonnull p1, const TQ3Point2D * _Nonnull p2, float r1, float r2, TQ3Point2D * _Nonnull result)
 	{
 		__Q3FastPoint2D_RRatio(p1, p2, r1, r2, result);
 		return(result);
 	}
-	
+
 	inline TQ3Param2D * _Nonnull Q3FastParam2D_RRatio(const TQ3Param2D * _Nonnull p1, const TQ3Param2D * _Nonnull p2, float r1, float r2, TQ3Param2D * _Nonnull result)
 	{
 		__Q3FastParam2D_RRatio(p1, p2, r1, r2, result);
@@ -5125,84 +5128,84 @@ Q3Math_InvSquareRoot (
 		__Q3FastPoint3D_RRatio(p1, p2, r1, r2, result);
 		return(result);
 	}
-	
+
 	inline TQ3RationalPoint4D * _Nonnull Q3FastRationalPoint4D_RRatio(const TQ3RationalPoint4D * _Nonnull p1, const TQ3RationalPoint4D * _Nonnull p2, float r1, float r2, TQ3RationalPoint4D * _Nonnull result)
 	{
 		__Q3FastRationalPoint4D_RRatio(p1, p2, r1, r2, result);
 		return(result);
 	}
-	
+
 	inline TQ3Quaternion * _Nonnull Q3FastQuaternion_Set(TQ3Quaternion * _Nonnull quaternion, float w, float x, float y, float z)
 	{
 		__Q3FastQuaternion_Set(quaternion, w, x, y, z);
 		return(quaternion);
 	}
-	
+
 	inline TQ3Quaternion * _Nonnull Q3FastQuaternion_SetIdentity(TQ3Quaternion * _Nonnull quaternion)
 	{
 		__Q3FastQuaternion_SetIdentity(quaternion);
 		return(quaternion);
 	}
-	
+
 	inline TQ3Quaternion * _Nonnull Q3FastQuaternion_Copy(const TQ3Quaternion * _Nonnull quaternion, TQ3Quaternion * _Nonnull result)
 	{
 		__Q3FastQuaternion_Copy(quaternion, result);
 		return(result);
 	}
-	
+
 	inline float Q3FastQuaternion_Dot(const TQ3Quaternion * _Nonnull q1, const TQ3Quaternion * _Nonnull q2)
 	{
 		return(__Q3FastQuaternion_Dot(q1, q2));
 	}
-	
+
 	inline TQ3Quaternion * _Nonnull Q3FastQuaternion_Normalize(const TQ3Quaternion * _Nonnull quaternion, TQ3Quaternion * _Nonnull result)
 	{
 		__Q3FastQuaternion_Normalize(quaternion, result);
 		return(result);
 	}
-	
+
 	inline TQ3Quaternion * _Nonnull Q3FastQuaternion_Invert(const TQ3Quaternion * _Nonnull quaternion, TQ3Quaternion * _Nonnull result)
 	{
 		__Q3FastQuaternion_Invert(quaternion, result);
 		return(result);
 	}
-	
+
 	inline TQ3BoundingBox * _Nonnull Q3FastBoundingBox_Reset(TQ3BoundingBox * _Nonnull bBox)
 	{
 		__Q3FastBoundingBox_Reset(bBox);
 		return(bBox);
 	}
-	
+
 	inline TQ3BoundingBox * _Nonnull Q3FastBoundingBox_Set(TQ3BoundingBox * _Nonnull bBox, const TQ3Point3D * _Nonnull min, const TQ3Point3D * _Nonnull max, TQ3Boolean isEmpty)
 	{
 		__Q3FastBoundingBox_Set(bBox, min, max, isEmpty);
 		return(bBox);
 	}
-	
+
 	inline TQ3BoundingBox * _Nonnull Q3FastBoundingBox_Copy(const TQ3BoundingBox * _Nonnull bBox, TQ3BoundingBox * _Nonnull result)
 	{
 		__Q3FastBoundingBox_Copy(bBox, result);
 		return(result);
 	}
-	
+
 	inline TQ3BoundingSphere * _Nonnull Q3FastBoundingSphere_Reset(TQ3BoundingSphere * _Nonnull bSphere)
 	{
 		__Q3FastBoundingSphere_Reset(bSphere);
 		return(bSphere);
 	}
-	
+
 	inline TQ3BoundingSphere * _Nonnull Q3FastBoundingSphere_Set(TQ3BoundingSphere * _Nonnull bSphere, const TQ3Point3D * _Nonnull origin, float radius, TQ3Boolean isEmpty)
 	{
 		__Q3FastBoundingSphere_Set(bSphere, origin, radius, isEmpty);
 		return(bSphere);
 	}
-	
+
 	inline TQ3BoundingSphere * _Nonnull Q3FastBoundingSphere_Copy(const TQ3BoundingSphere * _Nonnull bSphere, TQ3BoundingSphere * _Nonnull result)
 	{
 		__Q3FastBoundingSphere_Copy(bSphere, result);
 		return(result);
 	}
-	
+
 	inline void Q3Int64_Add( const TQ3Int64& a, const TQ3Int64& b, TQ3Int64& c )
 	{
 		__Q3Int64_Add( a, b, c );
@@ -5212,7 +5215,7 @@ Q3Math_InvSquareRoot (
 	{
 		__Q3Int64_Subtract( a, b, c );
 	}
-	
+
 	inline void Q3Int64_Uns32_Add( const TQ3Int64& a, TQ3Uns32 b, TQ3Int64& c )
 	{
 		__Q3Int64_Uns32_Add( a, b, c );

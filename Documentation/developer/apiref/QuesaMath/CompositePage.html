@@ -1097,7 +1097,7 @@ Available in inline form as Q3FastParam2D_Set.
 <h5><font face="Lucida Grande,Helvetica,Arial">Parameter Descriptions</font></h5>
 <blockquote>
 <dl>
-<dt><tt><em>param2D</em></tt></dt><dd>Address of param2D to set (may be nullptr).</dd>
+<dt><tt><em>param2D</em></tt></dt><dd>Address of param2D to set.</dd>
 <dt><tt><em>u</em></tt></dt><dd>U coordinate to set into param2D.</dd>
 <dt><tt><em>v</em></tt></dt><dd>V coordinate to set into param2D.</dd>
 </dl>
@@ -1349,7 +1349,7 @@ Available in inline form as Q3FastPoint2D_Set.
 <h5><font face="Lucida Grande,Helvetica,Arial">Parameter Descriptions</font></h5>
 <blockquote>
 <dl>
-<dt><tt><em>point2D</em></tt></dt><dd>Address of point to set (may be nullptr).</dd>
+<dt><tt><em>point2D</em></tt></dt><dd>Address of point to set.</dd>
 <dt><tt><em>x</em></tt></dt><dd>X coordinate to set into vector2D.</dd>
 <dt><tt><em>y</em></tt></dt><dd>Y coordinate to set into vector2D.</dd>
 </dl>
@@ -1714,7 +1714,7 @@ Available in inline form as Q3FastPoint3D_Set.
 <h5><font face="Lucida Grande,Helvetica,Arial">Parameter Descriptions</font></h5>
 <blockquote>
 <dl>
-<dt><tt><em>point3D</em></tt></dt><dd>Address of point to set (may be nullptr).</dd>
+<dt><tt><em>point3D</em></tt></dt><dd>Address of point to set.</dd>
 <dt><tt><em>x</em></tt></dt><dd>X coordinate to set into point3D.</dd>
 <dt><tt><em>y</em></tt></dt><dd>Y coordinate to set into point3D.</dd>
 <dt><tt><em>z</em></tt></dt><dd>Z coordinate to set into point3D.</dd>
@@ -1951,7 +1951,7 @@ Available in inline form as Q3FastPolarPoint_Set.
 <h5><font face="Lucida Grande,Helvetica,Arial">Parameter Descriptions</font></h5>
 <blockquote>
 <dl>
-<dt><tt><em>polarPoint</em></tt></dt><dd>Address of point to set (may be nullptr).</dd>
+<dt><tt><em>polarPoint</em></tt></dt><dd>Address of point to set.</dd>
 <dt><tt><em>r</em></tt></dt><dd>Radius coordinate to set into polarPoint.</dd>
 <dt><tt><em>theta</em></tt></dt><dd>Angle coordinate (in radians) to set into polarPoint.</dd>
 </dl>
@@ -2028,10 +2028,10 @@ Available in inline form as Q3FastQuaternion_Dot.
 </td></tr></table><hr><b>Availability:</b> This function is not available in QD3D.
 <br><br>
 <br>
-<blockquote><pre><tt>( TQ3Vector3D * _Nonnull ) Q3Quaternion_GetAxisAndAngle (
+<blockquote><pre><tt>( TQ3Vector3D * _Nullable ) Q3Quaternion_GetAxisAndAngle (
 &nbsp;&nbsp;&nbsp;&nbsp;const TQ3Quaternion * _Nonnull quaternion,
-&nbsp;&nbsp;&nbsp;&nbsp;TQ3Vector3D * _Nonnull outAxis,
-&nbsp;&nbsp;&nbsp;&nbsp;float * _Nonnull outAngle
+&nbsp;&nbsp;&nbsp;&nbsp;TQ3Vector3D * _Nullable outAxis,
+&nbsp;&nbsp;&nbsp;&nbsp;float * _Nullable outAngle
 );</tt><br>
 </pre></blockquote>
 <h5><font face="Lucida Grande,Helvetica,Arial">Discussion</font></h5><p>Get the rotation axis and/or angle represented by a quaternion.
@@ -2301,6 +2301,9 @@ this function).
 QD3D's result is something ridiculous; in Quesa, this function
 returns the original quaternion (or something equivalent).
 <br><br>
+This function only looks at the upper left 3x3 part of the matrix.
+Any translation part is ignored.
+<br><br>
 </p>
 <h5><font face="Lucida Grande,Helvetica,Arial">Parameter Descriptions</font></h5>
 <blockquote>
@@ -2536,7 +2539,7 @@ Available in inline form as Q3FastRationalPoint3D_Set.
 <h5><font face="Lucida Grande,Helvetica,Arial">Parameter Descriptions</font></h5>
 <blockquote>
 <dl>
-<dt><tt><em>rationalPoint3D</em></tt></dt><dd>Address of rational point to set (may be nullptr).</dd>
+<dt><tt><em>rationalPoint3D</em></tt></dt><dd>Address of rational point to set.</dd>
 <dt><tt><em>x</em></tt></dt><dd>X coordinate to set into rationalPoint3D.</dd>
 <dt><tt><em>y</em></tt></dt><dd>Y coordinate to set into rationalPoint3D.</dd>
 <dt><tt><em>w</em></tt></dt><dd>W coordinate to set into rationalPoint3D.</dd>
@@ -3012,7 +3015,7 @@ Available in inline form as Q3FastSphericalPoint_Set.
 <h5><font face="Lucida Grande,Helvetica,Arial">Parameter Descriptions</font></h5>
 <blockquote>
 <dl>
-<dt><tt><em>sphericalPoint</em></tt></dt><dd>Address of point to set (may be nullptr).</dd>
+<dt><tt><em>sphericalPoint</em></tt></dt><dd>Address of point to set.</dd>
 <dt><tt><em>rho</em></tt></dt><dd>Rho coordinate to set into sphericalPoint.</dd>
 <dt><tt><em>theta</em></tt></dt><dd>Theta coordinate to set into sphericalPoint.</dd>
 <dt><tt><em>phi</em></tt></dt><dd>Phi coordinate to set into sphericalPoint.</dd>
@@ -3276,7 +3279,7 @@ Available in inline form as Q3FastVector2D_Set.
 <h5><font face="Lucida Grande,Helvetica,Arial">Parameter Descriptions</font></h5>
 <blockquote>
 <dl>
-<dt><tt><em>vector2D</em></tt></dt><dd>Address of vector to set (may be nullptr).</dd>
+<dt><tt><em>vector2D</em></tt></dt><dd>Address of vector to set.</dd>
 <dt><tt><em>x</em></tt></dt><dd>X coordinate to set into vector2D.</dd>
 <dt><tt><em>y</em></tt></dt><dd>Y coordinate to set into vector2D.</dd>
 </dl>
@@ -3656,7 +3659,7 @@ Available in inline form as Q3FastVector3D_Set.
 <h5><font face="Lucida Grande,Helvetica,Arial">Parameter Descriptions</font></h5>
 <blockquote>
 <dl>
-<dt><tt><em>vector3D</em></tt></dt><dd>Address of vector to set (may be nullptr).</dd>
+<dt><tt><em>vector3D</em></tt></dt><dd>Address of vector to set.</dd>
 <dt><tt><em>x</em></tt></dt><dd>X coordinate to set into vector3D.</dd>
 <dt><tt><em>y</em></tt></dt><dd>Y coordinate to set into vector3D.</dd>
 <dt><tt><em>z</em></tt></dt><dd>Z coordinate to set into vector3D.</dd>
@@ -3821,5 +3824,5 @@ Note that for correct results, the quaternion should be normalized.
 </blockquote>
 <dl><dt><i>function result</i></dt><dd>Convenience copy of result parameter.
  </dd></dl>
-<p><p>&#169; 1999-2023 Quesa Developers (Last Updated 1/28/2023)
+<p><p>&#169; 1999-2023 Quesa Developers (Last Updated 8/12/2023)
 </p></body></html>
