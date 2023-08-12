@@ -1708,6 +1708,7 @@
 /* Begin PBXShellScriptBuildPhase section */
 		BEB0612A22A02A6500B494D6 /* ShellScript */ = {
 			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
 			buildActionMask = 2147483647;
 			files = (
 			);
@@ -2310,7 +2311,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
-				MACOSX_DEPLOYMENT_TARGET = 10.9;
+				MACOSX_DEPLOYMENT_TARGET = 10.13;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -2319,7 +2320,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
-				MACOSX_DEPLOYMENT_TARGET = 10.9;
+				MACOSX_DEPLOYMENT_TARGET = 10.13;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -2339,7 +2340,7 @@
 				);
 				GCC_WARN_PROTOTYPE_CONVERSION = YES;
 				INSTALL_PATH = "$(USER_LIBRARY_DIR)/Frameworks";
-				MACOSX_DEPLOYMENT_TARGET = 10.9;
+				MACOSX_DEPLOYMENT_TARGET = 10.13;
 				PRODUCT_BUNDLE_IDENTIFIER = org.Quesa.Quesa;
 				SKIP_INSTALL = NO;
 			};
@@ -2353,7 +2354,7 @@
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
 				INSTALL_PATH = "$(USER_LIBRARY_DIR)/Frameworks";
-				MACOSX_DEPLOYMENT_TARGET = 10.9;
+				MACOSX_DEPLOYMENT_TARGET = 10.13;
 				PRODUCT_BUNDLE_IDENTIFIER = org.Quesa.Quesa;
 				SKIP_INSTALL = NO;
 			};
@@ -2363,7 +2364,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = BE499C9E0F145E950060DF4E /* Quesa-staticlibrary.xcconfig */;
 			buildSettings = {
-				MACOSX_DEPLOYMENT_TARGET = 10.9;
+				MACOSX_DEPLOYMENT_TARGET = 10.13;
 			};
 			name = Debug;
 		};
@@ -2371,7 +2372,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = BE499C9E0F145E950060DF4E /* Quesa-staticlibrary.xcconfig */;
 			buildSettings = {
-				MACOSX_DEPLOYMENT_TARGET = 10.9;
+				MACOSX_DEPLOYMENT_TARGET = 10.13;
 			};
 			name = Release;
 		};

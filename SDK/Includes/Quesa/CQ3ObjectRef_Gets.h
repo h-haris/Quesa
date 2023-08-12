@@ -1,6 +1,6 @@
 /*!
 	@header		CQ3ObjectRef_Gets.h
-	
+
 	This header provides C++ wrappers for Quesa functions that return an object
 	reference in an output parameter, as a convenience.  In failure conditions,
 	the CQ3ObjectRef may contain nullptr.  The name of the wrapper is the name of
@@ -13,30 +13,30 @@
     DESCRIPTION:
         C++ wrappers for Quesa functions that return an object reference in an
 		output parameter.
-		    
+
     COPYRIGHT:
-        Copyright (c) 2007-2021, Quesa Developers. All rights reserved.
+        Copyright (c) 2007-2023, Quesa Developers. All rights reserved.
 
         For the current release of Quesa, please see:
 
             <https://github.com/jwwalker/Quesa>
-        
+
         Redistribution and use in source and binary forms, with or without
         modification, are permitted provided that the following conditions
         are met:
-        
+
             o Redistributions of source code must retain the above copyright
               notice, this list of conditions and the following disclaimer.
-        
+
             o Redistributions in binary form must reproduce the above
               copyright notice, this list of conditions and the following
               disclaimer in the documentation and/or other materials provided
               with the distribution.
-        
+
             o Neither the name of Quesa nor the names of its contributors
               may be used to endorse or promote products derived from this
               software without specific prior written permission.
-        
+
         THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
         "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
         LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
@@ -250,6 +250,7 @@ inline CQ3ObjectRef CQ3Cylinder_GetFaceAttributeSet(
 	return CQ3ObjectRef( atts );
 }
 
+
 /*!
  *  @function		CQ3Cylinder_GetInteriorAttributeSet
  *  @discussion		Get the attribute set for the interior of a cylinder object.
@@ -263,6 +264,59 @@ inline CQ3ObjectRef CQ3Cylinder_GetInteriorAttributeSet(
 	Q3Cylinder_GetInteriorAttributeSet( cylinder, &atts );
 	return CQ3ObjectRef( atts );
 }
+
+
+/*!
+ *  @function		CQ3Ellipsoid_GetInteriorAttributeSet
+ *  @discussion
+ *      Get the attribute set for the interior of an ellipsoid object.
+ *
+ *  @param ellipsoid             An ellipsoid object.
+ *  @result                 The attribute set for the interior, or nullptr.
+ */
+inline CQ3ObjectRef CQ3Ellipsoid_GetInteriorAttributeSet(
+	TQ3GeometryObject             ellipsoid )
+{
+	CQ3ObjectRef result;
+	TQ3EllipsoidData data;
+	if (kQ3Success == Q3Ellipsoid_GetData( ellipsoid, &data ))
+	{
+		if (data.interiorAttributeSet != nullptr)
+		{
+			TQ3AttributeSet newRef = Q3Shared_GetReference( (TQ3Object _Nonnull) data.interiorAttributeSet );
+			result = CQ3ObjectRef( newRef );
+		}
+		Q3Ellipsoid_EmptyData( &data );
+	}
+	return result;
+}
+
+
+/*!
+ *  @function		CQ3Torus_GetInteriorAttributeSet
+ *  @discussion
+ *      Get the attribute set for the interior of a torus object.
+ *
+ *  @param torus             A torus object.
+ *  @result                 The attribute set for the interior, or nullptr.
+ */
+inline CQ3ObjectRef CQ3Torus_GetInteriorAttributeSet(
+	TQ3GeometryObject             torus )
+{
+	CQ3ObjectRef result;
+	TQ3TorusData data;
+	if (kQ3Success == Q3Torus_GetData( torus, &data ))
+	{
+		if (data.interiorAttributeSet != nullptr)
+		{
+			TQ3AttributeSet newRef = Q3Shared_GetReference( (TQ3Object _Nonnull) data.interiorAttributeSet );
+			result = CQ3ObjectRef( newRef );
+		}
+		Q3Torus_EmptyData( &data );
+	}
+	return result;
+}
+
 
 /*!
  *  @function		CQ3GeneralPolygon_GetVertexAttributeSet
@@ -467,7 +521,7 @@ inline CQ3ObjectRef CQ3Triangle_GetVertexAttributeSet(
  *  @discussion
  *      Get the object located at a certain position in a group.
  *
- *		This function obtains a reference to the group member at a 
+ *		This function obtains a reference to the group member at a
  *		specified position.
  *
  *      Returns nullptr if there is no object at the given position.

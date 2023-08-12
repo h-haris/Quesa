@@ -169,6 +169,23 @@ cap) of a cone.
 </blockquote>
 <dl><dt><i>function result</i></dt><dd>The attribute set for the top cap, or nullptr.
  </dd></dl>
+<hr><a name="//Quesa/c/func/CQ3Ellipsoid_GetInteriorAttributeSet"></a>
+<table border="0"  cellpadding="2" cellspacing="2" width="300"><tr><td valign="top" height="12" colspan="5"><h2><a name="CQ3Ellipsoid_GetInteriorAttributeSet">CQ3Ellipsoid_GetInteriorAttributeSet</a></h2>
+</td></tr></table><hr><blockquote><pre><tt>inline CQ3ObjectRef CQ3Ellipsoid_GetInteriorAttributeSet (
+&nbsp;&nbsp;&nbsp;&nbsp;TQ3GeometryObject ellipsoid
+);</tt><br>
+</pre></blockquote>
+<h5><font face="Lucida Grande,Helvetica,Arial">Discussion</font></h5><p>Get the attribute set for the interior of an ellipsoid object.
+<br><br>
+</p>
+<h5><font face="Lucida Grande,Helvetica,Arial">Parameter Descriptions</font></h5>
+<blockquote>
+<dl>
+<dt><tt><em>ellipsoid</em></tt></dt><dd>An ellipsoid object.</dd>
+</dl>
+</blockquote>
+<dl><dt><i>function result</i></dt><dd>The attribute set for the interior, or nullptr.
+ </dd></dl>
 <hr><a name="//Quesa/c/func/CQ3File_GetStorage"></a>
 <table border="0"  cellpadding="2" cellspacing="2" width="300"><tr><td valign="top" height="12" colspan="5"><h2><a name="CQ3File_GetStorage">CQ3File_GetStorage</a></h2>
 </td></tr></table><hr><blockquote><pre><tt>inline CQ3ObjectRef CQ3File_GetStorage (
@@ -233,7 +250,7 @@ cap) of a cone.
 </pre></blockquote>
 <h5><font face="Lucida Grande,Helvetica,Arial">Discussion</font></h5><p>Get the object located at a certain position in a group.
 <br><br>
-This function obtains a reference to the group member at a 
+This function obtains a reference to the group member at a
 specified position.
 <br><br>
 Returns nullptr if there is no object at the given position.
@@ -500,6 +517,23 @@ return the nullptr set.
 </blockquote>
 <dl><dt><i>function result</i></dt><dd>The texture from the texture shader.
  </dd></dl>
+<hr><a name="//Quesa/c/func/CQ3Torus_GetInteriorAttributeSet"></a>
+<table border="0"  cellpadding="2" cellspacing="2" width="300"><tr><td valign="top" height="12" colspan="5"><h2><a name="CQ3Torus_GetInteriorAttributeSet">CQ3Torus_GetInteriorAttributeSet</a></h2>
+</td></tr></table><hr><blockquote><pre><tt>inline CQ3ObjectRef CQ3Torus_GetInteriorAttributeSet (
+&nbsp;&nbsp;&nbsp;&nbsp;TQ3GeometryObject torus
+);</tt><br>
+</pre></blockquote>
+<h5><font face="Lucida Grande,Helvetica,Arial">Discussion</font></h5><p>Get the attribute set for the interior of a torus object.
+<br><br>
+</p>
+<h5><font face="Lucida Grande,Helvetica,Arial">Parameter Descriptions</font></h5>
+<blockquote>
+<dl>
+<dt><tt><em>torus</em></tt></dt><dd>A torus object.</dd>
+</dl>
+</blockquote>
+<dl><dt><i>function result</i></dt><dd>The attribute set for the interior, or nullptr.
+ </dd></dl>
 <hr><a name="//Quesa/c/func/CQ3Triangle_GetVertexAttributeSet"></a>
 <table border="0"  cellpadding="2" cellspacing="2" width="300"><tr><td valign="top" height="12" colspan="5"><h2><a name="CQ3Triangle_GetVertexAttributeSet">CQ3Triangle_GetVertexAttributeSet</a></h2>
 </td></tr></table><hr><blockquote><pre><tt>inline CQ3ObjectRef CQ3Triangle_GetVertexAttributeSet (
@@ -707,5 +741,5 @@ submitting loop.
 </blockquote>
 <dl><dt><i>function result</i></dt><dd>The renderer associated with the view.
  </dd></dl>
-<p><p>&#169; 1999-2023 Quesa Developers (Last Updated 1/28/2023)
+<p><p>&#169; 1999-2023 Quesa Developers (Last Updated 8/12/2023)
 </p></body></html>
