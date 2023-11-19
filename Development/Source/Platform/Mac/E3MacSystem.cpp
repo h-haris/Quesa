@@ -10,23 +10,23 @@
         For the current release of Quesa, please see:
 
             <https://github.com/jwwalker/Quesa>
-        
+
         Redistribution and use in source and binary forms, with or without
         modification, are permitted provided that the following conditions
         are met:
-        
+
             o Redistributions of source code must retain the above copyright
               notice, this list of conditions and the following disclaimer.
-        
+
             o Redistributions in binary form must reproduce the above
               copyright notice, this list of conditions and the following
               disclaimer in the documentation and/or other materials provided
               with the distribution.
-        
+
             o Neither the name of Quesa nor the names of its contributors
               may be used to endorse or promote products derived from this
               software without specific prior written permission.
-        
+
         THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
         "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
         LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
@@ -49,17 +49,6 @@
 
 #include "E3MacDeviceDbStart.h"
 #include <CoreFoundation/CoreFoundation.h>
-
-
-//=============================================================================
-//      Constants
-//-----------------------------------------------------------------------------
-
-const int kMaxPluginLocations = 6;
-
-const ItemCount	kPluginSearchBatchSize	= 10;
-
-
 
 
 //=============================================================================
@@ -95,9 +84,6 @@ typedef struct E3MacSystem_PluginSlot {
 //      Internal globals
 //-----------------------------------------------------------------------------
 
-extern short gShlbResFile;
-short gShlbResFile = 0;
-
 static E3MacSystem_PluginSlotPtr e3macsystem_pluginSlotHead = nullptr;
 
 
@@ -113,13 +99,13 @@ static E3MacSystem_PluginSlotPtr e3macsystem_pluginSlotHead = nullptr;
 static void e3macho_load_plugin( CFBundleRef theBundle )
 {
 	E3MacSystem_PluginSlotPtr newSlot = nullptr;
-	
+
 	// Load the plugin, which causes the function marked as CALL_ON_LOAD
 	// to be called.
 	if (CFBundleLoadExecutable( theBundle ))
 	{
 		newSlot = (E3MacSystem_PluginSlotPtr)Q3Memory_Allocate(sizeof(E3MacSystem_PluginSlot));
-		
+
 		if (newSlot != nullptr)
 		{
 			newSlot->pluginBundle = theBundle;
@@ -145,18 +131,18 @@ e3mac_load_plugins( CFURLRef dirURL )
 	{
 		CFArrayRef pluginsArray = CFBundleCreateBundlesFromDirectory( nullptr,
 			dirURL, CFSTR("quesaplug") );
-		
+
 		if (pluginsArray != nullptr)
 		{
 			CFIndex	numPlugins = CFArrayGetCount( pluginsArray );
-			
+
 			for (CFIndex i = 0; i < numPlugins; ++i)
 			{
 				CFBundleRef plugBundle = (CFBundleRef) CFArrayGetValueAtIndex(
 					pluginsArray, i );
 				e3macho_load_plugin( plugBundle );
 			}
-			
+
 			CFRelease( pluginsArray );
 		}
 	}
@@ -201,7 +187,7 @@ void E3MacMachoFrameworkTerminate()
 	// the system reference count down to 0.
 	while (Q3IsInitialized())
 		Q3Exit();
-	
+
 }
 
 
@@ -218,7 +204,7 @@ TQ3Status
 E3MacSystem_Initialise(void)
 {
     TQ3Status   status = kQ3Failure;
-    
+
 #if QUESA_SUPPORT_CONTROLLER
 #if Q3_DEBUG
     #warning start device server
@@ -270,17 +256,17 @@ E3MacSystem_LoadPlugins(void)
 		CFURLRef bundleURL = CFBundleCopyBundleURL( myBundle );
 		CFURLRef parentDirURL = CFURLCreateCopyDeletingLastPathComponent( nullptr, bundleURL );
 		CFRelease( bundleURL );
-		
+
 		e3mac_load_plugins( parentDirURL );
-		
+
 		CFRelease( parentDirURL );
-		
+
 		// Plugins folder of bundle
 		CFURLRef	pluginsURL = CFBundleCopyBuiltInPlugInsURL( myBundle );
 		if (pluginsURL != nullptr)
 		{
 			e3mac_load_plugins( pluginsURL );
-			
+
 			CFRelease( pluginsURL );
 		}
 	}
@@ -313,6 +299,6 @@ E3MacSystem_UnloadPlugins(void)
 		Q3Memory_Free(&currentSlot);
 		//E3LogToConsole("E3MacSystem_UnloadPlugins 5");
 	}
-		
+
 	e3macsystem_pluginSlotHead = nullptr;
 }
