@@ -73,7 +73,7 @@
 - (void)registerVendConnection
 {
     theConnection = [[NSConnection new] autorelease];
-    [theConnection setRootObject:self];
+    theConnection.rootObject = self;
 
     //make name of ControllerDB public
     [theConnection registerName:@kQuesa3DeviceServer];
@@ -169,7 +169,7 @@
     {
         //fetch Controller at recently found index
         //and assign to theControllerObject
-        theControllerObject = [_controllerPDOs objectAtIndex:foundSignatureAt];
+        theControllerObject = _controllerPDOs[foundSignatureAt];
     }
     else
     {
@@ -211,10 +211,10 @@
         ++idx;
     }
 
-    if (idx>=[_controllerPDOs count])
+    if (idx>=_controllerPDOs.count)
         return NULL;
 
-    return (TQ3ControllerRefCast)[[_controllerPDOs objectAtIndex:idx] UUID];
+    return (TQ3ControllerRefCast)[_controllerPDOs[idx] UUID];
 };
 
 
@@ -248,7 +248,7 @@
     {
         //fetch Controller at recently found index
         //and delete the references to its tracker object
-        theControllerObject = [_controllerPDOs objectAtIndex:foundOldTrackerAt];
+        theControllerObject = _controllerPDOs[foundOldTrackerAt];
         status = [theControllerObject deleteTracker];
     }
     return status;
