@@ -177,7 +177,7 @@ static CFComparisonResult CmpEventStamp_CF (const void *val1, const void *val2, 
     isActive = kQ3True; //??? unclear documentation; Tracker seems to be active after New
     
     theConnection = [[NSConnection new] autorelease];
-    [theConnection setRootObject:self];
+    theConnection.rootObject = self;
     
     //make name of ControllerDB public
     [theConnection registerName:_trackerUUID];
@@ -559,7 +559,7 @@ static CFComparisonResult CmpEventStamp_CF (const void *val1, const void *val2, 
 {
     TQ3Status status = kQ3Failure;
     
-    NSUInteger Count = [eventsRingBuffer count];
+    NSUInteger Count = eventsRingBuffer.count;
     if (Count==NUMTRACKEREVENTS)
         [eventsRingBuffer removeObjectAtIndex:0];
     
@@ -606,7 +606,7 @@ static CFComparisonResult CmpEventStamp_CF (const void *val1, const void *val2, 
     TQ3Status status = kQ3Failure;
     TC3TrackerEventPtr 	returnEvent;
     
-    NSUInteger Count = [eventsRingBuffer count];
+    NSUInteger Count = eventsRingBuffer.count;
     
     if (0!=Count)
     {
@@ -629,17 +629,17 @@ static CFComparisonResult CmpEventStamp_CF (const void *val1, const void *val2, 
             //-find Event closest to timestamp
             if (EventIndex>0)
             {
-                returnEvent = (TC3TrackerEventPtr)[[eventsRingBuffer objectAtIndex:EventIndex-1] bytes];
+                returnEvent = (TC3TrackerEventPtr)[eventsRingBuffer[EventIndex-1] bytes];
                 TQ3Uns32 prevStamp = returnEvent->EventTimeStampKey;
                 
-                returnEvent = (TC3TrackerEventPtr)[[eventsRingBuffer objectAtIndex:EventIndex] bytes];
+                returnEvent = (TC3TrackerEventPtr)[eventsRingBuffer[EventIndex] bytes];
                 TQ3Uns32 foundStamp = returnEvent->EventTimeStampKey;
                 
                 if ((timeStamp-prevStamp)<(foundStamp-timeStamp))
                     EventIndex--;
             };
             //-extract Event
-            returnEvent = (TC3TrackerEventPtr)[[eventsRingBuffer objectAtIndex:EventIndex] bytes];
+            returnEvent = (TC3TrackerEventPtr)[eventsRingBuffer[EventIndex] bytes];
             //-and extract return values
             if (retButtons!=nullptr)
                 *retButtons=returnEvent->EventButtons;

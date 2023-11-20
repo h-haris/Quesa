@@ -71,7 +71,7 @@
 - (void)reNewWithControllerData:(const TQ3ControllerData *) controllerData inDB:(id) proxyDB
 {
     // let DB check if a Controller is allready present for a signature
-    NSString *aSignature = [NSString stringWithCString:controllerData->signature encoding:NSASCIIStringEncoding];
+    NSString *aSignature = @(controllerData->signature);
     TQ3Boolean driverSignatureKnown = [proxyDB isKnownSignature:aSignature];
 
     if (!driverSignatureKnown)
@@ -79,7 +79,7 @@
         _controllerData = *controllerData;
         _hasSetChannelMethod = (TQ3Boolean)(_controllerData.channelSetMethod!=nullptr);
         _hasGetChannelMethod = (TQ3Boolean)(_controllerData.channelGetMethod!=nullptr);
-        _signature = [NSString stringWithCString:controllerData->signature encoding:NSASCIIStringEncoding];
+        _signature = @(controllerData->signature);
 
         //create own UUID
         CFUUIDRef DriverUUID = CFUUIDCreate(kCFAllocatorDefault);
@@ -94,7 +94,7 @@
 
         //vend IPCControllerDriver object
         theConnection = [[NSConnection new] autorelease];
-        [theConnection setRootObject:self];
+        theConnection.rootObject = self;
         //make name of instance public
         [theConnection registerName:_controllerDriverUUID];
         [theConnection retain]; //vending done!
@@ -162,7 +162,7 @@
 
         //call method
         if (theData)
-            status = _controllerData.channelSetMethod((TQ3ControllerRef)_nameInDB, channel, [theData bytes], dataSize);
+            status = _controllerData.channelSetMethod((TQ3ControllerRef)_nameInDB, channel, theData.bytes, dataSize);
         else //theData==NULL is valid!
             status = _controllerData.channelSetMethod((TQ3ControllerRef)_nameInDB, channel, nullptr, dataSize);
     }
@@ -219,7 +219,7 @@
     TQ3Status status = kQ3Success /*kQ3Failure*/;//no error handling!
 
     //private allocate new state data; key is passed stateUUID
-    [_statesAtUUID setObject:[NSMutableArray arrayWithCapacity:4] forKey:stateUUID];
+    _statesAtUUID[stateUUID] = [NSMutableArray arrayWithCapacity:4];
 
     return(status);
 };
@@ -251,7 +251,7 @@
 
     if (_hasGetChannelMethod)
     {
-        arrayAtUUID = [_statesAtUUID objectForKey:stateUUID];
+        arrayAtUUID = _statesAtUUID[stateUUID];
         [arrayAtUUID removeAllObjects];
     }
 
@@ -299,15 +299,15 @@
 
     if (_hasSetChannelMethod)
     {
-        arrayAtUUID = [_statesAtUUID objectForKey:stateUUID];
+        arrayAtUUID = _statesAtUUID[stateUUID];
     }
 
     for (channel=0; channel<_controllerData.channelCount; channel++)
     {
         if (_hasSetChannelMethod)
         {
-            dataAtIndex = [arrayAtUUID objectAtIndex:channel];
-            dataSize=(TQ3Uns32)[dataAtIndex length];
+            dataAtIndex = arrayAtUUID[channel];
+            dataSize=(TQ3Uns32)dataAtIndex.length;
             status = [self setChannel:channel withData:dataAtIndex ofSize:dataSize];
         }
     }

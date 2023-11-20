@@ -80,7 +80,7 @@
 
         _UUID = aUUID;
         _theConnection = [[NSConnection new] autorelease];
-        [_theConnection setRootObject:self];
+        _theConnection.rootObject = self;
         //make name of ControllerPDO public
         [_theConnection registerName:_UUID];
         [_theConnection retain]; //vending done!
@@ -474,7 +474,7 @@
         //allocate array and always do full copy
         NSMutableArray* MutableValues = [NSMutableArray arrayWithCapacity:_valueCount];
         for (index=0; index<_valueCount; index++)
-            [MutableValues insertObject:[NSNumber numberWithFloat:valuesRef[index]] atIndex:index];
+            [MutableValues insertObject:@(valuesRef[index]) atIndex:index];
         [MutableValues retain];
         *values=MutableValues;
     }
@@ -507,7 +507,7 @@
             maxCount=_valueCount;
 
         for (index=0; index<maxCount;index++)
-        valuesRef[index]=[[values objectAtIndex:index] floatValue];
+        valuesRef[index]=[values[index] floatValue];
 
         serialNumber++;
     }
