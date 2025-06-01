@@ -191,7 +191,7 @@ static CFComparisonResult CmpEventStamp_CF (const void *val1, const void *val2, 
 
 - (void)delete 
 {
-    [theConnection release];//"un"vend theTracker
+    [theConnection release];// un-vend theTracker
     
     [eventsRingBuffer release];
     

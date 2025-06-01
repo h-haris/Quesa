@@ -10,23 +10,23 @@
         For the current release of Quesa, please see:
 
             <https://github.com/jwwalker/Quesa>
-        
+
         Redistribution and use in source and binary forms, with or without
         modification, are permitted provided that the following conditions
         are met:
-        
+
             o Redistributions of source code must retain the above copyright
               notice, this list of conditions and the following disclaimer.
-        
+
             o Redistributions in binary form must reproduce the above
               copyright notice, this list of conditions and the following
               disclaimer in the documentation and/or other materials provided
               with the distribution.
-        
+
             o Neither the name of Quesa nor the names of its contributors
               may be used to endorse or promote products derived from this
               software without specific prior written permission.
-        
+
         THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
         "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
         LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
@@ -49,7 +49,7 @@
 #include "E3Geometry.h"
 #include "E3GeometryTriMesh.h"
 #include "E3GeometryBox.h"
-#include "Q3GroupIterator.h"
+#include "CQ3GroupRange.h"
 
 #include <cstring>
 using namespace std;
@@ -72,7 +72,7 @@ public :
 	TQ3BoxData			instanceData ;
 
 	} ;
-	
+
 
 
 //=============================================================================
@@ -109,7 +109,7 @@ e3geom_box_calc_vertices(const TQ3BoxData *boxData, TQ3Point3D *thePoints)
 	#define A boxOrientation
 	#define B boxMajor
 	#define C boxMinor
-	
+
 	Q3Point3D_Set(&thePoints[0], 0.0f,            0.0f,            0.0f);
 	Q3Point3D_Set(&thePoints[1], B.x,             B.y,             B.z);
 	Q3Point3D_Set(&thePoints[2], C.x,             C.y,             C.z);
@@ -136,7 +136,7 @@ e3geom_box_calc_vertices(const TQ3BoxData *boxData, TQ3Point3D *thePoints)
 	// Transform the points to origin
 	Q3Point3D_To3DTransformArray(thePoints, &translateMatrix, thePoints,
 									8, sizeof(TQ3Point3D), sizeof(TQ3Point3D));
-}	
+}
 
 
 
@@ -154,7 +154,7 @@ e3geom_box_new ( TQ3Object obParam, void *privateData, const void *paramData )
 
 	// Initialise our instance data
 	Q3Memory_Clear ( & theObject->instanceData, sizeof ( TQ3BoxData ) ) ; // Why?
-	
+
 	return Q3Box_SetData ( theObject, (const TQ3BoxData*) paramData ) ;
 }
 
@@ -232,7 +232,7 @@ e3geom_box_duplicate (	TQ3Object inSrcBox, const void *fromPrivateData,
 			}
 		}
 	}
-		
+
 	return kQ3Success ;
 	}
 
@@ -292,7 +292,7 @@ e3geom_box_create_face( TQ3ViewObject theView,
 	{
 		E3Integer_Swap( triangles[0].pointIndices[1], triangles[0].pointIndices[2] );
 		E3Integer_Swap( triangles[1].pointIndices[1], triangles[1].pointIndices[2] );
-		
+
 		// Also flip majCrossMin so it can serve as our normal vector.
 		Q3Vector3D_Negate( &majCrossMin, &majCrossMin );
 	}
@@ -335,14 +335,14 @@ e3geom_box_create_face( TQ3ViewObject theView,
 	// Create the TriMesh
 	theStatus  = kQ3Failure;
 	theTriMesh = Q3TriMesh_New( &theTriMeshData );
-	
+
 	if (theTriMesh != nullptr)
 	{
 		E3TriMesh_AddTriangleNormals(theTriMesh, kQ3OrientationStyleCounterClockwise);
 		Q3Group_AddObjectAndDispose( inGroup, &theTriMesh );
 		theStatus = kQ3Success;
 	}
-	
+
 	return theStatus;
 }
 
@@ -360,12 +360,12 @@ e3geom_box_get_face_att_set( const TQ3BoxData* inBoxData, TQ3Int16 inIndex )
 {
 	TQ3AttributeSet	faceSet = nullptr;
 	Q3_ASSERT( (inIndex >= 0) && (inIndex <= 5) );
-	
+
 	if (inBoxData->faceAttributeSet != nullptr)
 	{
 		faceSet = inBoxData->faceAttributeSet[ inIndex ];
 	}
-		
+
 	return faceSet;
 }
 
@@ -385,15 +385,15 @@ e3geom_box_merge_faces( TQ3GroupObject ioGroup )
 	TQ3TriMeshAttributeData	theVertAtts[2];
 	TQ3Vector3D				thePointNormals[24];
 	TQ3Param2D				thePointUVs[24];
-	
+
 	theVertAtts[0].attributeType = kQ3AttributeTypeNormal;
 	theVertAtts[0].data = thePointNormals;
 	theVertAtts[0].attributeUseArray = nullptr;
-	
+
 	theVertAtts[1].attributeType = kQ3AttributeTypeSurfaceUV;
 	theVertAtts[1].data = thePointUVs;
 	theVertAtts[1].attributeUseArray = nullptr;
-	
+
 	TQ3TriMeshData tmData =
 	{
 		nullptr,
@@ -410,26 +410,24 @@ e3geom_box_merge_faces( TQ3GroupObject ioGroup )
 		2,
 		theVertAtts
 	};
-	
+
 	int	faceNum = 0;
-	Q3GroupIterator		iter( ioGroup, kQ3GeometryTypeTriMesh );
-	CQ3ObjectRef	theItem;
-	while ( (theItem = iter.NextObject()).isvalid() )
+	for (const CQ3ObjectRef& theItem : CQ3GroupRange<kQ3GeometryTypeTriMesh>( ioGroup ))
 	{
 		TQ3TriMeshData*	faceTM;
 		Q3TriMesh_LockData( (TQ3GeometryObject _Nonnull) theItem.get(), kQ3True, &faceTM );
-		
+
 		// Copy points
 		memcpy( &thePoints[faceNum*4], faceTM->points, 4 * sizeof(TQ3Point3D) );
-		
+
 		// Copy vertex normals
 		memcpy( &thePointNormals[faceNum*4], faceTM->vertexAttributeTypes[0].data,
 			4 * sizeof(TQ3Vector3D) );
-		
+
 		// Copy vertex UVs
 		memcpy( &thePointUVs[faceNum*4], faceTM->vertexAttributeTypes[1].data,
 			4 * sizeof(TQ3Param2D) );
-		
+
 		// Copy faces, updating point indices as we go
 		TQ3TriMeshTriangleData aFace = faceTM->triangles[0];
 		aFace.pointIndices[0] += faceNum*4;
@@ -441,7 +439,7 @@ e3geom_box_merge_faces( TQ3GroupObject ioGroup )
 		aFace.pointIndices[1] += faceNum*4;
 		aFace.pointIndices[2] += faceNum*4;
 		theFaces[faceNum*2+1] = aFace;
-		
+
 		// Copy edges, updating point and triangle indices as we go
 		for (int edgeNum = 0; edgeNum < 4; ++edgeNum)
 		{
@@ -452,22 +450,22 @@ e3geom_box_merge_faces( TQ3GroupObject ioGroup )
 			// anEdge.triangleIndices[1] is kQ3ArrayIndexNULL
 			theEdges[ faceNum*4 + edgeNum ] = anEdge;
 		}
-		
+
 		Q3TriMesh_UnlockData( (TQ3GeometryObject _Nonnull) theItem.get() );
 		++faceNum;
 	}
-	
+
 	Q3BoundingBox_SetFromPoints3D( &tmData.bBox, thePoints, 24, sizeof(TQ3Point3D) );
-	
+
 	TQ3GeometryObject theTriMesh = Q3TriMesh_New( &tmData );
-	
+
 	if (theTriMesh != nullptr)
 	{
 		E3TriMesh_AddTriangleNormals(theTriMesh, kQ3OrientationStyleCounterClockwise);
 		Q3Group_EmptyObjectsOfType( ioGroup, kQ3GeometryTypeTriMesh );
 		Q3Group_AddObjectAndDispose( ioGroup, &theTriMesh );
 	}
-	
+
 }
 
 
@@ -492,7 +490,7 @@ e3geom_box_cache_new( TQ3ViewObject theView, TQ3GeometryObject theGeom,
 
 
 	// Create a group to hold the cached representation
-	theGroup = Q3DisplayGroup_New();	
+	theGroup = Q3DisplayGroup_New();
 	if (theGroup == nullptr)
 		{
 		E3ErrorManager_PostError( kQ3ErrorOutOfMemory, kQ3False );
@@ -539,12 +537,12 @@ e3geom_box_cache_new( TQ3ViewObject theView, TQ3GeometryObject theGeom,
 	Q3Vector3D_Negate( &inBoxData->orientation, &antiOrientation );
 	Q3Vector3D_Negate( &inBoxData->minorAxis, &antiMinor );
 	Q3Vector3D_Negate( &inBoxData->majorAxis, &antiMajor );
-	
+
 	// Left face
 	status = e3geom_box_create_face( theView, theGroup, &inBoxData->origin, &antiMinor,
 		&inBoxData->majorAxis, &inBoxData->orientation,
 		e3geom_box_get_face_att_set( inBoxData, 0 ) );
-	
+
 	// Right face
 	if (status == kQ3Success)
 	{
@@ -554,7 +552,7 @@ e3geom_box_cache_new( TQ3ViewObject theView, TQ3GeometryObject theGeom,
 			&antiMajor, &inBoxData->orientation,
 			e3geom_box_get_face_att_set( inBoxData, 1 ) );
 	}
-	
+
 	// Front face
 	if (status == kQ3Success)
 	{
@@ -563,7 +561,7 @@ e3geom_box_cache_new( TQ3ViewObject theView, TQ3GeometryObject theGeom,
 			&inBoxData->minorAxis, &inBoxData->orientation,
 			e3geom_box_get_face_att_set( inBoxData, 2 ) );
 	}
-	
+
 	// Back face
 	if (status == kQ3Success)
 	{
@@ -580,7 +578,7 @@ e3geom_box_cache_new( TQ3ViewObject theView, TQ3GeometryObject theGeom,
 		status = e3geom_box_create_face( theView, theGroup, &workPt, &inBoxData->orientation,
 			&inBoxData->minorAxis, &antiMajor, e3geom_box_get_face_att_set( inBoxData, 4 ) );
 	}
-	
+
 	// bottom face
 	if (status == kQ3Success)
 	{
@@ -677,7 +675,7 @@ e3geom_box_metahandler(TQ3XMethodType methodType)
 		case kQ3XMethodTypeObjectSubmitBounds:
 			theMethod = (TQ3XFunctionPointer) e3geom_box_bounds;
 			break;
-		
+
 		case kQ3XMethodTypeGeomGetAttribute:
 			theMethod = (TQ3XFunctionPointer) e3geom_box_get_attribute;
 			break;
@@ -686,7 +684,7 @@ e3geom_box_metahandler(TQ3XMethodType methodType)
 			theMethod = (TQ3XFunctionPointer) kQ3True;
 			break;
 		}
-	
+
 	return(theMethod);
 }
 
@@ -724,7 +722,7 @@ E3GeometryBox_UnregisterClass(void)
 
 	// Unregister the class
 	qd3dStatus = E3ClassTree::UnregisterClass(kQ3GeometryTypeBox, kQ3True);
-	
+
 	return(qd3dStatus);
 }
 
@@ -865,7 +863,7 @@ E3Box_GetData ( TQ3GeometryObject theBox, TQ3BoxData* boxData )
 		}
 	else
 		boxData->faceAttributeSet = nullptr ;
-	
+
 	E3Shared_Acquire ( &boxData->boxAttributeSet, box->instanceData.boxAttributeSet ) ;
 
 	return kQ3Success ;
@@ -889,10 +887,10 @@ E3Box_EmptyData(TQ3BoxData *boxData)
 		{
 		for (n = 0; n < 6; n++)
 			Q3Object_CleanDispose(&boxData->faceAttributeSet[n]);
-		
+
 		Q3Memory_Free(&boxData->faceAttributeSet);
 		}
-		
+
 	Q3Object_CleanDispose(&boxData->boxAttributeSet);
 
 	return(kQ3Success);
@@ -912,7 +910,7 @@ E3Box_SetOrigin ( TQ3GeometryObject theBox, const TQ3Point3D* origin )
 
 	// Set the origin
 	box->instanceData.origin = *origin ;
-	
+
 	Q3Shared_Edited ( theBox ) ;
 
 	return kQ3Success ;
@@ -932,7 +930,7 @@ E3Box_SetOrientation ( TQ3GeometryObject theBox, const TQ3Vector3D* orientation 
 
 	// Set the orientation
 	box->instanceData.orientation = *orientation ;
-	
+
 	Q3Shared_Edited ( theBox ) ;
 
 	return kQ3Success ;
@@ -952,7 +950,7 @@ E3Box_SetMajorAxis ( TQ3GeometryObject theBox, const TQ3Vector3D* majorAxis )
 
 	// Set the major axis
 	box->instanceData.majorAxis = *majorAxis ;
-	
+
 	Q3Shared_Edited ( theBox ) ;
 
 	return kQ3Success ;
@@ -972,7 +970,7 @@ E3Box_SetMinorAxis ( TQ3GeometryObject theBox, const TQ3Vector3D* minorAxis )
 
 	// Set the minor axis
 	box->instanceData.minorAxis = *minorAxis ;
-	
+
 	Q3Shared_Edited ( theBox ) ;
 
 	return kQ3Success ;
@@ -992,7 +990,7 @@ E3Box_GetOrigin(TQ3GeometryObject theBox, TQ3Point3D *origin)
 
 	// Get the origin
 	*origin = box->instanceData.origin ;
-	
+
 	return kQ3Success ;
 	}
 
@@ -1010,7 +1008,7 @@ E3Box_GetOrientation(TQ3GeometryObject theBox, TQ3Vector3D *orientation)
 
 	// Get the origin
 	*orientation = box->instanceData.orientation ;
-	
+
 	return kQ3Success ;
 	}
 
@@ -1028,7 +1026,7 @@ E3Box_GetMajorAxis(TQ3GeometryObject theBox, TQ3Vector3D *majorAxis)
 
 	// Get the origin
 	*majorAxis = box->instanceData.majorAxis ;
-	
+
 	return kQ3Success ;
 	}
 
@@ -1046,7 +1044,7 @@ E3Box_GetMinorAxis(TQ3GeometryObject theBox, TQ3Vector3D *minorAxis)
 
 	// Get the origin
 	*minorAxis = box->instanceData.minorAxis ;
-	
+
 	return kQ3Success ;
 	}
 
@@ -1067,7 +1065,7 @@ E3Box_GetFaceAttributeSet(TQ3GeometryObject theBox, TQ3Uns32 faceIndex, TQ3Attri
 		E3Shared_Acquire ( faceAttributeSet, box->instanceData.faceAttributeSet [ faceIndex ] ) ;
 	else
 		*faceAttributeSet = nullptr ;
-	
+
 	return kQ3Success ;
 	}
 
