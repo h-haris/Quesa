@@ -135,6 +135,7 @@
 
 #include "CString.h"
 #include "NameElement.h"
+#include "NormalMapElement.h"
 #include "SpecularMapElement.h"
 #include "TableOfContents.h"
 #include "Reference.h"
@@ -188,7 +189,7 @@ void	RegisterHandlers( Controller* inController )
 	Register( Quaternion );
 	Register( Reset );
 	Register( Rasterize );
-	
+
 	// Geometries
 	Register( Line );
 	Register( Caps );
@@ -227,13 +228,13 @@ void	RegisterHandlers( Controller* inController )
 	Register( VertexAttributeSetList );
 	Register( FaceAttributeSetList );
 	Register( GeometryAttributeSetList );
-	
+
 	// Attribute Sets
 	Register( AttributeSet );
 	Register( BottomCapAttributeSet );
 	Register( TopCapAttributeSet );
 	Register( FaceCapAttributeSet );
-	
+
 	// Cameras
 	Register( ViewAngleAspectCamera );
 	Register( CameraPlacement );
@@ -267,6 +268,7 @@ void	RegisterHandlers( Controller* inController )
 	Register( CString );
 	Register( NameElement );
 	Register( SpecularMapElement );
+	Register( NormalMapElement );
 	Register( TableOfContents );
 	Register( Reference );
 }

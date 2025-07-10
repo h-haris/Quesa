@@ -3,30 +3,30 @@
 
     DESCRIPTION:
         Quesa OpenGL shaders.
-		    
+
     COPYRIGHT:
         Copyright (c) 2020-2021, Quesa Developers. All rights reserved.
 
         For the current release of Quesa, please see:
 
             <https://github.com/jwwalker/Quesa>
-        
+
         Redistribution and use in source and binary forms, with or without
         modification, are permitted provided that the following conditions
         are met:
-        
+
             o Redistributions of source code must retain the above copyright
               notice, this list of conditions and the following disclaimer.
-        
+
             o Redistributions in binary form must reproduce the above
               copyright notice, this list of conditions and the following
               disclaimer in the documentation and/or other materials provided
               with the distribution.
-        
+
             o Neither the name of Quesa nor the names of its contributors
               may be used to endorse or promote products derived from this
               software without specific prior written permission.
-        
+
         THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
         "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
         LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
@@ -168,15 +168,15 @@ const char* kVertexShaderFisheyeProjection = R"(
 		case 0: // orthographic
 			r = quesaFocalLength * sin( theta );
 			break;
-			
+
 		case 1: // stereographic
 			r = 2.0 * quesaFocalLength * tan( theta/2.0 );
 			break;
-		
+
 		case 2: // equidistant
 			r = quesaFocalLength * theta;
 			break;
-			
+
 		case 3: // equisolidAngle
 			r = 2.0 * quesaFocalLength * sin( theta/2.0 );
 			break;
@@ -199,11 +199,11 @@ const char* kVertexShaderEnd = "}\n";
 #pragma mark kFisheyeGeomShader
 /*
 	Geometry shader for fisheye camera.
-	
+
 	The purpose of this shader is to subdivide triangles so as to reduce
 	inaccuracy caused by the nonlinearity of the projection.  We also do
 	the actual projection here rather than in the vertex shader.
-	
+
 	The subdivision splits each triangle into at most 16 smaller similar
 	triangles.  Using triangle strips, at most 24 vertices are emitted.
 	Hence the value max_vertices=24.
@@ -252,7 +252,7 @@ vec4 FisheyeProjection( in VertexData vert )
 	vec4 projected;
 	projected.z = (vert.ECPos4.w == 0.0)? 2.0 * q - 1.0 : 2.0 * q - 1.0 - (2.0 * q * near) / r;
 	projected.w = 1.0;
-	
+
 	r = 0.0;
 	float theta = AngleBetweenVectors( vert.ECPos4.xyz, forward );
 	switch (quesaFisheyeMappingFunc)
@@ -260,15 +260,15 @@ vec4 FisheyeProjection( in VertexData vert )
 		case 0: // orthographic
 			r = quesaFocalLength * sin( theta );
 			break;
-			
+
 		case 1: // stereographic
 			r = 2.0 * quesaFocalLength * tan( theta/2.0 );
 			break;
-		
+
 		case 2: // equidistant
 			r = quesaFocalLength * theta;
 			break;
-			
+
 		case 3: // equisolidAngle
 			r = 2.0 * quesaFocalLength * sin( theta/2.0 );
 			break;
@@ -322,7 +322,7 @@ VertexData VertexBaryBlend( in VertexData A, in VertexData B, in VertexData C,
 	return acos( dot( u, v ) / sqrt( dot( u, u ) * dot( v, v ) ) );
 }*/
 
-// This is mathematically equivalent to 
+// This is mathematically equivalent to
 // angleAB = FastAngleBetweenVectors( A, B );
 // angleAC = FastAngleBetweenVectors( A, C );
 // angleBC = FastAngleBetweenVectors( B, C );
@@ -354,7 +354,7 @@ void Subdivide3Long( in VertexData A, in VertexData B, in VertexData C )
 	B2C2 = VertexBaryBlend( A, B, C, 0.0, w2, w2 );
 	AC3 = VertexBaryBlend( A, B, C, w1, 0.0, w3 );
 	BC3 = VertexBaryBlend( A, B, C, 0.0, w1, w3 );
-	
+
 	EmitVert( A );
 	EmitVert( A3B );
 	EmitVert( A3C );
@@ -433,7 +433,7 @@ void Sub( in VertexData A, in VertexData B, in VertexData C )
 	bool isLongBC = (angleBC > triBigSize) && (B.ECPos4.w > 0.0) && (C.ECPos4.w > 0.0);
 	int longCount = int(isLongAB) + int(isLongAC) + int(isLongBC);
 	VertexData T;
-	
+
 	if (longCount == 0)
 	{
 		EmitTriangle( A, B, C );
@@ -497,13 +497,13 @@ void main()
 	that hit discontinuities in the projection.  Another is
 	to subdivide triangles to reduce inaccuracy caused by the
 	nonlinearity of the projection.
-	
+
 	The excision phase starts with one triangle and subdivides
 	it into at most 4 triangles.  Then the subdivision phase
 	breaks each triangle into at most 9 triangles, by emitting
 	at most 15 vertices in triangle strips.  Thus, at 4 * 15 = 60
 	vertices will be emitted, hence max_vertices=60 below.
-	
+
 	Note that since GL_MAX_GEOMETRY_TOTAL_OUTPUT_COMPONENTS has
 	a minimum value of 1024, and our VertexData structure has
 	13 components, we could emit up to floor(1024/13) = 78
@@ -556,7 +556,7 @@ bool SectYZPlane( in vec3 A, in vec3 B, out float p )
 	{
 		isBreak = (A.z >= 0.0) || (B.z >= 0.0);
 	}
-	
+
 	return isBreak;
 }
 
@@ -576,7 +576,7 @@ bool FindPoleInTriangle( in vec3 A, in vec3 B, in vec3 C, out vec3 baryParam )
 		baryParam.z = 1.0 - baryParam.x - baryParam.y;
 		foundPole = (baryParam.x >= 0.0) && (baryParam.y >= 0.0) && (baryParam.z >= 0.0);
 	}
-	
+
 	return foundPole;
 }
 
@@ -591,11 +591,11 @@ vec4 AllSeeingProjection( in VertexData vert )
 	projected.y = (2.0 * asin( vert.ECPos4.y / r )) / pi;
 	projected.z = (vert.ECPos4.w == 0.0)? 2.0 * q - 1.0 : 2.0 * q - 1.0 - (2.0 * q * near) / r;
 	projected.w = 1.0;
-	
+
 	// viewport mapping
 	projected.x = 2.0*(projected.x - quesaCameraViewport.x)/quesaCameraViewport.z - 1.0;
 	projected.y = 2.0*(projected.y - quesaCameraViewport.y)/quesaCameraViewport.w + 1.0;
-	
+
 	return projected;
 }
 
@@ -671,7 +671,7 @@ void Sub1( in VertexData A, in VertexData B, in VertexData C )
 		B2C = VertexBaryBlend( A, B, C, 0.0, w2, w1 );
 		BC2 = VertexBaryBlend( A, B, C, 0.0, w1, w2 );
 		ABC = VertexBaryBlend( A, B, C, w1, w1, w1 );
-		
+
 		EmitVert( A );
 		EmitVert( A2B );
 		EmitVert( A2C );
@@ -680,14 +680,14 @@ void Sub1( in VertexData A, in VertexData B, in VertexData C )
 		EmitVert( BC2 );
 		EmitVert( C );
 		EndPrimitive();
-		
+
 		EmitVert( A2B );
 		EmitVert( AB2 );
 		EmitVert( ABC );
 		EmitVert( B2C );
 		EmitVert( BC2 );
 		EndPrimitive();
-		
+
 		EmitVert( AB2 );
 		EmitVert( B );
 		EmitVert( B2C );
@@ -718,7 +718,7 @@ void Sub1( in VertexData A, in VertexData B, in VertexData C )
 		VertexData AB2 = VertexBaryBlend( A, B, C, w1, w2, 0.0 );
 		VertexData A2C = VertexBaryBlend( A, B, C, w2, 0.0, w1 );
 		VertexData AC2 = VertexBaryBlend( A, B, C, w1, 0.0, w2 );
-		
+
 		EmitVert( A );
 		EmitVert( A2B );
 		EmitVert( A2C );
@@ -809,7 +809,7 @@ void main()
 		VertexBlend( paramAB + delta, A, B, F );
 		VertexBlend( paramAC - delta, A, C, E );
 		VertexBlend( paramAC + delta, A, C, G );
-		
+
 		Sub1( A, D, E );
 		Sub1( C, F, B );
 		Sub1( C, G, F );
@@ -847,14 +847,14 @@ void main()
 			p = p12;
 			poleP = poleParam;
 		}
-		
+
 		// Compute a vertex H at the pole.
 		VertexData H = VertexBaryBlend( A, B, C, poleP.x, poleP.y, poleP.z );
 		// Compute the point G where the half-plane of discontinuity intersects
 		// the BC segment.
 		VertexData G;
 		VertexBlend( p, B, C, G );
-		
+
 		// We want a point D on the interior side of H.  Usually we can go a little
 		// past H along the line from G thru H.  But if the pole is along the BC
 		// segment, then G and H should be the same, so instead go a bit toward A
@@ -872,7 +872,7 @@ void main()
 		VertexData E, F;
 		VertexBlend( p - delta, B, C, E );
 		VertexBlend( p + delta, B, C, F );
-		
+
 		// Now make 4 triangles that avoid the discontinuity.
 		Sub1( A, B, D );
 		Sub1( A, D, C );
@@ -1483,7 +1483,7 @@ const char* kSpotLightFragmentShaderSource = R"(
 		((spotAngle > cutoffAngle[LIGHT_INDEX])?
 			0.0 :
 			SpotFalloff_LIGHT_INDEX( fallFrac ));
-	
+
 	// See if point on surface is inside cone of illumination,
 	// and maybe attenuate by angle from center of spot.
 	// Set attenuation to 0 if outside the spot light cone.
@@ -1550,7 +1550,7 @@ const char* kSpotLightWithNondirIllumFragmentShaderSource = R"(
 		((spotAngle > cutoffAngle[LIGHT_INDEX])?
 			0.0 :
 			SpotFalloff_LIGHT_INDEX( fallFrac ));
-	
+
 	// See if point on surface is inside cone of illumination,
 	// and maybe attenuate by angle from center of spot.
 	// Set attenuation to 0 if outside the spot light cone.
@@ -1724,11 +1724,19 @@ const char* kTexturedColorComp = R"(
 	// Texturing, GL_MODULATE mode
 	{
 		vec4 texColor = texture( tex0, FSIN.texCoord );
-		color *= texColor.rgb;
-		alpha *= texColor.a;
 		if (texColor.a < alphaThreshold)
 		{
 			discard;
+		}
+		else if (alphaThreshold > 0.0)
+		{
+			color = texColor.rgb;
+			alpha = 1.0;
+		}
+		else
+		{
+			color *= texColor.rgb;
+			alpha *= texColor.a;
 		}
 	}
 
@@ -1797,7 +1805,7 @@ const char* kCalcFogHalfspace = R"(
 	because if fog brightens the premultipliedFragColor, then the result
 	color will be bright no matter how small alpha is.  Therefore we must
 	do the fog mixing with unpremultiplied color.
-	
+
 	The FogSmooth function is intended to make the place where you hit the
 	maxFogOpacity be a less obvious transition.  It was chosen as a cubic
 	polynomial satisfying:

@@ -6,28 +6,28 @@
         then forwards each API call to the equivalent E3xxxxx routine.
 
     COPYRIGHT:
-        Copyright (c) 1999-2019, Quesa Developers. All rights reserved.
+        Copyright (c) 1999-2025, Quesa Developers. All rights reserved.
 
         For the current release of Quesa, please see:
 
             <https://github.com/jwwalker/Quesa>
-        
+
         Redistribution and use in source and binary forms, with or without
         modification, are permitted provided that the following conditions
         are met:
-        
+
             o Redistributions of source code must retain the above copyright
               notice, this list of conditions and the following disclaimer.
-        
+
             o Redistributions in binary form must reproduce the above
               copyright notice, this list of conditions and the following
               disclaimer in the documentation and/or other materials provided
               with the distribution.
-        
+
             o Neither the name of Quesa nor the names of its contributors
               may be used to endorse or promote products derived from this
               software without specific prior written permission.
-        
+
         THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
         "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
         LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
@@ -153,7 +153,7 @@ CENameElement_PeekData(TQ3Object object, const char **name)
 	// Release build checks
 	Q3_REQUIRE_OR_RESULT(Q3_VALID_PTR(object), kQ3Failure);
 	Q3_REQUIRE_OR_RESULT(Q3_VALID_PTR(name), kQ3Failure);
-	
+
 
 
 	// Call the bottleneck
@@ -304,14 +304,14 @@ CEUrlElement_EmptyData(TCEUrlData **urlData)
 				optimization for rendering TriMesh objects.  If you have not
 				already provided a triangle strip for a TriMesh, the renderer
 				will compute one, but this can take a little time.
-				
+
 				When you assign a triangle strip, the element also records the
 				current edit index of the object.
-				
+
 				You can pass 0 for inNumIndices and nullptr for inIndices to
 				indicate that you want to avoid using a triangle strip, perhaps
 				because there is no efficient strip for this geometry.
-				
+
 				<em>This function is not available in QD3D.</em>
 	@param		ioObject		An object, normally a TriMesh.
 	@param		inNumIndices	Count of indices in the following array.
@@ -335,7 +335,7 @@ CETriangleStripElement_SetData(
 	}
 
 
-	
+
 	// Call the bottleneck
 	E3System_Bottleneck();
 
@@ -350,15 +350,15 @@ CETriangleStripElement_SetData(
 	@abstract	Get a triangle strip for the object.
 	@discussion	Triangle strips are used by the OpenGL renderer as a speed
 				optimization for rendering TriMesh objects.
-				
+
 				If the current edit index of the object is not the same as
 				when a strip was assigned, the strip will be considered stale
 				and this function will return kQ3Failure.
-				
+
 				This function returns the actual triangle strip data within
 				the element, not a copy.  The data should be considered
 				read-only and temporary.
-				
+
 				<em>This function is not available in QD3D.</em>
 	@param		inObject		An object, normally a TriMesh.
 	@param		outNumIndices	Receives count of indices.
@@ -380,7 +380,7 @@ CETriangleStripElement_GetData(
 	Q3_REQUIRE_OR_RESULT( E3Shared_IsOfMyClass ( inObject ), kQ3Failure);
 
 
-	
+
 	// Call the bottleneck
 	E3System_Bottleneck();
 
@@ -406,9 +406,9 @@ CETriangleStripElement_Remove(
 	Q3_REQUIRE(Q3_VALID_PTR(ioObject));
 	Q3_REQUIRE( ioObject->IsObjectValid () );
 	Q3_REQUIRE( E3Shared_IsOfMyClass ( ioObject ) );
-	
 
-	
+
+
 	// Call the bottleneck
 	E3System_Bottleneck();
 
@@ -431,10 +431,10 @@ CESpecularMapElement_Copy( TQ3ShaderObject inShader )
 {
 	Q3_REQUIRE_OR_RESULT( Q3_VALID_PTR(inShader), nullptr );
 	Q3_REQUIRE_OR_RESULT( inShader->IsObjectValid(), nullptr );
-	
+
 	// Call the bottleneck
 	E3System_Bottleneck();
-	
+
 	TQ3TextureObject theTexture = E3SpecularMapElement_Copy( inShader );
 	return theTexture;
 }
@@ -452,7 +452,7 @@ CESpecularMapElement_Copy( TQ3ShaderObject inShader )
 				while the alpha value is bounded. To be exact,
 				an alpha value in the range [0.0, 1.0] is multiplied
 				by 128.0 and used as the OpenGL specular exponent.
-				
+
 				A specular map may only be used with the OpenGL
 				renderer, and requires that per-pixel lighting be
 				enabled.
@@ -465,11 +465,54 @@ CESpecularMapElement_Set( TQ3ShaderObject ioShader, TQ3TextureObject inTexture )
 	Q3_REQUIRE(Q3_VALID_PTR(ioShader));
 	Q3_REQUIRE( ioShader->IsObjectValid () );
 	Q3_REQUIRE( (inTexture == nullptr) || inTexture->IsObjectValid () );
-	
+
 	// Call the bottleneck
 	E3System_Bottleneck();
-	
+
 	E3SpecularMapElement_Set( ioShader, inTexture );
+}
+
+#pragma mark -
+
+/*!
+	@function	CENormalMapElement_Copy
+	@abstract		Retrieve a normal map texture from an object.
+	@param		inShader	A surface shader.
+	@result		A new reference to a texture, or NULL.
+*/
+TQ3TextureObject
+CENormalMapElement_Copy( TQ3ShaderObject _Nonnull inShader )
+{
+	Q3_REQUIRE_OR_RESULT( Q3_VALID_PTR(inShader), nullptr );
+	Q3_REQUIRE_OR_RESULT( inShader->IsObjectValid(), nullptr );
+
+	// Call the bottleneck
+	E3System_Bottleneck();
+
+	TQ3TextureObject theTexture = E3NormalMapElement_Copy( inShader );
+	return theTexture;
+}
+
+/*!
+	@function	CENormalMapElement_Set
+	@abstract		Set or remove a normal map.
+	@discussion	A normal map is not used by Quesa's OpenGL
+				renderer, but this may be useful when using Quesa as a scene graph
+				for another rendering engine.
+	@param		ioShader	A surface shader.
+	@param		inTexture	A texture object, or nullptr to remove.
+*/
+void
+CENormalMapElement_Set( TQ3ShaderObject _Nonnull ioShader, TQ3TextureObject _Nullable inTexture )
+{
+	Q3_REQUIRE(Q3_VALID_PTR(ioShader));
+	Q3_REQUIRE( ioShader->IsObjectValid () );
+	Q3_REQUIRE( (inTexture == nullptr) || inTexture->IsObjectValid () );
+
+	// Call the bottleneck
+	E3System_Bottleneck();
+
+	E3NormalMapElement_Set( ioShader, inTexture );
 }
 
 #pragma mark -
@@ -485,9 +528,9 @@ CETextureFlippedRowsElement_Add( TQ3TextureObject inTexture )
 {
 	Q3_REQUIRE(Q3_VALID_PTR(inTexture));
 	Q3_REQUIRE( inTexture->IsObjectValid () );
-	
+
 	E3System_Bottleneck();
-	
+
 	E3TextureFlippedRowsElement_Add( inTexture );
 }
 
@@ -502,9 +545,9 @@ CETextureFlippedRowsElement_IsPresent( TQ3TextureObject inTexture )
 {
 	Q3_REQUIRE_OR_RESULT( Q3_VALID_PTR(inTexture), kQ3False );
 	Q3_REQUIRE_OR_RESULT( inTexture->IsObjectValid(), kQ3False );
-	
+
 	E3System_Bottleneck();
-	
+
 	return E3TextureFlippedRowsElement_IsPresent( inTexture );
 }
 
@@ -519,9 +562,9 @@ CETextureFlippedRowsElement_Remove( TQ3TextureObject inTexture )
 {
 	Q3_REQUIRE(Q3_VALID_PTR(inTexture));
 	Q3_REQUIRE( inTexture->IsObjectValid () );
-	
+
 	E3System_Bottleneck();
-	
+
 	E3TextureFlippedRowsElement_Remove( inTexture );
 }
 
@@ -567,9 +610,9 @@ CEFogMaxElement_Set( TQ3StyleObject ioFogStyle, float inMaxOpacity )
 {
 	Q3_REQUIRE( ioFogStyle != nullptr );
 	Q3_REQUIRE( ioFogStyle->IsObjectValid() );
-	
+
 	E3System_Bottleneck();
-	
+
 	E3FogMaxElement_Set( ioFogStyle, inMaxOpacity );
 }
 
@@ -611,8 +654,8 @@ CEHalfspaceFogElement_SetData( TQ3StyleObject ioFogStyle,
 {
 	Q3_REQUIRE( ioFogStyle != nullptr );
 	Q3_REQUIRE( ioFogStyle->IsObjectValid() );
-	
+
 	E3System_Bottleneck();
-	
+
 	E3HalfspaceFogElement_Set( ioFogStyle, inData );
 }
