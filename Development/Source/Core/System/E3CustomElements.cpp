@@ -5,28 +5,28 @@
         Implementation of Quesa API calls.
 
     COPYRIGHT:
-        Copyright (c) 1999-2021, Quesa Developers. All rights reserved.
+        Copyright (c) 1999-2025, Quesa Developers. All rights reserved.
 
         For the current release of Quesa, please see:
 
             <https://github.com/jwwalker/Quesa>
-        
+
         Redistribution and use in source and binary forms, with or without
         modification, are permitted provided that the following conditions
         are met:
-        
+
             o Redistributions of source code must retain the above copyright
               notice, this list of conditions and the following disclaimer.
-        
+
             o Redistributions in binary form must reproduce the above
               copyright notice, this list of conditions and the following
               disclaimer in the documentation and/or other materials provided
               with the distribution.
-        
+
             o Neither the name of Quesa nor the names of its contributors
               may be used to endorse or promote products derived from this
               software without specific prior written permission.
-        
+
         THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
         "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
         LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
@@ -84,7 +84,7 @@ public :
 
 	TQ3StringObject							instanceData ;
 	} ;
-	
+
 
 
 class E3URLElement : public E3Element  // This is a leaf class so no other classes use this,
@@ -97,7 +97,7 @@ public :
 
 	TCEUrlDataPrivate						instanceData ;
 	} ;
-	
+
 
 
 
@@ -137,6 +137,16 @@ public :
 	TQ3TextureObject							instanceData ;
 	} ;
 
+class E3NormalElement : public E3Element  // This is a leaf class so no other classes use this,
+								// so it can be here in the .c file rather than in
+								// the .h file, hence all the fields can be public
+								// as nobody should be including this file
+	{
+Q3_CLASS_ENUMS ( kQ3ObjectTypeCustomElementNormalMap, E3NormalElement, E3Element )
+public :
+
+	TQ3TextureObject							instanceData ;
+	} ;
 
 
 
@@ -200,12 +210,12 @@ e3nameelement_readdata (TQ3Object object, TQ3FileObject file)
 	TQ3StringObject	string;
 
 	string = Q3File_ReadObject(file);
-	if (string == nullptr) 
+	if (string == nullptr)
 		return kQ3Failure;
-		
+
 	status = Q3Shape_AddElement(object, kQ3ObjectTypeCustomElementName, &string);
 	Q3Object_Dispose(string);
-	
+
 	return status;
 }
 
@@ -221,7 +231,7 @@ e3nameelement_copyadd ( const void* fromParam, void* toParam )
 {
 	TQ3StringObject* source = (TQ3StringObject*) fromParam;
 	TQ3StringObject* dest = (TQ3StringObject*) toParam;
-	
+
 	*dest = Q3Shared_GetReference(*source);
 
 	return (*dest != nullptr) ? kQ3Success : kQ3Failure;
@@ -255,14 +265,14 @@ static TQ3Status
 e3nameelement_copyreplace (TQ3StringObject *source, TQ3StringObject *dest)
 {
 	TQ3StringObject	temp;
-	
+
 	temp = Q3Shared_GetReference(*source);
-	if (temp == nullptr) 
+	if (temp == nullptr)
 		return kQ3Failure;
 
 	if (*dest)
 		Q3Object_Dispose(*dest);
-	
+
 	*dest = temp;
 
 	return kQ3Success;
@@ -375,7 +385,7 @@ e3urlelement_write (TCEUrlDataPrivate *urlData, TQ3FileObject file)
 {
 	if (Q3String_Write (urlData->url, file) == kQ3Failure)
 		return kQ3Failure;
-		
+
 	return Q3Uns32_Write ((TQ3Uns32)urlData->options, file);
 }
 
@@ -392,13 +402,13 @@ e3urlelement_readdata (TQ3Object object, TQ3FileObject file)
 	TCEUrlDataPrivate 	urlData;
 	TQ3Uns32			length;
 	char 				buffer[kQ3StringMaximumLength];
-	
+
 	if (Q3String_Read (buffer, &length, file) == kQ3Failure)
 		return kQ3Failure;
 
 	urlData.url = (char*)Q3Memory_Allocate(length + 1);
 	SAFE_STRCPY(urlData.url, buffer, length + 1);
-	
+
 	if (Q3Uns32_Read ((TQ3Uns32*)&urlData.options, file) == kQ3Failure)
 		return kQ3Failure;
 
@@ -430,7 +440,7 @@ e3urlelement_copyadd ( const void* fromParam, void* toParam )
 	SAFE_STRCPY(dest->url, source->url, dstSize);
 
 	if (source->description) {  // optional
-		
+
 		// In the case of duplication, this needs to be Q3Object_Duplicate
 		// rather than Q3Shared_Duplicate.  In the case of Add and Get,
 		// it doesn't matter much, since the strings being copied are
@@ -439,14 +449,14 @@ e3urlelement_copyadd ( const void* fromParam, void* toParam )
 		if (dest->description == nullptr) {
 			return kQ3Failure;
 		}
-		
+
 	} else {
 
 		dest->description = nullptr;
 	}
-		
+
 	dest->options = source->options;
-	
+
 	return kQ3Success;
 }
 
@@ -465,7 +475,7 @@ e3urlelement_copyreplace (TCEUrlDataPrivate *source, TCEUrlDataPrivate *dest)
 
 	if (Q3Memory_Reallocate(&dest->url, dstSize) == kQ3Failure)
 		return kQ3Failure;
-		
+
 	SAFE_STRCPY(dest->url, source->url, dstSize);
 
 	if (source->description) {  // optional
@@ -474,20 +484,20 @@ e3urlelement_copyreplace (TCEUrlDataPrivate *source, TCEUrlDataPrivate *dest)
 		if (string == nullptr) {
 			return kQ3Failure;
 		}
-		
+
 		if (dest->description) {
 			Q3Object_Dispose (dest->description);
 		}
 
 		dest->description = string;
-		
+
 	} else {
 
 		dest->description = nullptr;
 	}
-		
+
 	dest->options = source->options;
-	
+
 	return kQ3Success;
 }
 
@@ -503,13 +513,13 @@ e3urlelement_delete (void *inData)
 {
 	TCEUrlDataPrivate* urlData = (TCEUrlDataPrivate*) inData;
 	if (urlData->url != nullptr) {
-	
+
 		Q3Memory_Free (&urlData->url);
 		urlData->url = nullptr;
 	}
-	
+
 	if (urlData->description != nullptr) {
-	
+
 		Q3Object_Dispose (urlData->description);
 		urlData->description = nullptr;
 	}
@@ -576,11 +586,11 @@ strip_element_copyadd( const void* fromAPIElementParam,
 {
 	const TCETriangleStripPrivate* fromAPIElement = (const TCETriangleStripPrivate*) fromAPIElementParam;
 	TCETriangleStripPrivate* toInternalElement = (TCETriangleStripPrivate*) toInternalElementParam;
-	
+
 	TQ3Status	status = kQ3Failure;
 	toInternalElement->indexCount = fromAPIElement->indexCount;
 	toInternalElement->editIndex = fromAPIElement->editIndex;
-	
+
 	if (toInternalElement->indexCount == 0)
 	{
 		toInternalElement->indexArray = nullptr;
@@ -663,14 +673,14 @@ strip_element_write( const void *data, TQ3FileObject theFile )
 {
 	const TCETriangleStripPrivate*	theData =
 		reinterpret_cast<const TCETriangleStripPrivate*>(data);
-	
+
 	TQ3Status status = Q3Uns32_Write( theData->indexCount, theFile );
-	
+
 	for (TQ3Uns32 i = 0; (i < theData->indexCount) && (status == kQ3Success); ++i)
 	{
 		status = Q3Uns32_Write( theData->indexArray[i], theFile );
 	}
-	
+
 	return status;
 }
 
@@ -686,15 +696,15 @@ strip_element_readdata( TQ3Object parentObject, TQ3FileObject theFile )
 {
 	TQ3Uns32	numIndices;
 	TQ3Status	status = Q3Uns32_Read( &numIndices, theFile );
-	
+
 	if (status == kQ3Success)
 	{
 		std::vector<TQ3Uns32>	theArray( numIndices );
-		
+
 		if (numIndices > 0)
 		{
 			status = Q3Uns32_ReadArray( numIndices, &theArray[0], theFile );
-		
+
 			if (status == kQ3Success)
 			{
 				status = E3TriangleStripElement_SetData( parentObject,
@@ -707,7 +717,7 @@ strip_element_readdata( TQ3Object parentObject, TQ3FileObject theFile )
 					numIndices, nullptr );
 		}
 	}
-	
+
 	return status;
 }
 
@@ -754,7 +764,7 @@ strip_element_metahandler(TQ3XMethodType methodType)
 			theMethod = (TQ3XFunctionPointer) strip_element_delete;
 			break;
 	}
-	
+
 	return theMethod;
 }
 
@@ -786,7 +796,7 @@ static TQ3Status alphatest_element_readdata(
 	TQ3FileObject			file)
 {
 	TQ3Float32 threshold;
-	
+
 	TQ3Status	theStatus = Q3Float32_Read( &threshold, file );
 	if (theStatus == kQ3Success)
 	{
@@ -816,7 +826,7 @@ e3alphatestelement_metahandler(TQ3XMethodType methodType)
 			theMethod = (TQ3XFunctionPointer) alphatest_element_readdata;
 			break;
 	}
-	
+
 	return theMethod;
 }
 
@@ -855,7 +865,7 @@ e3texture_flipped_rows_element_metahandler(TQ3XMethodType methodType)
 			theMethod = (TQ3XFunctionPointer) FlipRowElement_readdata;
 			break;
 	}
-	
+
 	return theMethod;
 }
 
@@ -866,7 +876,7 @@ static TQ3Status
 SpecularElement_delete( void *inParam )
 {
 	TQ3TextureObject* textureOb = (TQ3TextureObject*) inParam;
-	
+
 	if (*textureOb != nullptr)
 	{
 		Q3_ASSERT( (*textureOb != nullptr) && (*textureOb)->IsObjectValid() );
@@ -882,9 +892,9 @@ SpecularElement_CopyAdd( const void* fromParam, void* toParam )
 {
 	const TQ3TextureObject* inFromAPIElement = (const TQ3TextureObject*) fromParam;
 	TQ3TextureObject* ioToInternal = (TQ3TextureObject*) toParam;
-	
+
 	*ioToInternal = Q3Shared_GetReference( *inFromAPIElement );
-	
+
 	return (*ioToInternal != nullptr) ? kQ3Success : kQ3Failure;
 }
 
@@ -898,7 +908,7 @@ SpecularElement_CopyReplace( const TQ3TextureObject* inFromAPIElement,
 		Q3Object_Dispose( *ioToInternal );
 	}
 	*ioToInternal = Q3Shared_GetReference( *inFromAPIElement );
-	
+
 	return (*ioToInternal != nullptr) ? kQ3Success : kQ3Failure;
 }
 
@@ -908,7 +918,7 @@ SpecularElement_CopyGet( const void* src,
 {
 	const TQ3TextureObject* inFromInternal = (const TQ3TextureObject*) src;
 	TQ3TextureObject* ioToExternal = (TQ3TextureObject*) dst;
-	
+
 	*ioToExternal = Q3Shared_GetReference( *inFromInternal );
 	return kQ3Success;
 }
@@ -943,19 +953,19 @@ SpecularElement_readdata( TQ3Object parentObject, TQ3FileObject file )
 	TQ3TextureObject	texture;
 
 	texture = Q3File_ReadObject(file);
-	if (texture == nullptr) 
+	if (texture == nullptr)
 		return kQ3Failure;
 
 	E3SpecularMapElement_Set( parentObject, texture );
 	Q3Object_Dispose(texture);
-	
+
 	return kQ3Success;
 }
 
 static TQ3XFunctionPointer SpecularMetaHandler( TQ3XMethodType methodType )
 {
 	TQ3XFunctionPointer		theMethod = nullptr;
-	
+
 	switch (methodType)
 	{
 		case kQ3XMethodTypeElementCopyAdd:
@@ -991,9 +1001,70 @@ static TQ3XFunctionPointer SpecularMetaHandler( TQ3XMethodType methodType )
 			break;
 
 	}
-	
+
 	return theMethod;
 }
+
+#pragma mark -
+
+static TQ3Status
+NormalElement_readdata( TQ3Object parentObject, TQ3FileObject file )
+{
+	TQ3TextureObject	texture;
+
+	texture = Q3File_ReadObject(file);
+	if (texture == nullptr)
+		return kQ3Failure;
+
+	E3NormalMapElement_Set( parentObject, texture );
+	Q3Object_Dispose(texture);
+
+	return kQ3Success;
+}
+
+
+static TQ3XFunctionPointer NormalMetaHandler( TQ3XMethodType methodType )
+{
+	TQ3XFunctionPointer		theMethod = nullptr;
+
+	switch (methodType)
+	{
+		case kQ3XMethodTypeElementCopyAdd:
+			theMethod = (TQ3XFunctionPointer) SpecularElement_CopyAdd;
+			break;
+
+		case kQ3XMethodTypeElementCopyReplace:
+			theMethod = (TQ3XFunctionPointer) SpecularElement_CopyReplace;
+			break;
+
+		case kQ3XMethodTypeElementCopyGet:
+			theMethod = (TQ3XFunctionPointer) SpecularElement_CopyGet;
+			break;
+
+		case kQ3XMethodTypeElementCopyDuplicate:
+			theMethod = (TQ3XFunctionPointer) SpecularElement_CopyDuplicate;
+			break;
+
+		case kQ3XMethodTypeElementDelete:
+			theMethod = (TQ3XFunctionPointer) SpecularElement_delete;
+			break;
+
+		case kQ3XMethodTypeObjectClassVersion:
+			theMethod = (TQ3XFunctionPointer)0x01008000;
+			break;
+
+		case kQ3XMethodTypeObjectTraverse:
+			theMethod = (TQ3XFunctionPointer) SpecularElement_traverse;
+			break;
+
+		case kQ3XMethodTypeObjectReadData:
+			theMethod = (TQ3XFunctionPointer) NormalElement_readdata;
+			break;
+	}
+
+	return theMethod;
+}
+
 
 #pragma mark -
 
@@ -1010,7 +1081,7 @@ static TQ3Status
 FogMax_write( float *inData, TQ3FileObject file )
 {
 	TQ3Status	theStatus = Q3Float32_Write( *inData, file );
-	
+
 	return theStatus;
 }
 
@@ -1019,9 +1090,9 @@ static TQ3Status FogMax_readData(
 	TQ3FileObject			file)
 {
 	float	theData;
-		
+
 	TQ3Status	theStatus = Q3Float32_Read( &theData, file );
-	
+
 	if (theStatus == kQ3Success)
 	{
 		theStatus = Q3Set_Add( ioSet, sFogMaxElementType, &theData );
@@ -1033,7 +1104,7 @@ static TQ3Status FogMax_readData(
 static TQ3XFunctionPointer FogMax_MetaHandler( TQ3XMethodType methodType )
 {
 	TQ3XFunctionPointer		theMethod = nullptr;
-	
+
 	switch (methodType)
 	{
 		case kQ3XMethodTypeObjectTraverse:
@@ -1043,16 +1114,16 @@ static TQ3XFunctionPointer FogMax_MetaHandler( TQ3XMethodType methodType )
 		case kQ3XMethodTypeObjectWrite:
 			theMethod = (TQ3XFunctionPointer) FogMax_write;
 			break;
-			
+
 		case kQ3XMethodTypeObjectReadData:
 			theMethod = (TQ3XFunctionPointer) FogMax_readData;
 			break;
-		
+
 		case kQ3XMethodTypeObjectClassVersion:
 			theMethod = (TQ3XFunctionPointer)0x01108000;
 			break;
 	}
-	
+
 	return theMethod;
 }
 
@@ -1071,27 +1142,27 @@ static TQ3Status
 HalfspaceFog_write( const TCEHalfspaceFogData *inData, TQ3FileObject file )
 {
 	TQ3Status	theStatus = Q3Float32_Write( inData->rate, file );
-	
+
 	if (theStatus == kQ3Success)
 	{
 		theStatus = Q3Float32_Write( inData->plane.x, file );
 	}
-	
+
 	if (theStatus == kQ3Success)
 	{
 		theStatus = Q3Float32_Write( inData->plane.y, file );
 	}
-	
+
 	if (theStatus == kQ3Success)
 	{
 		theStatus = Q3Float32_Write( inData->plane.z, file );
 	}
-	
+
 	if (theStatus == kQ3Success)
 	{
 		theStatus = Q3Float32_Write( inData->plane.w, file );
 	}
-	
+
 	return theStatus;
 }
 
@@ -1100,29 +1171,29 @@ static TQ3Status HalfspaceFog_readData(
 	TQ3FileObject			file)
 {
 	TCEHalfspaceFogData	theData;
-		
+
 	TQ3Status	theStatus = Q3Float32_Read( &theData.rate, file );
-	
+
 	if (theStatus == kQ3Success)
 	{
 		theStatus = Q3Float32_Read( &theData.plane.x, file );
 	}
-	
+
 	if (theStatus == kQ3Success)
 	{
 		theStatus = Q3Float32_Read( &theData.plane.y, file );
 	}
-	
+
 	if (theStatus == kQ3Success)
 	{
 		theStatus = Q3Float32_Read( &theData.plane.z, file );
 	}
-	
+
 	if (theStatus == kQ3Success)
 	{
 		theStatus = Q3Float32_Read( &theData.plane.w, file );
 	}
-	
+
 	if (theStatus == kQ3Success)
 	{
 		theStatus = Q3Set_Add( ioSet, sHalfspaceFogElementType, &theData );
@@ -1133,7 +1204,7 @@ static TQ3Status HalfspaceFog_readData(
 static TQ3XFunctionPointer HalfspaceFog_MetaHandler( TQ3XMethodType methodType )
 {
 	TQ3XFunctionPointer		theMethod = nullptr;
-	
+
 	switch (methodType)
 	{
 		case kQ3XMethodTypeObjectTraverse:
@@ -1143,16 +1214,16 @@ static TQ3XFunctionPointer HalfspaceFog_MetaHandler( TQ3XMethodType methodType )
 		case kQ3XMethodTypeObjectWrite:
 			theMethod = (TQ3XFunctionPointer) HalfspaceFog_write;
 			break;
-			
+
 		case kQ3XMethodTypeObjectReadData:
 			theMethod = (TQ3XFunctionPointer) HalfspaceFog_readData;
 			break;
-		
+
 		case kQ3XMethodTypeObjectClassVersion:
 			theMethod = (TQ3XFunctionPointer)0x01108000;
 			break;
 	}
-	
+
 	return theMethod;
 }
 
@@ -1170,17 +1241,17 @@ E3CustomElements_RegisterClass(void)
 
 
 	// Register the classes
-	qd3dStatus = Q3_REGISTER_CLASS (	
+	qd3dStatus = Q3_REGISTER_CLASS (
 				kQ3ClassNameCustomElementName,
 				e3nameelement_metahandler,
 				E3NameElement ) ;
 
 	if (qd3dStatus == kQ3Success)
-		qd3dStatus = Q3_REGISTER_CLASS (	
+		qd3dStatus = Q3_REGISTER_CLASS (
 					kQ3ClassNameCustomElementUrl,
 					e3urlelement_metahandler,
 					E3URLElement ) ;
-	
+
 	if (qd3dStatus == kQ3Success)
 	{
 		if (nullptr == Q3XElementClass_Register( &sTriangleStripElementType,
@@ -1202,7 +1273,7 @@ E3CustomElements_RegisterClass(void)
 			qd3dStatus = kQ3Failure;
 		}
 	}
-	
+
 	if (qd3dStatus == kQ3Success)
 	{
 		if (nullptr == Q3XElementClass_Register( &sHalfspaceFogElementType,
@@ -1218,13 +1289,13 @@ E3CustomElements_RegisterClass(void)
 	// and is never read or written (being attached to renderers, which aren't read or
 	// written).
 	if (qd3dStatus == kQ3Success)
-		qd3dStatus = Q3_REGISTER_CLASS (	
+		qd3dStatus = Q3_REGISTER_CLASS (
 					kQ3ClassNameCustomElementDepthBits,
 					nullptr,
 					E3BitDepthElement ) ;
 
 	if (qd3dStatus == kQ3Success)
-		qd3dStatus = Q3_REGISTER_CLASS (	
+		qd3dStatus = Q3_REGISTER_CLASS (
 					kQ3ClassNameCustomElementAlphaTest,
 					e3alphatestelement_metahandler,
 					E3TextureAlphaTestElement );
@@ -1235,6 +1306,14 @@ E3CustomElements_RegisterClass(void)
 					kQ3ClassNameCustomElementSpecularMap,
 					SpecularMetaHandler,
 					E3SpecularElement );
+	}
+
+	if (qd3dStatus == kQ3Success)
+	{
+		qd3dStatus = Q3_REGISTER_CLASS(
+					kQ3ClassNameCustomElementNormalMap,
+					NormalMetaHandler,
+					E3NormalElement );
 	}
 
 	if (qd3dStatus == kQ3Success)
@@ -1303,11 +1382,11 @@ E3NameElement_SetData(TQ3Object object, const char *name)
 	string = E3CString_New(name);
 	if (string == nullptr)
 		return kQ3Failure;
-				
+
 	status = object->AddElement( kQ3ObjectTypeCustomElementName, &string );
 
 	string->Dispose();
-	
+
 	return status;
 }
 
@@ -1331,13 +1410,13 @@ E3NameElement_GetData(TQ3Object object, char **name)
 	// Initialise a return value
 	*name = nullptr;
 
-	
+
 	if (Q3Object_ContainsElement(object, kQ3ObjectTypeCustomElementName)) {
-	
+
 		status = Q3Object_GetElement(object, kQ3ObjectTypeCustomElementName, &string);
 		if (status == kQ3Failure)
 			return status;
-			
+
 	} else {
 
 		return kQ3Failure;
@@ -1345,7 +1424,7 @@ E3NameElement_GetData(TQ3Object object, char **name)
 
 	status = Q3CString_GetString(string, name);
 	Q3Object_Dispose(string);
-					
+
 	return status;
 }
 
@@ -1370,11 +1449,11 @@ TQ3Status	E3NameElement_PeekData(TQ3Object object, const char **name)
 
 
 	status = object->GetElement( kQ3ObjectTypeCustomElementName, &string );
-	
+
 	if (status == kQ3Success)
 	{
 		*name = E3CString_PeekString( string );
-		
+
 		string->Dispose();
 	}
 
@@ -1420,7 +1499,7 @@ E3UrlElement_SetData(TQ3Object object, TCEUrlData *urlData)
 
 	// Validate our parameters
 	Q3_ASSERT(urlData->options == kCEUrlOptionNone || urlData->options == kCEUrlOptionUseMap);
-	
+
 
 	urlDataPrivate.url = urlData->url;
 	urlDataPrivate.options = urlData->options;
@@ -1438,7 +1517,7 @@ E3UrlElement_SetData(TQ3Object object, TCEUrlData *urlData)
 	}
 
 	status = Q3Object_AddElement(object, kQ3ObjectTypeCustomElementUrl, &urlDataPrivate);
-		
+
 	if (string != nullptr)
 		Q3Object_Dispose(string);
 
@@ -1466,13 +1545,13 @@ E3UrlElement_GetData(TQ3Object object, TCEUrlData **urlData)
 
 
 	if (Q3Object_ContainsElement(object, kQ3ObjectTypeCustomElementUrl)) {
-	
+
 		status = Q3Object_GetElement(object, kQ3ObjectTypeCustomElementUrl, &urlDataPrivate);
 		if (status == kQ3Failure)
 			return status;
-			
+
 	} else {
-	
+
 		return kQ3Failure;
 	}
 
@@ -1480,14 +1559,14 @@ E3UrlElement_GetData(TQ3Object object, TCEUrlData **urlData)
 	*urlData = (TCEUrlData*)Q3Memory_Allocate(sizeof(TCEUrlData));
 	TQ3Uns32 dstSize = static_cast<TQ3Uns32>(strlen(urlDataPrivate.url) + 1);
 	(**urlData).url = (char*)Q3Memory_Allocate(dstSize);
-		
+
 	SAFE_STRCPY((**urlData).url, urlDataPrivate.url, dstSize);
-	
+
 	(**urlData).options = urlDataPrivate.options;
 	(**urlData).description = nullptr;
 
 	if (urlDataPrivate.description) {
-	
+
 		status = Q3CString_GetString(urlDataPrivate.description, &(**urlData).description);
 		Q3Object_Dispose(urlDataPrivate.description);
 	}
@@ -1513,8 +1592,8 @@ E3UrlElement_EmptyData(TCEUrlData **urlData)
 		Q3CString_EmptyData(&(**urlData).description);
 
 	Q3Memory_Free(urlData);
-	
-	return kQ3Success; 
+
+	return kQ3Success;
 }
 
 
@@ -1531,14 +1610,14 @@ E3UrlElement_EmptyData(TCEUrlData **urlData)
 				optimization for rendering TriMesh objects.  If you have not
 				already provided a triangle strip for a TriMesh, the renderer
 				will compute one, but this can take a little time.
-				
+
 				You can pass 0 for inNumIndices and nullptr for inIndices to
 				indicate that you want to avoid using a triangle strip, perhaps
 				because there is no efficient strip for this geometry.
-				
+
 				When you assign a triangle strip, the element also records the
 				current edit index of the object.
-				
+
 				<em>This function is not available in QD3D.</em>
 	@param		ioObject		An object, normally a TriMesh.
 	@param		inNumIndices	Count of indices in the following array.
@@ -1558,12 +1637,12 @@ TQ3Status	E3TriangleStripElement_SetData(
 		nakedGeom = CQ3ObjectRef( E3TriMesh_GetNakedGeometry( theGeom ) );
 		theGeom = nakedGeom.get();
 	}
-	
+
 	// Lock the edit index, so that adding an element won't change it.
 	StLockEditIndex lockIndex( theGeom );
-	
+
 	TQ3Uns32	editIndex = Q3Shared_GetEditIndex( theGeom );
-	
+
 	TCETriangleStripPrivate	theData = {
 		inNumIndices,
 		editIndex,
@@ -1581,15 +1660,15 @@ TQ3Status	E3TriangleStripElement_SetData(
 	@abstract	Get a triangle strip for the object.
 	@discussion	Triangle strips are used by the OpenGL renderer as a speed
 				optimization for rendering TriMesh objects.
-				
+
 				If the current edit index of the object is not the same as
 				when a strip was assigned, the strip will be considered stale
 				and this function will return kQ3Failure.
-				
+
 				This function returns the actual triangle strip data within
 				the element, not a copy.  The data should be considered
 				read-only and temporary.
-				
+
 				<em>This function is not available in QD3D.</em>
 	@param		inObject		An object, normally a TriMesh.
 	@param		outNumIndices	Receives count of indices.
@@ -1615,7 +1694,7 @@ TQ3Status	E3TriangleStripElement_GetData(
 	if (status == kQ3Success)
 	{
 		TQ3Uns32	curIndex = Q3Shared_GetEditIndex( theGeom );
-		
+
 		if (curIndex == theData.editIndex)
 		{
 			*outNumIndices = theData.indexCount;
@@ -1747,3 +1826,38 @@ void	E3SpecularMapElement_Set( TQ3ShaderObject shader, TQ3TextureObject texture 
 	}
 }
 
+/*!
+	@function	E3NormalMapElement_Copy
+	@abstract		Retrieve a normal map texture from an object.
+	@param		inShader	A surface shader.
+	@result		A new reference to a texture, or NULL.
+*/
+TQ3TextureObject E3NormalMapElement_Copy( TQ3ShaderObject inShader )
+{
+	TQ3TextureObject theTexture;
+	TQ3Status status = Q3Object_GetElement( inShader, kQ3ObjectTypeCustomElementNormalMap, &theTexture );
+	if (status == kQ3Failure)
+	{
+		theTexture = nullptr;
+	}
+	return theTexture;
+}
+
+/*!
+	@function	E3NormalMapElement_Set
+	@abstract		Set or remove a normal map.
+	@param		ioShader	A surface shader.
+	@param		inTexture	A texture object, or nullptr to remove.
+*/
+void E3NormalMapElement_Set( TQ3ShaderObject ioShader,
+	TQ3TextureObject inTexture )
+{
+	if (inTexture == nullptr)
+	{
+		Q3Object_ClearElement( ioShader, kQ3ObjectTypeCustomElementNormalMap );
+	}
+	else
+	{
+		Q3Object_AddElement( ioShader, kQ3ObjectTypeCustomElementNormalMap, &inTexture );
+	}
+}

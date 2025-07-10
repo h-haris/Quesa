@@ -98,8 +98,8 @@ element does not exist.
 </blockquote>
 <dl><dt><i>function result</i></dt><dd>Success or failure of the operation.
  </dd></dl>
-<hr><a name="//Quesa/c/func/CENameElement_GetData "></a>
-<table border="0"  cellpadding="2" cellspacing="2" width="300"><tr><td valign="top" height="12" colspan="5"><h2><a name="CENameElement_GetData ">CENameElement_GetData </a></h2>
+<hr><a name="//Quesa/c/func/CENameElement_GetData"></a>
+<table border="0"  cellpadding="2" cellspacing="2" width="300"><tr><td valign="top" height="12" colspan="5"><h2><a name="CENameElement_GetData">CENameElement_GetData</a></h2>
 </td></tr></table><hr><blockquote><pre><tt>( TQ3Status ) CENameElement_GetData (
 &nbsp;&nbsp;&nbsp;&nbsp;TQ3Object _Nonnull object,
 &nbsp;&nbsp;&nbsp;&nbsp;char * _Nullable * _Nonnull name
@@ -170,6 +170,42 @@ by CENameElement_SetData.
 </blockquote>
 <dl><dt><i>function result</i></dt><dd>Success or failure of the operation.
  </dd></dl>
+<hr><a name="//Quesa/c/func/CENormalMapElement_Copy"></a>
+<table border="0"  cellpadding="2" cellspacing="2" width="300"><tr><td valign="top" height="12" colspan="5"><h2><a name="CENormalMapElement_Copy">CENormalMapElement_Copy</a></h2>
+</td></tr></table><hr>Retrieve a normal map texture from an object.
+
+<blockquote><pre><tt>( TQ3TextureObject _Nullable ) CENormalMapElement_Copy (
+&nbsp;&nbsp;&nbsp;&nbsp;TQ3ShaderObject _Nonnull inShader
+);</tt><br>
+</pre></blockquote>
+<h5><font face="Lucida Grande,Helvetica,Arial">Parameter Descriptions</font></h5>
+<blockquote>
+<dl>
+<dt><tt><em>inShader</em></tt></dt><dd>A surface shader.</dd>
+</dl>
+</blockquote>
+<dl><dt><i>function result</i></dt><dd>A new reference to a texture, or NULL.
+</dd></dl>
+<hr><a name="//Quesa/c/func/CENormalMapElement_Set"></a>
+<table border="0"  cellpadding="2" cellspacing="2" width="300"><tr><td valign="top" height="12" colspan="5"><h2><a name="CENormalMapElement_Set">CENormalMapElement_Set</a></h2>
+</td></tr></table><hr>Set or remove a normal map.
+
+<blockquote><pre><tt>( void ) CENormalMapElement_Set (
+&nbsp;&nbsp;&nbsp;&nbsp;TQ3ShaderObject _Nonnull ioShader,
+&nbsp;&nbsp;&nbsp;&nbsp;TQ3TextureObject _Nullable inTexture
+);</tt><br>
+</pre></blockquote>
+<h5><font face="Lucida Grande,Helvetica,Arial">Discussion</font></h5><p>A normal map is not used by Quesa's OpenGL
+renderer, but this may be useful when using Quesa as a scene graph
+for another rendering engine.
+</p>
+<h5><font face="Lucida Grande,Helvetica,Arial">Parameter Descriptions</font></h5>
+<blockquote>
+<dl>
+<dt><tt><em>ioShader</em></tt></dt><dd>A surface shader.</dd>
+<dt><tt><em>inTexture</em></tt></dt><dd>A texture object, or nullptr to remove.</dd>
+</dl>
+</blockquote>
 <hr><a name="//Quesa/c/func/CESpecularMapElement_Copy"></a>
 <table border="0"  cellpadding="2" cellspacing="2" width="300"><tr><td valign="top" height="12" colspan="5"><h2><a name="CESpecularMapElement_Copy">CESpecularMapElement_Copy</a></h2>
 </td></tr></table><hr>Retrieve a shininess map texture from an object.
@@ -402,5 +438,5 @@ The URL element data will be copied by CEUrlElement_SetData.
 </blockquote>
 <dl><dt><i>function result</i></dt><dd>Success or failure of the operation.
  </dd></dl>
-<p><p>&#169; 1999-2023 Quesa Developers (Last Updated 6/1/2025)
+<p><p>&#169; 1999-2023 Quesa Developers (Last Updated 7/10/2025)
 </p></body></html>
