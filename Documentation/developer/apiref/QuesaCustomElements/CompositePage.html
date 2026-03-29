@@ -9,6 +9,38 @@
 Declares the standard Quesa custom elements, most inherited from QD3D.
 <br><br>
 <hr><br><h2>Functions</h2>
+<hr><a name="//Quesa/c/func/CEEmissiveMapElement_Copy"></a>
+<table border="0"  cellpadding="2" cellspacing="2" width="300"><tr><td valign="top" height="12" colspan="5"><h2><a name="CEEmissiveMapElement_Copy">CEEmissiveMapElement_Copy</a></h2>
+</td></tr></table><hr>Retrieve an emissive map texture from an object.
+
+<blockquote><pre><tt>( TQ3TextureObject _Nullable ) CEEmissiveMapElement_Copy (
+&nbsp;&nbsp;&nbsp;&nbsp;TQ3ShaderObject _Nonnull shader
+);</tt><br>
+</pre></blockquote>
+<h5><font face="Lucida Grande,Helvetica,Arial">Parameter Descriptions</font></h5>
+<blockquote>
+<dl>
+<dt><tt><em>shader</em></tt></dt><dd>An object, normally a surface shader.</dd>
+</dl>
+</blockquote>
+<dl><dt><i>function result</i></dt><dd>A new reference to a texture, or nullptr.
+</dd></dl>
+<hr><a name="//Quesa/c/func/CEEmissiveMapElement_Set"></a>
+<table border="0"  cellpadding="2" cellspacing="2" width="300"><tr><td valign="top" height="12" colspan="5"><h2><a name="CEEmissiveMapElement_Set">CEEmissiveMapElement_Set</a></h2>
+</td></tr></table><hr>Set or remove an emissive map.
+
+<blockquote><pre><tt>( void ) CEEmissiveMapElement_Set (
+&nbsp;&nbsp;&nbsp;&nbsp;TQ3ShaderObject _Nonnull shader,
+&nbsp;&nbsp;&nbsp;&nbsp;TQ3TextureObject _Nullable texture
+);</tt><br>
+</pre></blockquote>
+<h5><font face="Lucida Grande,Helvetica,Arial">Parameter Descriptions</font></h5>
+<blockquote>
+<dl>
+<dt><tt><em>shader</em></tt></dt><dd>A surface shader.</dd>
+<dt><tt><em>texture</em></tt></dt><dd>A texture object, or nullptr to remove.</dd>
+</dl>
+</blockquote>
 <hr><a name="//Quesa/c/func/CEFogMaxElement_Get"></a>
 <table border="0"  cellpadding="2" cellspacing="2" width="300"><tr><td valign="top" height="12" colspan="5"><h2><a name="CEFogMaxElement_Get">CEFogMaxElement_Get</a></h2>
 </td></tr></table><hr>Get the maximum fog opacity for a fog style.
@@ -83,6 +115,38 @@ element does not exist.
 <dl>
 <dt><tt><em>ioFogStyle</em></tt></dt><dd>A fog style object.</dd>
 <dt><tt><em>inData</em></tt></dt><dd>Halfspace fog data, or NULL to remove.</dd>
+</dl>
+</blockquote>
+<hr><a name="//Quesa/c/func/CEMetallicRoughMapElement_Copy"></a>
+<table border="0"  cellpadding="2" cellspacing="2" width="300"><tr><td valign="top" height="12" colspan="5"><h2><a name="CEMetallicRoughMapElement_Copy">CEMetallicRoughMapElement_Copy</a></h2>
+</td></tr></table><hr>Retrieve a metallic/roughness map texture from an object.
+
+<blockquote><pre><tt>( TQ3TextureObject _Nullable ) CEMetallicRoughMapElement_Copy (
+&nbsp;&nbsp;&nbsp;&nbsp;TQ3ShaderObject _Nonnull shader
+);</tt><br>
+</pre></blockquote>
+<h5><font face="Lucida Grande,Helvetica,Arial">Parameter Descriptions</font></h5>
+<blockquote>
+<dl>
+<dt><tt><em>shader</em></tt></dt><dd>An object, normally a surface shader.</dd>
+</dl>
+</blockquote>
+<dl><dt><i>function result</i></dt><dd>A new reference to a texture, or nullptr.
+</dd></dl>
+<hr><a name="//Quesa/c/func/CEMetallicRoughMapElement_Set"></a>
+<table border="0"  cellpadding="2" cellspacing="2" width="300"><tr><td valign="top" height="12" colspan="5"><h2><a name="CEMetallicRoughMapElement_Set">CEMetallicRoughMapElement_Set</a></h2>
+</td></tr></table><hr>Set or remove a metallic/roughness map.
+
+<blockquote><pre><tt>( void ) CEMetallicRoughMapElement_Set (
+&nbsp;&nbsp;&nbsp;&nbsp;TQ3ShaderObject _Nonnull shader,
+&nbsp;&nbsp;&nbsp;&nbsp;TQ3TextureObject _Nullable texture
+);</tt><br>
+</pre></blockquote>
+<h5><font face="Lucida Grande,Helvetica,Arial">Parameter Descriptions</font></h5>
+<blockquote>
+<dl>
+<dt><tt><em>shader</em></tt></dt><dd>A surface shader.</dd>
+<dt><tt><em>texture</em></tt></dt><dd>A texture object, or nullptr to remove.</dd>
 </dl>
 </blockquote>
 <hr><a name="//Quesa/c/func/CENameElement_EmptyData"></a>
@@ -463,6 +527,15 @@ can manipulate name elements using the functions
 CEUrlElement_SetData, CEUrlElement_GetData, and
 CEUrlElement_EmptyData.
 </p>
+<hr><a name="//Quesa/c/data/kQ3ClassNameCustomElementEmissiveMap"></a>
+<table border="0"  cellpadding="2" cellspacing="2" width="300"><tr><td valign="top" height="12" colspan="5"><h2><a name="kQ3ClassNameCustomElementEmissiveMap">kQ3ClassNameCustomElementEmissiveMap</a></h2>
+</td></tr></table><hr>Class name of the emissive map custom element.
+<br>
+<blockquote></blockquote>
+<h5><font face="Lucida Grande,Helvetica,Arial">Discussion</font></h5><p>Ordinarily you will not need to use the class name, because you
+can get, set, and clear specular maps using the functions
+CEEmissiveMapElement_CopyData, CEEmissiveMapElement_SetData.
+</p>
 <hr><a name="//Quesa/c/data/kQ3ClassNameCustomElementFogMaxOpacity"></a>
 <table border="0"  cellpadding="2" cellspacing="2" width="300"><tr><td valign="top" height="12" colspan="5"><h2><a name="kQ3ClassNameCustomElementFogMaxOpacity">kQ3ClassNameCustomElementFogMaxOpacity</a></h2>
 </td></tr></table><hr>Class name of the fog maximum opacity custom element.
@@ -480,6 +553,15 @@ CEFogMaxElement_Get, CEFogMaxElement_Set.
 <h5><font face="Lucida Grande,Helvetica,Arial">Discussion</font></h5><p>Ordinarily you will not need to use the class name, because you
 can get, set, and clear max opacities using the functions
 CEHalfspaceFogElement_GetData, CEHalfspaceFogElement_SetData.
+</p>
+<hr><a name="//Quesa/c/data/kQ3ClassNameCustomElementMetalRoughMap"></a>
+<table border="0"  cellpadding="2" cellspacing="2" width="300"><tr><td valign="top" height="12" colspan="5"><h2><a name="kQ3ClassNameCustomElementMetalRoughMap">kQ3ClassNameCustomElementMetalRoughMap</a></h2>
+</td></tr></table><hr>Class name of the metallic/roughness map custom element.
+<br>
+<blockquote></blockquote>
+<h5><font face="Lucida Grande,Helvetica,Arial">Discussion</font></h5><p>Ordinarily you will not need to use the class name, because you
+can get, set, and clear specular maps using the functions
+CEMetalRoughMapElement_CopyData, CEMetalRoughMapElement_SetData.
 </p>
 <hr><a name="//Quesa/c/data/kQ3ClassNameCustomElementNormalMap"></a>
 <table border="0"  cellpadding="2" cellspacing="2" width="300"><tr><td valign="top" height="12" colspan="5"><h2><a name="kQ3ClassNameCustomElementNormalMap">kQ3ClassNameCustomElementNormalMap</a></h2>
@@ -577,5 +659,5 @@ typedef enum TCEUrlOptions QUESA_ENUM_BASE(TQ3Uns32) {
 <dt><a name="//Quesa/c/econst/kCEUrlOptionUseMap"><tt>kCEUrlOptionUseMap</tt></a></dt><dd>Map option set (meaning unknown).</dd>
 </dl>
 </blockquote>
-<p><p>&#169; 1999-2023 Quesa Developers (Last Updated 7/10/2025)
+<p><p>&#169; 1999-2023 Quesa Developers (Last Updated 1/31/2026)
 </p></body></html>

@@ -17,34 +17,36 @@ int main (int argc, char * const argv[])
 		std::cerr << "Usage: Binify3DMF path.3dmf > outPath.3dmf\n";
 		return 1;
 	}
-	
+
 	Q3Initialize();
-	
+
 	const char* pathName = argv[1];
 	if (0 == std::strcmp( pathName, "-" ))
 	{
 		pathName = NULL;
 	}
-	
-	std::vector<CQ3ObjectRef> objects;
-	bool textForm;
-	
-	if (Read3DMF( pathName, objects, textForm ))
+
 	{
-		if (Write3DMF( objects, stdout ))
+		std::vector<CQ3ObjectRef> objects;
+		bool textForm;
+
+		if (Read3DMF( pathName, objects, textForm ))
 		{
-			
+			if (Write3DMF( objects, stdout ))
+			{
+
+			}
+			else
+			{
+				cerr << "Failed to write.\n";
+			}
 		}
 		else
 		{
-			cerr << "Failed to write.\n";
+			cerr << "Failed to read.\n";
 		}
 	}
-	else
-	{
-		cerr << "Failed to read.\n";
-	}
-	
+
 	Q3Exit();
 
     return 0;

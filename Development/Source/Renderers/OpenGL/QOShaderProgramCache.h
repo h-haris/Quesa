@@ -1,6 +1,6 @@
 /*!
 	@header		QOShaderProgramCache.h
-	
+
 	This header holds declarations relating to caching of OpenGL Shading Language
 	programs in the Quesa OpenGL renderer.
 */
@@ -9,30 +9,30 @@
 
     DESCRIPTION:
         Header for Quesa OpenGL renderer class.
-		    
+
     COPYRIGHT:
-        Copyright (c) 2014-2021, Quesa Developers. All rights reserved.
+        Copyright (c) 2014-2025, Quesa Developers. All rights reserved.
 
         For the current release of Quesa, please see:
 
             <https://github.com/jwwalker/Quesa>
-        
+
         Redistribution and use in source and binary forms, with or without
         modification, are permitted provided that the following conditions
         are met:
-        
+
             o Redistributions of source code must retain the above copyright
               notice, this list of conditions and the following disclaimer.
-        
+
             o Redistributions in binary form must reproduce the above
               copyright notice, this list of conditions and the following
               disclaimer in the documentation and/or other materials provided
               with the distribution.
-        
+
             o Neither the name of Quesa nor the names of its contributors
               may be used to endorse or promote products derived from this
               software without specific prior written permission.
-        
+
         THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
         "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
         LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
@@ -123,7 +123,7 @@ struct ProgramCharacteristic
 							ProgramCharacteristic();
 							ProgramCharacteristic( const ProgramCharacteristic& inOther );
 							~ProgramCharacteristic() {}
-	
+
 	ProgramCharacteristic&	operator=( const ProgramCharacteristic& inOther );
 
 	ECameraProjectionType	mProjectionType;
@@ -137,9 +137,9 @@ struct ProgramCharacteristic
 	bool					mIsUsingClippingPlane;
 	bool					mAngleAffectsAlpha;
 	int						mDimension;
-	
+
 	void					swap( ProgramCharacteristic& ioOther );
-	
+
 	bool					operator==( const ProgramCharacteristic& inOther ) const;
 };
 
@@ -156,23 +156,25 @@ struct ProgramRec
 					ProgramRec()
 						: mProgram( 0 ) {}
 					ProgramRec( const ProgramRec& inOther );
-	
+
 	void			swap( ProgramRec& ioOther );
-	
+
 	ProgramRec&		operator=( const ProgramRec& inOther );
 
 	GLuint			mProgram;
-	
+
 	ProgramCharacteristic	mCharacteristic;
-	
+
 	// Locations of shader uniform variables
 	GLint			mTextureUnit0UniformLoc;
 	GLint			mTextureUnit1UniformLoc;
+	GLint			mTextureUnit2UniformLoc;
 	GLint			mQuantizationUniformLoc;
 	GLint			mLightNearEdgeUniformLoc;
 	GLint			mSpotHotAngleUniformLoc;
 	GLint			mSpotCutoffAngleUniformLoc;
 	GLint			mIsSpecularMappingUniformLoc;
+	GLint			mIsEmissiveMappingUniformLoc;
 	GLint			mIsLayerShiftingUniformLoc;
 	GLint			mIsFlippingNormalsUniformLoc;
 	GLint			mClippingPlaneUniformLoc;
@@ -203,14 +205,14 @@ struct ProgramRec
 	GLint			mCullBackFacesUniformLoc;
 	GLint			mCameraRangeUniformLoc;		// vec2: near and far
 	GLint			mCameraViewportUniformLoc; // vec4: origin.x, origin.y, width, height
-	
+
 	// Locations of shader vertex attributes
 	GLint			mVertexAttribLoc;		// vec4 quesaVertex
 	GLint			mNormalAttribLoc;		// vec3 quesaNormal
 	GLint			mTexCoordAttribLoc;		// vec2 quesaTexCoord0
 	GLint			mColorAttribLoc;		// vec4 quesaColor
 	GLint			mLayerShiftAttribLoc;	// float quesaLayerShift
-	
+
 	// Fisheye vertex shader uniforms
 	GLint			mSensorSizeAttribLoc;			// vec2 (mm)
 	GLint			mFocalLengthAttribLoc;			// float (mm)
@@ -223,7 +225,7 @@ struct ProgramRec
 
 /*!
 	@class		ProgramCache
-	
+
 	@abstract	Cache of GLSL programs for a set of OpenGL contexts.
 */
 class ProgramCache : public CQ3GPSharedCache
@@ -235,21 +237,21 @@ public:
 							creating it if necessary.
 	*/
 	static ProgramCache*	GetProgramCache( TQ3GLContext glContext );
-	
+
 	/*!
 		@function			VertexShaderID
 		@abstract			Get the "name" (ID number) of the vertex shader
 							(which might be 0 if initialization failed.)
 	*/
 	GLuint					VertexShaderID( ECameraProjectionType inProj ) const;
-	
+
 	/*!
 		@function			SetVertexShaderID
 		@abstract			Supply a newly created and compiled vertex shader
 							(after VertexShaderID() has returned 0).
 	*/
 	void					SetVertexShaderID( ECameraProjectionType inProj, GLuint inShaderID );
-	
+
 	/*!
 		@function			FindProgram
 		@abstract			Look for a previously cached program by characteristic.

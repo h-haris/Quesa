@@ -1,6 +1,6 @@
 /*!
 	@header		QOGLShadingLanguage.h
-	
+
 	This header holds declarations relating to use of OpenGL Shading Language
 	in the Quesa OpenGL renderer.
 */
@@ -9,30 +9,30 @@
 
     DESCRIPTION:
         Header for Quesa OpenGL renderer class.
-		    
+
     COPYRIGHT:
-        Copyright (c) 2007-2020, Quesa Developers. All rights reserved.
+        Copyright (c) 2007-2025, Quesa Developers. All rights reserved.
 
         For the current release of Quesa, please see:
 
             <https://github.com/jwwalker/Quesa>
-        
+
         Redistribution and use in source and binary forms, with or without
         modification, are permitted provided that the following conditions
         are met:
-        
+
             o Redistributions of source code must retain the above copyright
               notice, this list of conditions and the following disclaimer.
-        
+
             o Redistributions in binary form must reproduce the above
               copyright notice, this list of conditions and the following
               disclaimer in the documentation and/or other materials provided
               with the distribution.
-        
+
             o Neither the name of Quesa nor the names of its contributors
               may be used to endorse or promote products derived from this
               software without specific prior written permission.
-        
+
         THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
         "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
         LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
@@ -174,14 +174,14 @@ typedef void (QO_PROCPTR_TYPE glBindAttribLocationProc)(GLuint program, GLuint i
 struct GLSLFuncs
 {
 								GLSLFuncs();
-	
+
 	/*!
 		@function	Initialize
 		@abstract	Get the function pointers.  This should be called just
 					after the OpenGL context is created.
 	*/
 	void						Initialize( const TQ3GLExtensions& inExts );
-								
+
 	glCreateShaderProc			glCreateShader;
 	glShaderSourceProc			glShaderSource;
 	glCompileShaderProc			glCompileShader;
@@ -209,7 +209,7 @@ struct GLSLFuncs
 	glGetShaderInfoLogProc		glGetShaderInfoLog;
 	glGetShaderSourceProc		glGetShaderSource;
 	glIsProgramProc				glIsProgram;
-	
+
 	glGetAttribLocationProc			glGetAttribLocation;
 	glEnableVertexAttribArrayProc	glEnableVertexAttribArray;
 	glDisableVertexAttribArrayProc	glDisableVertexAttribArray;
@@ -235,9 +235,9 @@ public:
 										TQ3RendererObject inRendererObject,
 										TQ3GLContext& inGLContext,
 										const TQ3GLExtensions& inExtensions );
-	
+
 								~PerPixelLighting();
-								
+
 	/*!
 		@function	Cleanup
 		@abstract	Delete program and shaders.
@@ -246,13 +246,13 @@ public:
 					destructor.
 	*/
 	void						Cleanup();
-	
+
 	/*!
 		@function	StartFrame
 		@abstract	Begin a rendering frame.
 	*/
 	void						StartFrame( TQ3ViewObject inView );
-	
+
 	/*!
 		@function	StartPass
 		@abstract	Begin a rendering pass.
@@ -260,7 +260,7 @@ public:
 					desired.  If so, we set up the shaders and program.
 	*/
 	void						StartPass( TQ3CameraObject inCamera );
-	
+
 	/*!
 		@function	EndPass
 		@abstract	Finish a rendering pass.
@@ -276,7 +276,7 @@ public:
 								{
 									return mMaxLights;
 								}
-	
+
 	/*!
 		@function	ClearLights
 		@abstract	Forget lights that were previously passed to AddLight.
@@ -285,14 +285,14 @@ public:
 					StartPass call.
 	*/
 	void						ClearLights();
-	
+
 	/*!
 		@function	AddLight
 		@abstract	The Lights object uses this to inform the PerPixelLighting
 					object about a light being used for this pass.
 	*/
 	void						AddLight( TQ3LightObject inLight );
-	
+
 	/*!
 		@function	UpdateIllumination
 		@abstract	Notification that the type of illumination shader may
@@ -308,7 +308,7 @@ public:
 	*/
 	void						UpdateInterpolationStyle(
 										TQ3InterpolationStyle inInterpolation );
-	
+
 	/*!
 		@function	UpdateLineWidthStyle
 		@abstract	Notification that the line width has changed.
@@ -322,7 +322,7 @@ public:
 	*/
 	void						UpdateBackfacingStyle(
 										TQ3BackfacingStyle inBackfacing );
-	
+
 	/*!
 		@function	UpdateFillStyle
 		@abstract	Notification that the fill style may have changed.
@@ -342,21 +342,28 @@ public:
 					are texturing.
 	*/
 	void						UpdateTexture( bool inTexturing );
-	
+
 	/*!
 		@function	UpdateSpecularMapping
 		@abstract	Notification that there has been a change in whether we are using
 					a shininess (specular) map.
 	*/
 	void						UpdateSpecularMapping( bool inSpecularMapped );
-	
+
+	/*!
+		@function	UpdateEmissiveMapping
+		@abstract	Notification that there has been a change in whether we are using
+					an emissive color map.
+	*/
+	void						UpdateEmissiveMapping( bool inEmissiveMapped );
+
 	/*!
 		@function	UpdateLighting
 		@abstract	Notification that there has been a change in which OpenGL
 					lights are on.
 	*/
 	void						UpdateLighting();
-	
+
 	/*!
 		@function	PreGeomSubmit
 		@abstract	This is called just before a geometry will be rendered, to
@@ -370,7 +377,7 @@ public:
 	*/
 	void						PreGeomSubmit( TQ3GeometryObject inGeom,
 												int inDimension );
-	
+
 	/*!
 		@function	SetAmbientLight
 		@abstract	Set the color/brightness of ambient light.
@@ -393,7 +400,7 @@ public:
 		@param		inMtx					A new modelview matrix.
 	*/
 	void						SetModelViewMatrix( const TQ3Matrix4x4& inMtx );
-	
+
 	const TQ3Matrix4x4&			GetModelViewMatrix() const { return mModelViewMtx; }
 
 	/*!
@@ -413,13 +420,13 @@ public:
 		@param		inMtx					A new texture UV transformation matrix.
 	*/
 	void						SetTextureMatrix( const TQ3Matrix4x4& inMtx );
-	
+
 	/*!
 		@function	CurrentProgram
 		@abstract	Accessor for the current program record.
 	*/
 	const ProgramRec*			CurrentProgram() const { return mCurrentProgram; }
-	
+
 	const GLSLFuncs&			Funcs() const { return mFuncs; }
 
 private:
@@ -433,11 +440,11 @@ private:
 	void						SetCameraUniforms();
 	ProgramCache*				ProgCache();
 	void						CalcMaxLights();
-	
+
 	void						AddDirectionalLight( TQ3LightObject inLight );
 	void						AddSpotLight( TQ3LightObject inLight );
 	void						AddPointLight( TQ3LightObject inLight );
-	
+
 	Renderer&					mRenderer;
 	const GLSLFuncs&			mFuncs;
 	TQ3RendererObject			mRendererObject;
@@ -447,6 +454,7 @@ private:
 	int							mPassNumber;
 	bool						mMayNeedProgramChange;
 	bool						mIsSpecularMapped;
+	bool						mIsEmissiveMapped;
 	bool						mIsFlippingNormals;
 	bool						mCullBackFaces;
 	bool						mCullFrontFaces;
@@ -472,7 +480,7 @@ private:
 	ProgramCharacteristic		mProgramCharacteristic;
 
 	ObVec						mLights;	// Quesa light objects
-	
+
 	// Data about lights that will become uniform variables
 	std::vector<TQ3ObjectType>			mLightTypes;
 	std::vector<TQ3RationalPoint4D>		mLightPositions;
@@ -481,7 +489,7 @@ private:
 	std::vector<GLfloat>				mSpotLightHotAngles;
 	std::vector<GLfloat>				mSpotLightCutoffAngles;
 	std::vector<TQ3Vector3D>			mLightAttenuations; // x constant, y linear, z quadratic
-	
+
 	const ProgramRec*			mCurrentProgram;
 };
 

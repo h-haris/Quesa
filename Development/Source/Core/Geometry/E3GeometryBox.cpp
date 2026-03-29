@@ -5,7 +5,7 @@
         Implementation of Quesa Box geometry class.
 
     COPYRIGHT:
-        Copyright (c) 1999-2021, Quesa Developers. All rights reserved.
+        Copyright (c) 1999-2024, Quesa Developers. All rights reserved.
 
         For the current release of Quesa, please see:
 

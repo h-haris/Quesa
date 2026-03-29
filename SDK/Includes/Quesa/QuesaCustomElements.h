@@ -128,6 +128,24 @@ extern "C" {
 #define	kQ3ClassNameCustomElementNormalMap	"Quesa:NormalMapElement"
 
 /*!
+	@constant	kQ3ClassNameCustomElementEmissiveMap
+	@abstract	Class name of the emissive map custom element.
+	@discussion	Ordinarily you will not need to use the class name, because you
+				can get, set, and clear specular maps using the functions
+				CEEmissiveMapElement_CopyData, CEEmissiveMapElement_SetData.
+*/
+#define	kQ3ClassNameCustomElementEmissiveMap	"Quesa:EmissiveMapElement"
+
+/*!
+	@constant	kQ3ClassNameCustomElementMetalRoughMap
+	@abstract	Class name of the metallic/roughness map custom element.
+	@discussion	Ordinarily you will not need to use the class name, because you
+				can get, set, and clear specular maps using the functions
+				CEMetalRoughMapElement_CopyData, CEMetalRoughMapElement_SetData.
+*/
+#define	kQ3ClassNameCustomElementMetalRoughMap	"Quesa:MetalRoughMapElement"
+
+/*!
 	@constant	kQ3ClassNameCustomElementFogMaxOpacity
 	@abstract	Class name of the fog maximum opacity custom element.
 	@discussion	Ordinarily you will not need to use the class name, because you
@@ -459,6 +477,55 @@ CENormalMapElement_Copy( TQ3ShaderObject _Nonnull inShader );
 */
 Q3_EXTERN_API_C( void )
 CENormalMapElement_Set( TQ3ShaderObject _Nonnull ioShader, TQ3TextureObject _Nullable inTexture );
+
+/*!
+	@functiongroup	Emissive Map element
+*/
+
+/*!
+	@function	CEEmissiveMapElement_Copy
+	@abstract	Retrieve an emissive map texture from an object.
+	@param		shader		An object, normally a surface shader.
+	@result		A new reference to a texture, or nullptr.
+*/
+Q3_EXTERN_API_C( TQ3TextureObject _Nullable )
+CEEmissiveMapElement_Copy(
+		TQ3ShaderObject _Nonnull shader );
+
+/*!
+	@function	CEEmissiveMapElement_Set
+	@abstract	Set or remove an emissive map.
+	@param		shader		A surface shader.
+	@param		texture		A texture object, or nullptr to remove.
+*/
+Q3_EXTERN_API_C( void )
+CEEmissiveMapElement_Set( TQ3ShaderObject _Nonnull shader,
+								TQ3TextureObject _Nullable texture );
+
+/*!
+	@functiongroup	Metallic/Roughness Map element
+*/
+
+/*!
+	@function	CEMetallicRoughMapElement_Copy
+	@abstract	Retrieve a metallic/roughness map texture from an object.
+	@param		shader		An object, normally a surface shader.
+	@result		A new reference to a texture, or nullptr.
+*/
+Q3_EXTERN_API_C( TQ3TextureObject _Nullable )
+CEMetallicRoughMapElement_Copy(
+		TQ3ShaderObject _Nonnull shader );
+
+/*!
+	@function	CEMetallicRoughMapElement_Set
+	@abstract	Set or remove a metallic/roughness map.
+	@param		shader		A surface shader.
+	@param		texture		A texture object, or nullptr to remove.
+*/
+Q3_EXTERN_API_C( void )
+CEMetallicRoughMapElement_Set( TQ3ShaderObject _Nonnull shader,
+								TQ3TextureObject _Nullable texture );
+
 
 
 /*!
