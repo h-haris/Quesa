@@ -2,7 +2,7 @@
         AppDelegate.m
 
     DESCRIPTION:
-        
+
 
     COPYRIGHT:
         Copyright (c) 1999-2024, Quesa Developers. All rights reserved.
@@ -10,23 +10,23 @@
         For the current release of Quesa, please see:
 
             <https://github.com/jwwalker/Quesa>
-        
+
         Redistribution and use in source and binary forms, with or without
         modification, are permitted provided that the following conditions
         are met:
-        
+
             o Redistributions of source code must retain the above copyright
               notice, this list of conditions and the following disclaimer.
-        
+
             o Redistributions in binary form must reproduce the above
               copyright notice, this list of conditions and the following
               disclaimer in the documentation and/or other materials provided
               with the distribution.
-        
+
             o Neither the name of Quesa nor the names of its contributors
               may be used to endorse or promote products derived from this
               software without specific prior written permission.
-        
+
         THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
         "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
         LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
@@ -54,13 +54,13 @@
 #include <Quesa/QuesaView.h>
 #include <Quesa/QuesaMath.h>
 #include <Quesa/QuesaLight.h>
-#include <Quesa/QuesaStyle.h> 
-#include <Quesa/QuesaGroup.h> 
-#include <Quesa/QuesaGeometry.h> 
-#include <Quesa/QuesaPick.h> 
-#include <Quesa/QuesaStorage.h> 
-#include <Quesa/QuesaTransform.h> 
-#include <Quesa/QuesaRenderer.h> 
+#include <Quesa/QuesaStyle.h>
+#include <Quesa/QuesaGroup.h>
+#include <Quesa/QuesaGeometry.h>
+#include <Quesa/QuesaPick.h>
+#include <Quesa/QuesaStorage.h>
+#include <Quesa/QuesaTransform.h>
+#include <Quesa/QuesaRenderer.h>
 #include <Quesa/CQ3ObjectRef_Gets.h>
 #include <Quesa/CQ3GroupRange.h>
 #include <Quesa/CQ3ObjectRef.h>
@@ -124,14 +124,14 @@ static TQ3TextureObject qutTexture_CreateTextureObjectFromBitmap(
 	size_t theWidth = CGBitmapContextGetWidth( inBitmapContext );
 	size_t theHeight = CGBitmapContextGetHeight( inBitmapContext );
 	size_t rowBytes = CGBitmapContextGetBytesPerRow( inBitmapContext );
-	
+
 	TQ3StorageObject qd3dMemoryStorage =
 		Q3MemoryStorage_New( pixelData,
 			(TQ3Uns32)(theHeight * rowBytes) );
 	if (qd3dMemoryStorage)
 	{
 		TQ3StoragePixmap	qd3dPixMap;
-		
+
 		qd3dPixMap.image    = qd3dMemoryStorage;
 		qd3dPixMap.width	= (TQ3Uns32) theWidth;
 		qd3dPixMap.height	= (TQ3Uns32) theHeight;
@@ -141,10 +141,10 @@ static TQ3TextureObject qutTexture_CreateTextureObjectFromBitmap(
 		qd3dPixMap.bitOrder	= kQ3EndianLittle;
 		qd3dPixMap.byteOrder	= kQ3EndianLittle;
 		texture	= Q3PixmapTexture_New(&qd3dPixMap);
-		
+
 		Q3Object_Dispose(qd3dMemoryStorage);
 	}
-	
+
 	return texture;
 }
 
@@ -154,7 +154,7 @@ static TQ3ShaderObject createTextureFromFile(NSURL * fileURL)
 	// create the texture return shader object or null if error
 	TQ3ShaderObject	shader = NULL;
 	TQ3TextureObject qd3dTextureObject = NULL;
-	
+
 	CGImageSourceRef imSrc = CGImageSourceCreateWithURL( (CFURLRef) fileURL, NULL );
 	if (imSrc != NULL)
 	{
@@ -169,11 +169,11 @@ static TQ3ShaderObject createTextureFromFile(NSURL * fileURL)
 				(bitInfo != kCGImageAlphaNoneSkipLast);
 			bitInfo = kCGBitmapByteOrder32Little |
 				(hasAlpha? kCGImageAlphaPremultipliedFirst : kCGImageAlphaNoneSkipFirst);
-			
+
 			size_t theWidth = CGImageGetWidth( imRef );
 			size_t theHeight = CGImageGetHeight( imRef );
 			size_t rowBytes = theWidth * 4;
-			
+
 			CGContextRef imDst = CGBitmapContextCreate( NULL,
 				theWidth, theHeight, 8,
 				rowBytes, CGImageGetColorSpace( imRef ),
@@ -183,7 +183,7 @@ static TQ3ShaderObject createTextureFromFile(NSURL * fileURL)
 				CGRect bounds = CGRectMake( 0.0, 0.0, theWidth, theHeight );
 				CGContextClearRect( imDst, bounds );
 				CGContextDrawImage( imDst, bounds, imRef );
-				
+
 				qd3dTextureObject = qutTexture_CreateTextureObjectFromBitmap( imDst, hasAlpha );
 
 				CGContextRelease( imDst );
@@ -191,7 +191,7 @@ static TQ3ShaderObject createTextureFromFile(NSURL * fileURL)
 		}
 		CGImageRelease( imRef );
 	}
-	
+
 	if ( (qd3dTextureObject == NULL) &&
 		[fileURL.pathExtension isEqualToString: @"pdf"] )
 	{
@@ -217,15 +217,15 @@ static TQ3ShaderObject createTextureFromFile(NSURL * fileURL)
 					CGFloat fillColor[] = { 1.0, 1.0, 1.0, 1.0 };
 					CGContextSetFillColor( imDst, fillColor );
 					CGContextFillRect( imDst, bounds );
-					
+
 					CGAffineTransform transform = CGPDFPageGetDrawingTransform(
 						page, kCGPDFTrimBox, bounds, 0, false );
 					CGContextConcatCTM( imDst, transform );
 					CGContextClipToRect( imDst, CGPDFPageGetBoxRect( page,
 						kCGPDFTrimBox ) );
-					
+
 					CGContextDrawPDFPage( imDst, page );
-					
+
 					qd3dTextureObject = qutTexture_CreateTextureObjectFromBitmap( imDst, false );
 
 					CGContextRelease( imDst );
@@ -248,7 +248,7 @@ static TQ3ShapeObject createObjectFromFile( NSString* inFilePath )
 {
 	TQ3ShapeObject theObject = NULL;
 	TQ3Uns32 memberCount = 0;
-	
+
 	// Create a storage object
 	const char* filePath = [inFilePath UTF8String];
 	TQ3StorageObject theStorage = Q3PathStorage_New( filePath );
@@ -279,10 +279,10 @@ static TQ3ShapeObject createObjectFromFile( NSString* inFilePath )
 					}
 					Q3File_Close( theFile );
 				}
-				
+
 				Q3Object_Dispose( theFile );
 			}
-			
+
 			if (memberCount > 0)
 			{
 				theObject = theModel;
@@ -292,10 +292,10 @@ static TQ3ShapeObject createObjectFromFile( NSString* inFilePath )
 				Q3Object_Dispose( theModel );
 			}
 		}
-		
+
 		Q3Object_Dispose( theStorage );
 	}
-	
+
 	return theObject;
 }
 
@@ -307,23 +307,23 @@ static void SaveObjectToFile( TQ3ShapeObject inGeometry, NSURL* inDestination,
 	{
 		TQ3FileObject theFile = Q3File_New();
 		Q3File_SetStorage( theFile, theStorage );
-		
+
 		if (Q3File_OpenWrite( theFile, kQ3FileModeNormal ) == kQ3Success)
 		{
 			TQ3ViewStatus viewStatus;
 			do
 			{
 				Q3View_StartWriting( inView, theFile );
-				
+
 				Q3Object_Submit( inGeometry, inView );
-				
+
 				viewStatus = Q3View_EndWriting( inView );
 			} while (viewStatus == kQ3ViewStatusRetraverse);
-			
-			
+
+
 			Q3File_Close( theFile );
 		}
-		
+
 		Q3Object_Dispose( theFile );
 		Q3Object_Dispose( theStorage );
 	}
@@ -332,7 +332,7 @@ static void SaveObjectToFile( TQ3ShapeObject inGeometry, NSURL* inDestination,
 static void ApplyTextureToShape( TQ3ShaderObject inTextureShader, TQ3ShapeObject ioShape )
 {
 	TQ3AttributeSet atts = NULL;
-	
+
 	if (Q3Object_IsType( ioShape, kQ3ShapeTypeGroup ))
 	{
 		Q3Group_EmptyObjectsOfType( ioShape, kQ3ShaderTypeSurface );
@@ -387,20 +387,20 @@ static void ApplyTextureToShape( TQ3ShaderObject inTextureShader, TQ3ShapeObject
 		mIlluminationShaderType = 2;
 		Q3Initialize();
 		mIlluminationShader = Q3PhongIllumination_New();
-		
+
 		_backfacingStyle = kQ3BackfacingStyleBoth;
 		_backfacingStyleObject = Q3BackfacingStyle_New( _backfacingStyle );
 		_fillStyle = kQ3FillStyleFilled;
 		_fillStyleObject = Q3FillStyle_New( _fillStyle );
-		
+
 		_directionalLight = YES;
 		_pointLight = YES;
 		_ambientLight = YES;
 		_axis = TQ3Vector3D{ 0.6f, 0.8f, 0.0f };
-		
+
 		_interpolationStyleObject = Q3InterpolationStyle_New( kQ3InterpolationStyleVertex );
 		_flatInterpolation = NO;
-		
+
 		TQ3FogStyleData fogData =
 		{
 			kQ3Off,
@@ -424,7 +424,7 @@ static void ApplyTextureToShape( TQ3ShaderObject inTextureShader, TQ3ShapeObject
 			}
 		};
 		CEHalfspaceFogElement_SetData( _fogStyleObject, &halfFog );
-		
+
 		NSImage* pickImage = [NSImage imageNamed: @"WindowRect.png"];
 		self.windowRectPickCursor = [[[NSCursor alloc]
 			initWithImage: pickImage hotSpot: NSMakePoint( 50.0, 50.0 )] autorelease];
@@ -440,7 +440,7 @@ static void ApplyTextureToShape( TQ3ShaderObject inTextureShader, TQ3ShapeObject
 {
 	[mAnimationTimer release];
 	[_windowRectPickCursor release];
-	
+
 	if (mSceneBounds != NULL)
 	{
 		Q3Object_Dispose( mSceneBounds );
@@ -457,7 +457,7 @@ static void ApplyTextureToShape( TQ3ShaderObject inTextureShader, TQ3ShapeObject
 	Q3Object_Dispose( _fillStyleObject );
 	Q3Object_Dispose( _interpolationStyleObject );
 	Q3Object_Dispose( _fogStyleObject );
-	
+
 	[super dealloc];
 }
 
@@ -528,7 +528,7 @@ static void ApplyTextureToShape( TQ3ShaderObject inTextureShader, TQ3ShapeObject
 		NSOpenGLPFAOpenGLProfile, NSOpenGLProfileVersion3_2Core,
 		0
 	};
-	
+
 	NSOpenGLPixelFormat* pixelFormat  = [[[NSOpenGLPixelFormat alloc]
 		initWithAttributes: (NSOpenGLPixelFormatAttribute*) glAttributes] autorelease];
 	quesa3dView.pixelFormat = pixelFormat;
@@ -556,7 +556,7 @@ static void ApplyTextureToShape( TQ3ShaderObject inTextureShader, TQ3ShapeObject
 		Q3Object_SetProperty( renderer.get(), kQ3RendererPropertyShadows,
 				sizeof(shadowFlag), &shadowFlag );
 	}
-	
+
 	[quesa3dView setNeedsDisplay:YES];
 }
 
@@ -574,10 +574,10 @@ static void ApplyTextureToShape( TQ3ShaderObject inTextureShader, TQ3ShapeObject
 	{
 		TQ3ObjectType theType = Q3Renderer_GetType( renderer.get() );
 		Q3View_SetRendererByType( [quesa3dView qd3dView], theType );
-		
+
 		[self updateRendererShadowFlag];
 	}
-	
+
 	[quesa3dView setNeedsDisplay:YES];
 }
 
@@ -611,12 +611,12 @@ static void ApplyTextureToShape( TQ3ShaderObject inTextureShader, TQ3ShapeObject
 	TQ3Matrix4x4 precessionRot;
 	Q3Matrix4x4_SetRotate_Z( &precessionRot, 0.002f );
 	_axis = Q3Normalize3D( _axis * precessionRot );
-	
+
 	// Change in rotation
 	const TQ3Point3D	kOrigin = { 0.0f, 0.0f, 0.0f };
 	TQ3Matrix4x4 deltaRot;
 	Q3Matrix4x4_SetRotateAboutAxis( &deltaRot, &kOrigin, &_axis, 0.07f );
-	
+
 	// Update pure rotation part
 	_currentRotation = _currentRotation * deltaRot;
 
@@ -700,7 +700,7 @@ static void ApplyTextureToShape( TQ3ShaderObject inTextureShader, TQ3ShapeObject
 	};
 	CQ3ObjectRef theCamera( Q3OrthographicCamera_New( &orthoData ) );
 	Q3View_SetCamera( quesa3dView.qd3dView, theCamera.get() );
-	
+
 	[self qd3dViewReshaped: quesa3dView ];
 }
 
@@ -762,7 +762,7 @@ static void ApplyTextureToShape( TQ3ShaderObject inTextureShader, TQ3ShapeObject
 		camData.mappingFunction, camData.croppingFormat, kQ3Pi );
 	CQ3ObjectRef theCamera( Q3FisheyeCamera_New( &camData ) );
 	Q3View_SetCamera( quesa3dView.qd3dView, theCamera.get() );
-	
+
 	self.fisheyeCropFormat = kQ3FisheyeCroppingFormatCroppedCircle;
 	self.fisheyeMappingFunc = kQ3FisheyeMappingFunctionEquisolidAngle;
 	self.fisheyeAngleOfView = 180.0f;
@@ -821,7 +821,7 @@ static void ApplyTextureToShape( TQ3ShaderObject inTextureShader, TQ3ShapeObject
 	TQ3Vector2D paneSize = pane.max - pane.min;
 	NSLog(@"Click at (%.1f, %.1f) in %fx%f pane", dcRelPt.x, dcRelPt.y,
 		paneSize.x, paneSize.y );
-	
+
 	if ((event.modifierFlags & NSEventModifierFlagOption) != 0)
 	{
 		NSPoint lowerLeftPlace = NSMakePoint( localPlace.x-50.0, localPlace.y-50.0 );
@@ -878,7 +878,7 @@ static void ApplyTextureToShape( TQ3ShaderObject inTextureShader, TQ3ShapeObject
 			Q3Pick_SetEdgeTolerance( thePick.get(), 20.0 );
 			Q3Pick_SetVertexTolerance( thePick.get(), 20.0 );
 			[self runPickLoop: thePick.get()];
-			
+
 			Q3Pick_GetNumHits( thePick.get(), &hitCount );
 			if (hitCount == 0)
 			{
@@ -894,7 +894,7 @@ static void ApplyTextureToShape( TQ3ShaderObject inTextureShader, TQ3ShapeObject
 			quesa3dView.window.title = NSLocalizedString(@"TitleHit", nil);
 		}
 	}
-	
+
 	[NSObject cancelPreviousPerformRequestsWithTarget: self];
 	[self performSelector: @selector(resetTitle) withObject: nil afterDelay: 0.5];
 }
@@ -920,7 +920,7 @@ static void ApplyTextureToShape( TQ3ShaderObject inTextureShader, TQ3ShapeObject
 	if (animate != mAnimates)
 	{
 		mAnimates = animate;
-		
+
 		if (mAnimates)
 		{
 			mAnimationTimer = [[NSTimer scheduledTimerWithTimeInterval: 0.05f
@@ -978,7 +978,7 @@ static void ApplyTextureToShape( TQ3ShaderObject inTextureShader, TQ3ShapeObject
 	if (dirLight != _directionalLight)
 	{
 		_directionalLight = dirLight;
-		
+
 		CQ3ObjectRef lightGroup( CQ3View_GetLightGroup( quesa3dView.qd3dView ) );
 		for (const CQ3ObjectRef& theItem : CQ3GroupRange<kQ3LightTypeDirectional>( lightGroup.get() ))
 		{
@@ -1005,7 +1005,7 @@ static void ApplyTextureToShape( TQ3ShaderObject inTextureShader, TQ3ShapeObject
 	if (dirLight != _pointLight)
 	{
 		_pointLight = dirLight;
-		
+
 		CQ3ObjectRef lightGroup( CQ3View_GetLightGroup( quesa3dView.qd3dView ) );
 		for (const CQ3ObjectRef& theItem : CQ3GroupRange<kQ3LightTypePoint>( lightGroup.get() ))
 		{
@@ -1031,7 +1031,7 @@ static void ApplyTextureToShape( TQ3ShaderObject inTextureShader, TQ3ShapeObject
 	if (ambientLight != _ambientLight)
 	{
 		_ambientLight = ambientLight;
-		
+
 		CQ3ObjectRef lightGroup( CQ3View_GetLightGroup( quesa3dView.qd3dView ) );
 		for (const CQ3ObjectRef& theItem : CQ3GroupRange<kQ3LightTypeAmbient>( lightGroup.get() ))
 		{
@@ -1110,7 +1110,7 @@ static void ApplyTextureToShape( TQ3ShaderObject inTextureShader, TQ3ShapeObject
 	if (rendererType != mRendererType)
 	{
 		mRendererType = rendererType;
-		
+
 		Q3View_SetRendererByType([quesa3dView qd3dView], mRendererType);
 		[self updateRendererFullScreenAntialias];
 		[self updateRendererShadowFlag];
@@ -1197,11 +1197,11 @@ static void ApplyTextureToShape( TQ3ShaderObject inTextureShader, TQ3ShapeObject
 			case 0:
 				mIlluminationShader = Q3NULLIllumination_New();
 				break;
-			
+
 			case 1:
 				mIlluminationShader = Q3LambertIllumination_New();
 				break;
-			
+
 			default:
 			case 2:
 				mIlluminationShader = Q3PhongIllumination_New();
@@ -1225,7 +1225,7 @@ static void ApplyTextureToShape( TQ3ShaderObject inTextureShader, TQ3ShapeObject
 	if (backfacingStyle != _backfacingStyle)
 	{
 		_backfacingStyle = backfacingStyle;
-		
+
 		Q3BackfacingStyle_Set( _backfacingStyleObject, _backfacingStyle );
 		[quesa3dView setNeedsDisplay: YES];
 	}
@@ -1241,7 +1241,7 @@ static void ApplyTextureToShape( TQ3ShaderObject inTextureShader, TQ3ShapeObject
 	if (fillStyle != _fillStyle)
 	{
 		_fillStyle = fillStyle;
-		
+
 		Q3FillStyle_Set( _fillStyleObject, _fillStyle );
 		[quesa3dView setNeedsDisplay: YES];
 	}
@@ -1257,21 +1257,21 @@ static void ApplyTextureToShape( TQ3ShaderObject inTextureShader, TQ3ShapeObject
 	if (_cameraType != cameraType)
 	{
 		_cameraType = cameraType;
-		
+
 		switch (cameraType)
 		{
 			case 0:
 				[self makeViewAngleCamera];
 				break;
-			
+
 			case 1:
 				[self makeOrthographicCamera];
 				break;
-			
+
 			case 2:
 				[self makeAllSeeingCamera];
 				break;
-			
+
 			case 3:
 				[self makeFisheyeCamera];
 				break;
@@ -1279,7 +1279,7 @@ static void ApplyTextureToShape( TQ3ShaderObject inTextureShader, TQ3ShapeObject
 		_testViewport = !_testViewport;
 		self.testViewport = !_testViewport;
 		[quesa3dView setNeedsDisplay: YES];
-		
+
 		self.fisheyeCamera = _cameraType == 3;
 	}
 }
@@ -1294,51 +1294,51 @@ static void ApplyTextureToShape( TQ3ShaderObject inTextureShader, TQ3ShapeObject
 	if (fogStyleTag != _fogStyleTag)
 	{
 		_fogStyleTag = fogStyleTag;
-		
+
 		TQ3FogStyleData fogData;
 		Q3FogStyle_GetData( _fogStyleObject, &fogData );
-		
+
 		switch (_fogStyleTag)
 		{
 			case kFogTagNone:
 				fogData.state = kQ3Off;
 				break;
-			
+
 			case kFogTagLinear:
 				fogData.state = kQ3On;
 				fogData.mode = kQ3FogModeLinear;
 				fogData.fogStart = 4.5f;
 				fogData.fogEnd = 5.5f;
 				break;
-			
+
 			case kFogTagExponential:
 				fogData.state = kQ3On;
 				fogData.mode = kQ3FogModeExponential;
 				fogData.density = 0.15f;
 				break;
-			
+
 			case kFogTagExponentialSquared:
 				fogData.state = kQ3On;
 				fogData.mode = kQ3FogModeExponentialSquared;
 				fogData.density = 0.2f;
 				break;
-			
+
 			case kFogTagHalfspace:
 				fogData.state = kQ3On;
 				fogData.mode = kQ3FogModeExponential;
 				fogData.density = 0.4f;
 				break;
 		}
-		
+
 		Q3FogStyle_SetData( _fogStyleObject, &fogData );
-		
+
 		if (_fogStyleTag == kFogTagHalfspace)
 		{
 			TCEHalfspaceFogData	halfspaceData = {
 				1.0f,
 				{ 1.0f, 0.0f, 0.0f, 0.0f }
 			};
-		
+
 			CEHalfspaceFogElement_SetData( _fogStyleObject, &halfspaceData );
 		}
 		else
@@ -1406,7 +1406,7 @@ static void ApplyTextureToShape( TQ3ShaderObject inTextureShader, TQ3ShapeObject
 	if (fisheyeCropFormat != _fisheyeCropFormat)
 	{
 		_fisheyeCropFormat = fisheyeCropFormat;
-		
+
 		CQ3ObjectRef theCamera( CQ3View_GetCamera( quesa3dView.qd3dView ) );
 		TQ3FisheyeCameraData fisheyeData;
 		Q3FisheyeCamera_GetData( theCamera.get(), &fisheyeData );
@@ -1431,7 +1431,7 @@ static void ApplyTextureToShape( TQ3ShaderObject inTextureShader, TQ3ShapeObject
 	if (fisheyeMappingFunc != _fisheyeMappingFunc)
 	{
 		_fisheyeMappingFunc = fisheyeMappingFunc;
-		
+
 		CQ3ObjectRef theCamera( CQ3View_GetCamera( quesa3dView.qd3dView ) );
 		TQ3FisheyeCameraData fisheyeData;
 		Q3FisheyeCamera_GetData( theCamera.get(), &fisheyeData );
@@ -1479,21 +1479,21 @@ static void ApplyTextureToShape( TQ3ShaderObject inTextureShader, TQ3ShapeObject
 	[panel setAllowsMultipleSelection: NO];
 	[panel setResolvesAliases: YES];
 	[panel setAllowedFileTypes: @[ @"public.image", @"com.adobe.pdf" ] ];
-	
+
 	[panel beginSheetModalForWindow: [quesa3dView window]
 		completionHandler:
 		^(NSInteger result)
 		{
-			if ( (result == NSFileHandlingPanelOKButton) &&
+			if ( (result == NSModalResponseOK) &&
 				(mSceneGeometry != NULL) )
 			{
 				NSURL* theURL = [[panel URLs] objectAtIndex: 0];
 				TQ3ShaderObject txShader = createTextureFromFile( theURL );
-			
+
 				if (txShader != NULL)
 				{
 					ApplyTextureToShape( txShader, mSceneGeometry );
-					
+
 					Q3Object_Dispose( txShader );
 					[quesa3dView setNeedsDisplay: YES];
 				}
@@ -1509,12 +1509,12 @@ static void ApplyTextureToShape( TQ3ShaderObject inTextureShader, TQ3ShapeObject
 	[panel setAllowsMultipleSelection: NO];
 	[panel setResolvesAliases: YES];
 	[panel setAllowedFileTypes: [NSArray arrayWithObject: @"org.Quesa.3dmf"]];
-	
+
 	[panel beginSheetModalForWindow: [quesa3dView window]
 		completionHandler:
 		^(NSInteger result)
 		{
-			if (result == NSFileHandlingPanelOKButton)
+			if (result == NSModalResponseOK)
 			{
 				NSURL* theURL = [[panel URLs] objectAtIndex: 0];
 				TQ3Object theObject = createObjectFromFile( [theURL path] );
@@ -1538,7 +1538,7 @@ static void ApplyTextureToShape( TQ3ShaderObject inTextureShader, TQ3ShapeObject
 	[panel beginSheetModalForWindow: [quesa3dView window]
 		completionHandler:^(NSInteger result)
 		{
-			if (result == NSFileHandlingPanelOKButton)
+			if (result == NSModalResponseOK)
 			{
 				NSURL* theURL = [panel URL];
 				SaveObjectToFile( mSceneGeometry, theURL, [quesa3dView qd3dView] );
@@ -1560,7 +1560,7 @@ static void ApplyTextureToShape( TQ3ShaderObject inTextureShader, TQ3ShapeObject
   int tagVal = (int) [[sender selectedItem]tag];
   TQ3GeometryObject theGeom = NULL;
   _centerOfRotation = TQ3Point3D{ 0.0f, 0.0f, 0.0f };
-  
+
   switch(tagVal)
   {
       case kMenuItemGeometryBox:
@@ -1626,11 +1626,11 @@ static void ApplyTextureToShape( TQ3ShaderObject inTextureShader, TQ3ShapeObject
       case kMenuItemGeometryPolygon:
           theGeom = createGeomPolygon();
           break;
-      
+
       case kMenuItemGeometryPolyhedron:
           theGeom = createGeomPolyhedron();
           break;
-      
+
       case kMenuItemQuesaLogo:
           theGeom = createGeomQuesa();
           break;
@@ -1654,22 +1654,22 @@ static void ApplyTextureToShape( TQ3ShaderObject inTextureShader, TQ3ShapeObject
 	case kMenuItemGeometryShadowTest:
 		theGeom = createShadowTest();
 		break;
-	
+
 	case kMenuItemGeometryBoxAboutCamera:
 		theGeom = createBoxAboutCamera();
 		_centerOfRotation = TQ3Point3D{ 0.0f, 0.0f, 5.0f };
 		break;
-	
+
 	case kMenuItemGeometrySubdividedBoxAboutCamera:
 		theGeom = createSubdividedBoxAboutCamera( [quesa3dView qd3dView] );
 		_centerOfRotation = TQ3Point3D{ 0.0f, 0.0f, 5.0f };
 		break;
-	
+
 	case kMenuItemGeometryBallAboutCamera:
 		  theGeom = createBallAboutCamera();
 		  _centerOfRotation = TQ3Point3D{ 0.0f, 0.0f, 5.0f };
 		  break;
-		
+
 	case kMenuItemGeometryTranslucentQuesaLogo:
 		theGeom = createGeomGlassQuesa();
 		break;
@@ -1690,7 +1690,7 @@ static void ApplyTextureToShape( TQ3ShaderObject inTextureShader, TQ3ShapeObject
 
 		[self setDrawsBounds: [self drawsBounds] ];
 	}
-          
+
 	Q3Matrix4x4_SetIdentity(&mCurrentMatrix);
 	Q3Matrix4x4_SetIdentity(&_currentRotation);
 	_axis = TQ3Vector3D{ 0.6f, 0.8f, 0.0f };
@@ -1746,7 +1746,7 @@ static void ApplyTextureToShape( TQ3ShaderObject inTextureShader, TQ3ShapeObject
 	Q3Shader_Submit(mIlluminationShader, [inView qd3dView]);
 //	if (gShowTexture && gSceneTexture != NULL)
 //		Q3Shader_Submit(gSceneTexture, [inView qd3dView]);
-		
+
 	Q3MatrixTransform_Submit(&mCurrentMatrix, [inView qd3dView]);
 	Q3Object_Submit(mSceneGeometry, [inView qd3dView]);
 
@@ -1764,13 +1764,13 @@ static void ApplyTextureToShape( TQ3ShaderObject inTextureShader, TQ3ShapeObject
 	TQ3Area							theArea;
 	Q3DrawContext_GetPane( inView.drawContext, &theArea );
 	float aspect = (theArea.max.x - theArea.min.x) / (theArea.max.y - theArea.min.y);
-	
+
 	switch (Q3Camera_GetType( theCamera.get() ))
 	{
 		case kQ3CameraTypeViewAngleAspect:
 			Q3ViewAngleAspectCamera_SetAspectRatio( theCamera.get(), aspect );
 			break;
-		
+
 		case kQ3CameraTypeOrthographic:
 			{
 				TQ3OrthographicCameraData orthoData;
@@ -1792,7 +1792,7 @@ static void ApplyTextureToShape( TQ3ShaderObject inTextureShader, TQ3ShapeObject
 				Q3OrthographicCamera_SetData( theCamera.get(), &orthoData );
 			}
 			break;
-		
+
 		case kQ3CameraTypeFisheye:
 			{
 				TQ3FisheyeCameraData fisheyeData;
@@ -1816,11 +1816,11 @@ static void ApplyTextureToShape( TQ3ShaderObject inTextureShader, TQ3ShapeObject
 	{
 		default:
 			break;
-	
+
 		case NSEventTypeLeftMouseDown:
 			[self handleClick: inEvent ];
 			break;
-		
+
 		case NSEventTypeFlagsChanged:
 			[self handleFlagsChanged: inEvent];
 			break;

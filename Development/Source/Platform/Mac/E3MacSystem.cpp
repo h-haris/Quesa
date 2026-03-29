@@ -5,7 +5,7 @@
         Mac specific routines.
 
     COPYRIGHT:
-        Copyright (c) 1999-2021, Quesa Developers. All rights reserved.
+        Copyright (c) 1999-2025, Quesa Developers. All rights reserved.
 
         For the current release of Quesa, please see:
 

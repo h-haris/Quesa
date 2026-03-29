@@ -3,30 +3,30 @@
 
     DESCRIPTION:
         Implementation of Quesa Abstract FileFormat object.
-        
+
     COPYRIGHT:
-        Copyright (c) 1999-2012, Quesa Developers. All rights reserved.
+        Copyright (c) 1999-2025, Quesa Developers. All rights reserved.
 
         For the current release of Quesa, please see:
 
             <https://github.com/jwwalker/Quesa>
-        
+
         Redistribution and use in source and binary forms, with or without
         modification, are permitted provided that the following conditions
         are met:
-        
+
             o Redistributions of source code must retain the above copyright
               notice, this list of conditions and the following disclaimer.
-        
+
             o Redistributions in binary form must reproduce the above
               copyright notice, this list of conditions and the following
               disclaimer in the documentation and/or other materials provided
               with the distribution.
-        
+
             o Neither the name of Quesa nor the names of its contributors
               may be used to endorse or promote products derived from this
               software without specific prior written permission.
-        
+
         THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
         "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
         LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
@@ -113,7 +113,7 @@ E3FileFormat_UnregisterClass()
 	E3FFormat_3DMF_Reader_UnregisterClass();
 	E3ClassTree::UnregisterClass(kQ3FFormatReaderType3DMFBin, kQ3True);
 	E3ClassTree::UnregisterClass(kQ3FFormatReaderType3DMFBinSwapped, kQ3True);
-	
+
 	E3ClassTree::UnregisterClass(kQ3FileFormatTypeReader, kQ3True);
 
 	E3FFW_3DMF_Unregister();
@@ -131,7 +131,7 @@ E3FileFormat_UnregisterClass()
 //=============================================================================
 //      E3FileFormat_Init : Initializes the format.
 //-----------------------------------------------------------------------------
-TQ3Status 
+TQ3Status
 E3FileFormat_Init(TQ3FileFormatObject theFileFormat, TQ3StorageObject storage)
 {
 	TQ3FFormatBaseData		*instanceData = (TQ3FFormatBaseData *) theFileFormat->FindLeafInstanceData () ;
@@ -140,15 +140,15 @@ E3FileFormat_Init(TQ3FileFormatObject theFileFormat, TQ3StorageObject storage)
 
 	if( instanceData->storage != nullptr)
 	{
-	
+
 	instanceData->currentStoragePosition = 0;
 	instanceData->readInGroup = kQ3True;
 
-	
+
 	if(Q3Storage_GetSize(storage, &instanceData->logicalEOF) == kQ3Failure)
 		return kQ3Failure;
 	}
-	
+
 	return(kQ3Success);
 }
 
@@ -159,20 +159,20 @@ E3FileFormat_Init(TQ3FileFormatObject theFileFormat, TQ3StorageObject storage)
 //=============================================================================
 //      E3FileFormat_Terminate : Revert the job done by Init.
 //-----------------------------------------------------------------------------
-TQ3Status 
+TQ3Status
 E3FileFormat_Terminate(TQ3FileFormatObject theFileFormat)
 {
 	TQ3FFormatBaseData		*instanceData = (TQ3FFormatBaseData *) theFileFormat->FindLeafInstanceData () ;
 
 	E3Shared_Replace(&instanceData->storage, nullptr);
 
-	
+
 	instanceData->currentStoragePosition = 0;
 	instanceData->readInGroup = kQ3True;
 
-	
+
 	instanceData->logicalEOF= 0;
-	
+
 	return(kQ3Success);
 }
 
@@ -190,7 +190,7 @@ E3FileFormat_NewFromType(TQ3ObjectType fformatObjectType)
 
 	// Create the object
 	theObject = E3ClassTree::CreateInstance(fformatObjectType, kQ3False, nullptr);
-	
+
 
 	return(theObject);
 }
@@ -333,27 +333,27 @@ E3FileFormat_GenericReadBinary_StringPadded(TQ3FileFormatObject format, char* da
 	TQ3FFormatBaseData			*instanceData = (TQ3FFormatBaseData *) format->FindLeafInstanceData () ;
 	TQ3Uns32					startOffset;
 	TQ3Uns32					bufferSize = *ioLength;
-	
+
 	char* 						dataPtr = data;
 	char 						lastChar;
 
 	TQ3XStorageReadDataMethod dataRead = (TQ3XStorageReadDataMethod) instanceData->storage->GetMethod ( kQ3XMethodTypeStorageReadData ) ;
 
 	*ioLength = 0;
-	
+
 	if ( dataRead != nullptr)
 	{
 		startOffset = instanceData->currentStoragePosition;
-		
+
 		// Read bytes one at a time, until we fail to read or read a zero byte.
 		do{
 			result = dataRead( instanceData->storage,
 								instanceData->currentStoragePosition,
 								1, (TQ3Uns8 *)&lastChar, &sizeRead );
-								
+
 			instanceData->currentStoragePosition++;
 			*ioLength += 1;
-			
+
 			if (data != nullptr)
 			{
 				if (*ioLength < bufferSize)
@@ -366,9 +366,9 @@ E3FileFormat_GenericReadBinary_StringPadded(TQ3FileFormatObject format, char* da
 					*dataPtr = '\0';
 				}
 			}
-		} 
+		}
 		while ((lastChar != 0) && (result == kQ3Success));
-		
+
 		if (data == nullptr)
 		{
 			// back to the beginning of the string
@@ -379,12 +379,12 @@ E3FileFormat_GenericReadBinary_StringPadded(TQ3FileFormatObject format, char* da
 			instanceData->currentStoragePosition = startOffset +
 				Q3Size_Pad( instanceData->currentStoragePosition - startOffset );
 		}
-		
+
 		if (lastChar == 0)
 			*ioLength -= 1;// don't count trailing zero
 	}
 
-	return result;							 
+	return result;
 }
 
 
@@ -412,7 +412,7 @@ E3FileFormat_GenericReadBinary_Raw(TQ3FileFormatObject format, unsigned char* da
 	Q3_ASSERT(sizeRead == length);
 	instanceData->currentStoragePosition += length;
 
-	return result;							 
+	return result;
 }
 
 
@@ -430,7 +430,7 @@ E3FileFormat_GenericReadBinSwap_16(TQ3FileFormatObject format, TQ3Int16* data)
 	result = E3FileFormat_GenericReadBinary_16 (format, data);
 	if(result == kQ3Success)
 		*data = E3EndianSwap16(*data);
-	
+
 	return result;
 }
 
@@ -449,7 +449,7 @@ E3FileFormat_GenericReadBinSwap_32(TQ3FileFormatObject format, TQ3Int32* data)
 	result = E3FileFormat_GenericReadBinary_32 (format, data);
 	if(result == kQ3Success)
 		*data = E3EndianSwap32(*data);
-	
+
 	return result;
 }
 
@@ -466,7 +466,7 @@ E3FileFormat_GenericReadBinSwapArray_16(TQ3FileFormatObject format, TQ3Uns32 num
 	TQ3Status result;
 	TQ3Uns32	n;
 	result = E3FileFormat_GenericReadBinary_Raw (format, (unsigned char*)data, numNums * 2);
-	
+
 	if (result == kQ3Success)
 	{
 		for (n = 0; n < numNums; ++n)
@@ -490,7 +490,7 @@ E3FileFormat_GenericReadBinSwapArray_32(TQ3FileFormatObject format, TQ3Uns32 num
 	TQ3Status result;
 	TQ3Uns32	n;
 	result = E3FileFormat_GenericReadBinary_Raw (format, (unsigned char*)data, numNums * 4);
-	
+
 	if (result == kQ3Success)
 	{
 		for (n = 0; n < numNums; ++n)
@@ -520,7 +520,7 @@ E3FileFormat_GenericReadBinSwap_64(TQ3FileFormatObject format, TQ3Int64* data)
 		temp.hi = E3EndianSwap32(data->lo);
 		*data = temp;
 		}
-	
+
 	return result;
 }
 
@@ -552,13 +552,13 @@ E3FileFormat_GenericReadText_SkipBlanks(TQ3FileFormatObject format)
 	while (result == kQ3Success && instanceData->currentStoragePosition < instanceData->logicalEOF)
 		{
 		result = dataRead(instanceData->storage, instanceData->currentStoragePosition, 1, (TQ3Uns8 *)&buffer, &sizeRead);
-		if (buffer <= 0x20 || buffer == 0x7F) 
+		if (buffer <= 0x20 || buffer == 0x7F)
 			instanceData->currentStoragePosition++;
 		else
 			break;
 		}
 
-	return(result);							 
+	return(result);
 }
 
 
@@ -567,11 +567,11 @@ E3FileFormat_GenericReadText_SkipBlanks(TQ3FileFormatObject format)
 
 /*!
 	@function	E3FileFormat_GenericReadText_ReadUntilChars
-	
+
 	@abstract	Read text from the file until we find one of a list of
 				designated "stop" characters, or until we reach the end file.
 				The current storage position is set one past the stop character.
-	
+
 	@param		format		File format object.
 	@param		buffer		Buffer to receive text.  The stop character, if
 							found, will be replaced by a NUL character.
@@ -606,7 +606,7 @@ E3FileFormat_GenericReadText_ReadUntilChars(TQ3FileFormatObject format, char* bu
 		*foundChar = -1;
 
 	TQ3XStorageReadDataMethod dataRead = (TQ3XStorageReadDataMethod) instanceData->storage->GetMethod ( kQ3XMethodTypeStorageReadData ) ;
-	
+
 	// The read method may post an error if we try to read beyond the end of file
 	maxLen = E3Num_Min( maxLen, instanceData->logicalEOF - instanceData->currentStoragePosition );
 
@@ -616,14 +616,14 @@ E3FileFormat_GenericReadText_ReadUntilChars(TQ3FileFormatObject format, char* bu
 		result = dataRead(instanceData->storage,
 						instanceData->currentStoragePosition,
 						maxLen, (TQ3Uns8*)buffer, &sizeRead); // read all the data at once
-			
+
 		while((result == kQ3Success)
-				&& (instanceData->currentStoragePosition < instanceData->logicalEOF) 
-				&& (index < sizeRead) 
+				&& (instanceData->currentStoragePosition < instanceData->logicalEOF)
+				&& (index < sizeRead)
 				 )
 			{
 			instanceData->currentStoragePosition ++;
-			
+
 			if ((blanks == kQ3True) && (((TQ3Uns8)buffer[index]) <= 0x20))
 				{
 				if (foundChar)
@@ -631,7 +631,7 @@ E3FileFormat_GenericReadText_ReadUntilChars(TQ3FileFormatObject format, char* bu
 				buffer[index] = 0;
 				break;
 				}
-			
+
 			for(i = 0; i< numChars; i++)
 				if((chars[i] == buffer[index]) ||
 					((chars[i] == 0x0D) && (buffer[index] == 0x0A)))// unix file
@@ -644,21 +644,21 @@ E3FileFormat_GenericReadText_ReadUntilChars(TQ3FileFormatObject format, char* bu
 					found = kQ3True;
 					break;
 					}
-			
+
 			if(found == kQ3True)
 				break;
 			else
 				{
 				index++;
 				}
-			
+
 			};
 		}
 
 	if(charsRead)
 		*charsRead = index;
-	
-	return result;							 
+
+	return result;
 }
 
 
@@ -724,16 +724,16 @@ E3FileFormat_GenericWriteBinary_String(TQ3FileFormatObject format, const char* d
 {
 	TQ3Status	result;
 	TQ3Size		theLength, paddedLength;
-	
+
 
 	theLength = static_cast<TQ3Uns32>(strlen( data ) + 1);	// 1 for the trailing NUL byte
 	paddedLength = Q3Size_Pad( theLength );
-	
-	
+
+
 	result = E3FileFormat_GenericWriteBinary_Raw( format, (const unsigned char *)data,
 		theLength );
-	
-	
+
+
 	if ( (result == kQ3Success) && (paddedLength > theLength) )
 	{
 		// There are at most 3 pad bytes added, since Q3Size_Pad aligns to
@@ -742,7 +742,7 @@ E3FileFormat_GenericWriteBinary_String(TQ3FileFormatObject format, const char* d
 		result = E3FileFormat_GenericWriteBinary_Raw( format, (const unsigned char *)&pad,
 			paddedLength - theLength );
 	}
-	
+
 	return (result);
 }
 
@@ -767,10 +767,15 @@ E3FileFormat_GenericWriteBinary_Raw(TQ3FileFormatObject format,const unsigned ch
 							instanceData->currentStoragePosition,
 							length, (TQ3Uns8*)data, &sizeWrite);
 
-	Q3_ASSERT(sizeWrite == length);
+	if (sizeWrite != length)
+	{
+		// Probably result has already been set to kQ3Failure, best to be sure
+		result = kQ3Failure;
+	}
+
 	instanceData->currentStoragePosition += length;
 
-	return result;							 
+	return result;
 }
 
 
@@ -787,7 +792,7 @@ E3FileFormat_GenericWriteBinSwap_16(TQ3FileFormatObject format, const TQ3Int16 *
 	TQ3Status result;
 	TQ3Int16 swappedData = E3EndianSwap16(*data);
 	result = E3FileFormat_GenericWriteBinary_16 (format, &swappedData);
-	
+
 	return result;
 }
 
@@ -805,7 +810,7 @@ E3FileFormat_GenericWriteBinSwap_32(TQ3FileFormatObject format, const TQ3Int32 *
 	TQ3Status result;
 	TQ3Int32 swappedData = E3EndianSwap32(*data);
 	result = E3FileFormat_GenericWriteBinary_32 (format, &swappedData);
-	
+
 	return result;
 }
 
@@ -824,9 +829,9 @@ E3FileFormat_GenericWriteBinSwap_64(TQ3FileFormatObject format, const TQ3Int64 *
 	TQ3Int64 temp;
 	temp.lo = E3EndianSwap32(data->hi);
 	temp.hi = E3EndianSwap32(data->lo);
-	
+
 	result = E3FileFormat_GenericWriteBinary_64 (format, &temp);
-	
+
 	return result;
 }
 
@@ -864,7 +869,7 @@ E3FileFormat_HasModalConfigure(TQ3FileFormatObject theFormat)
 //-----------------------------------------------------------------------------
 TQ3Status
 E3FileFormat_ModalConfigure(TQ3FileFormatObject theFormat, TQ3DialogAnchor dialogAnchor, TQ3Boolean *canceled)
-	{		
+	{
 	// Find the method
 	TQ3XRendererModalConfigureMethod modalConfigure = (TQ3XRendererModalConfigureMethod) theFormat->GetMethod ( kQ3XMethodTypeRendererModalConfigure ) ;
 	if ( modalConfigure == nullptr )
@@ -885,7 +890,7 @@ E3FileFormat_ModalConfigure(TQ3FileFormatObject theFormat, TQ3DialogAnchor dialo
 //-----------------------------------------------------------------------------
 TQ3Status
 E3FileFormatClass_GetFormatNameString(TQ3ObjectType fileFormatClassType, TQ3ObjectClassNameString fileFormatClassString)
-	{		
+	{
 	// Initialise a return value
 	fileFormatClassString[0] = 0x00 ;
 
@@ -1019,7 +1024,7 @@ E3FileFormat_Method_EndFile(TQ3ViewObject theView)
 
 	// Find the method
 	TQ3XRendererStartFrameMethod endFrame = (TQ3XRendererEndFrameMethod) theFormat->GetMethod ( kQ3XMethodTypeRendererEndFrame ) ;
-	if ( endFrame == nullptr ) 
+	if ( endFrame == nullptr )
 		return kQ3Success ;
 
 
@@ -1102,7 +1107,7 @@ E3FileFormat_Method_SubmitObject(TQ3ViewObject	theView,
 								 TQ3Object		object,
 								 TQ3ObjectType	objectType,
 								 const void			*objectData)
-								 
+
 	{
 	TQ3FileFormatObject theFormat = E3View_AccessFileFormat ( theView ) ;
 
@@ -1113,8 +1118,8 @@ E3FileFormat_Method_SubmitObject(TQ3ViewObject	theView,
 		return kQ3Success ;
 
 
-	
-	// Find the method 
+
+	// Find the method
 	TQ3XFileFormatSubmitObjectMethod submitObject = (TQ3XFileFormatSubmitObjectMethod) theFormat->GetMethod ( kQ3XMethodTypeFFormatSubmitObject ) ;
 
 
@@ -1176,7 +1181,7 @@ E3FileFormat_Method_SubmitGroup(TQ3ViewObject	theView,
 								TQ3Object		group,
 								TQ3ObjectType	groupType,
 								const void		*groupData)
-								
+
 	{
 	TQ3GroupPosition					position ;
 	TQ3Object							subObject ;
@@ -1199,7 +1204,7 @@ E3FileFormat_Method_SubmitGroup(TQ3ViewObject	theView,
 	// Call the method
 	if ( submitGroup != nullptr )
 		return submitGroup ( theView, theFormat->FindLeafInstanceData (), group, groupType , groupData ) ;
-	
+
 	// submit the group contents
 	TQ3Status qd3dStatus = kQ3Success ;
 	for ( Q3Group_GetFirstPosition ( group, &position ) ;
@@ -1210,9 +1215,9 @@ E3FileFormat_Method_SubmitGroup(TQ3ViewObject	theView,
 		if ( qd3dStatus != kQ3Success )
 			break ;
 		qd3dStatus = Q3Object_Submit ( subObject, theView ) ;
-		
+
 		Q3Object_Dispose ( subObject ) ;
-		
+
 		if ( qd3dStatus != kQ3Success )
 			break ;
 		}

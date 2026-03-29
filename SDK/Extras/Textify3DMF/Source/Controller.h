@@ -36,8 +36,8 @@ class Controller
 {
 public:
 	static Controller*		Get();
-	
-	
+
+
 	void			Textify(  const uint8_t* inData,
 								size_t inDataLength );
 
@@ -47,13 +47,13 @@ public:
 
 	std::ostream&	OutStream();
 	std::ostream&	ErrorStream();
-	
+
 	bool			IsBigendian() const;
-	
+
 	void			SetSkipUnknowns( bool inSkip );
-	
+
 	std::string		Indent( uint32_t inExtra = 0 );
-	
+
 	uint8_t			FetchUInt8( size_t inOffset );
 	uint16_t		FetchUInt16( size_t inOffset );
 	uint32_t		FetchUInt32( size_t inOffset );
@@ -82,5 +82,5 @@ private:
 					Controller();
 					~Controller();
 
-	std::auto_ptr<XControllerImp>	mImp;
+	std::unique_ptr<XControllerImp>	mImp;
 };

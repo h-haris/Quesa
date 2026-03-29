@@ -3,30 +3,30 @@
 
     DESCRIPTION:
         Source for Quesa OpenGL renderer class.
-		    
+
     COPYRIGHT:
-        Copyright (c) 2007-2021, Quesa Developers. All rights reserved.
+        Copyright (c) 2007-2025, Quesa Developers. All rights reserved.
 
         For the current release of Quesa, please see:
 
             <https://github.com/jwwalker/Quesa>
-        
+
         Redistribution and use in source and binary forms, with or without
         modification, are permitted provided that the following conditions
         are met:
-        
+
             o Redistributions of source code must retain the above copyright
               notice, this list of conditions and the following disclaimer.
-        
+
             o Redistributions in binary form must reproduce the above
               copyright notice, this list of conditions and the following
               disclaimer in the documentation and/or other materials provided
               with the distribution.
-        
+
             o Neither the name of Quesa nor the names of its contributors
               may be used to endorse or promote products derived from this
               software without specific prior written permission.
-        
+
         THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
         "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
         LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
@@ -59,21 +59,22 @@
 #include "E3Math_Intersect.h"
 #include "QOCalcTriMeshEdges.h"
 #include "QuesaMathOperators.hpp"
+#include "QuesaCustomElements.h"
 
 
 #if Q3_DEBUG && QUESA_OS_MACINTOSH && QUESA_UH_IN_FRAMEWORKS && QUESA_TRACE_GL
 	// This code allows one to see the values passed to certain functions in a
 	// trace produced by Apple's OpenGL Profiler.
 	#include <OpenGL/CGLProfiler.h>
-	
+
 	#define TRACE_MSG(...)	do {	\
 								char msg_[1024];	\
 								std::snprintf( msg_, sizeof(msg_)-1, __VA_ARGS__ );	\
 								CGLSetOption( kCGLGOComment, (long) msg_ );	\
 							} while (0)
-	
+
 	#define		kMaxArrayTrace	10
-	
+
 	static void TraceGLVertexArray( const TQ3Point3D* inPts, int inCount )
 	{
 		if (inCount <= kMaxArrayTrace)
@@ -84,7 +85,7 @@
 			}
 		}
 	}
-	
+
 	static void TraceGLNormalArray( const TQ3Vector3D* inPts, int inCount )
 	{
 		if (inCount <= kMaxArrayTrace)
@@ -95,7 +96,7 @@
 			}
 		}
 	}
-	
+
 	static void TraceGLTexCoordArray( const TQ3Param2D* inPts, int inCount )
 	{
 		if (inCount <= kMaxArrayTrace)
@@ -106,7 +107,7 @@
 			}
 		}
 	}
-	
+
 	static void TraceGLDrawElements( TQ3Uns32 inNumIndices,
 									const TQ3Uns32* inIndices )
 	{
@@ -141,11 +142,11 @@
 namespace
 {
 	const float		kOneThird			= 0.3333333f;
-	
+
 	const GLfloat		kGLBlackColor[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
 	const TQ3ColorRGB	kWhiteColor = { 1.0f, 1.0f, 1.0f };
 	const TQ3ColorRGB	kBlackColor = { 0.0f, 0.0f, 0.0f };
-	
+
 	/*
 		If there is a large number of small TriMeshes, as in the Multi-box
 		test in Geom Test, you get a big slowdown when using VBOs and a
@@ -167,7 +168,7 @@ namespace
 	public:
 								CLockTriMeshData()
 									: mTriMeshObject( nullptr ) {}
-									
+
 								~CLockTriMeshData()
 								{
 									if (mTriMeshObject != nullptr)
@@ -175,7 +176,7 @@ namespace
 										Q3TriMesh_UnlockData( mTriMeshObject );
 									}
 								}
-								
+
 		const TQ3TriMeshData*	Lock( TQ3GeometryObject inTriMesh )
 								{
 									Q3_ASSERT( mTriMeshObject == nullptr );
@@ -233,23 +234,23 @@ static void AdjustGeomState( TQ3AttributeSet inAttSet,
 							TQ3XAttributeMask inRendererMask )
 {
 	TQ3XAttributeMask	attMask = Q3XAttributeSet_GetMask( inAttSet );
-	
+
 	attMask &= inRendererMask;
-	
+
 	if ( (attMask & kQ3XAttributeMaskDiffuseColor) != 0 )
 	{
-		ioGeomState.diffuseColor = (const TQ3ColorRGB*) 
+		ioGeomState.diffuseColor = (const TQ3ColorRGB*)
 			Q3XAttributeSet_GetPointer( inAttSet,
 				kQ3AttributeTypeDiffuseColor );
 	}
 
 	if ( (attMask & kQ3XAttributeMaskSpecularColor) != 0 )
 	{
-		ioGeomState.specularColor = (const TQ3ColorRGB*) 
+		ioGeomState.specularColor = (const TQ3ColorRGB*)
 			Q3XAttributeSet_GetPointer( inAttSet,
 				kQ3AttributeTypeSpecularColor );
 	}
-	
+
 	if ( (attMask & kQ3XAttributeMaskTransparencyColor) != 0 )
 	{
 		const TQ3ColorRGB*	theColor = (const TQ3ColorRGB*)
@@ -258,33 +259,51 @@ static void AdjustGeomState( TQ3AttributeSet inAttSet,
 		ioGeomState.alpha = (theColor->r + theColor->g + theColor->b) *
 			kOneThird;
 	}
-	
+
 	if ( (attMask & kQ3XAttributeMaskEmissiveColor) != 0 )
 	{
-		ioGeomState.emissiveColor = (const TQ3ColorRGB*) 
+		ioGeomState.emissiveColor = (const TQ3ColorRGB*)
 			Q3XAttributeSet_GetPointer( inAttSet,
 				kQ3AttributeTypeEmissiveColor );
 	}
-	
+
 	if ( (attMask & kQ3XAttributeMaskSpecularControl) != 0 )
 	{
 		ioGeomState.specularControl = * (const float *)
 			Q3XAttributeSet_GetPointer( inAttSet,
 				kQ3AttributeTypeSpecularControl );
 	}
-	
+
 	if ( (attMask & kQ3XAttributeMaskMetallic) != 0 )
 	{
 		ioGeomState.metallic = * (const float *)
 			Q3XAttributeSet_GetPointer( inAttSet,
 				kQ3AttributeTypeMetallic );
 	}
-	
+
 	if ( (attMask & kQ3XAttributeMaskHighlightState) != 0 )
 	{
 		ioGeomState.highlightState = * (TQ3Switch *)
 			Q3XAttributeSet_GetPointer( inAttSet,
 				kQ3AttributeTypeHighlightState );
+	}
+
+	// If the material has a metallic attribute but also a metallic/roughness
+	// texture, then it probably won't look right so long as we have not
+	// implemented the metallic/roughness texture.  Safer to skip metallic
+	// in that case.
+	if (ioGeomState.metallic > 0.0f)
+	{
+		CQ3ObjectRef textureShader( CQ3AttributeSet_GetTextureShader( inAttSet ) );
+		if (textureShader.isvalid())
+		{
+			CQ3ObjectRef metalRoughMap( CEMetallicRoughMapElement_Copy(
+				(TQ3ShaderObject _Nonnull) textureShader.get() ) );
+			if (metalRoughMap.isvalid())
+			{
+				ioGeomState.metallic = 0.0f;
+			}
+		}
 	}
 }
 
@@ -326,7 +345,7 @@ void	QORenderer::Renderer::SetEmissiveMaterial( const TQ3ColorRGB& inColor )
 		(inColor.b != mCurrentEmissiveColor.b) )
 	{
 		mCurrentEmissiveColor = inColor;
-		
+
 		if (Shader().CurrentProgram() != nullptr)
 		{
 			SLFuncs().glUniform3fv( Shader().CurrentProgram()->mEmissiveColorUniformLoc, 1,
@@ -342,7 +361,7 @@ void	QORenderer::Renderer::SetSpecularColor( const TQ3ColorRGB& inColor )
 		(inColor.b != mCurrentSpecularColor.b) )
 	{
 		mCurrentSpecularColor = inColor;
-		
+
 		if (Shader().CurrentProgram() != nullptr)
 		{
 			SLFuncs().glUniform3fv( Shader().CurrentProgram()->mSpecularColorUniformLoc, 1,
@@ -356,7 +375,7 @@ void	QORenderer::Renderer::SetSpecularControl( float inSpecControl )
 	if (inSpecControl != mCurrentSpecularControl)
 	{
 		mCurrentSpecularControl = inSpecControl;
-		
+
 		if (Shader().CurrentProgram() != nullptr)
 		{
 			GLfloat shininess = GLUtils_SpecularControlToGLShininess( mCurrentSpecularControl );
@@ -371,7 +390,7 @@ void	QORenderer::Renderer::SetMetallic( float inMetallic )
 	if (inMetallic != mCurrentMetallic)
 	{
 		mCurrentMetallic = inMetallic;
-		
+
 		if (Shader().CurrentProgram() != nullptr)
 		{
 			SLFuncs().glUniform1fv( Shader().CurrentProgram()->mMetallicUniformLoc, 1,
@@ -383,9 +402,9 @@ void	QORenderer::Renderer::SetMetallic( float inMetallic )
 
 /*!
 	@function		RefreshMaterials
-	
+
 	@abstract		Send the current emissive and specular materials to the shader.
-	
+
 	@discussion		This is called when we switch to a different shader program.
 */
 void	QORenderer::Renderer::RefreshMaterials()
@@ -395,11 +414,11 @@ void	QORenderer::Renderer::RefreshMaterials()
 
 	SLFuncs().glUniform3fv( Shader().CurrentProgram()->mSpecularColorUniformLoc, 1,
 		&mCurrentSpecularColor.r );
-	
+
 	GLfloat shininess = GLUtils_SpecularControlToGLShininess( mCurrentSpecularControl );
 	SLFuncs().glUniform1fv( Shader().CurrentProgram()->mShininessUniformLoc, 1,
 		&shininess );
-	
+
 	float refreshMetallic = mCurrentMetallic;
 	mCurrentMetallic = -99.0f; // so SetMetallic will see a change
 	SetMetallic( refreshMetallic );
@@ -407,12 +426,12 @@ void	QORenderer::Renderer::RefreshMaterials()
 
 /*!
 	@function	HandleGeometryAttributes
-	
+
 	@abstract	Update our state to take into account the attribute set of
 				the geometry, if any, and the highlight style attribute set,
 				when appropriate.  This should be called early in the
 				submit-geometry methods.
-	
+
 	@discussion	At present we do not care about texturing for points and lines,
 				so we pass false for the inIsTextureRelevant in that case.
 				In that case the inView parameter is not used.
@@ -424,7 +443,7 @@ void	QORenderer::Renderer::HandleGeometryAttributes(
 {
 	// Reset the geometry state to the view state
 	mGeomState = mViewState;
-	
+
 	// Do we have highlight attributes to worry about?
 	TQ3Switch	highlightSwitch = mGeomState.highlightState;
 	if (inGeomAttSet != nullptr)
@@ -441,13 +460,13 @@ void	QORenderer::Renderer::HandleGeometryAttributes(
 	{
 		hiliteAtts = mStyleState.mHilite.get();
 	}
-	
+
 	if ( (inGeomAttSet != nullptr) || (hiliteAtts != nullptr) )
 	{
 		if (inIsTextureRelevant)
 		{
 			Q3_ASSERT( inView != nullptr );
-			
+
 			// See if we can find a texture shader.
 			// First try the hilite set, if we have one.
 			// Also see if the hilite set specifies a color.
@@ -456,10 +475,10 @@ void	QORenderer::Renderer::HandleGeometryAttributes(
 			if (hiliteAtts != nullptr)
 			{
 				theShader = CQ3AttributeSet_GetTextureShader( hiliteAtts );
-				
+
 				hiliteHasColor = Q3AttributeSet_Contains( hiliteAtts,
 					kQ3AttributeTypeDiffuseColor );
-				
+
 				// If the hilite style specifies a color but no texture,
 				// make the color override any previously-set texture.
 				if ( hiliteHasColor && ! theShader.isvalid() )
@@ -467,7 +486,7 @@ void	QORenderer::Renderer::HandleGeometryAttributes(
 					E3View_State_SetShaderSurface( inView, nullptr );
 				}
 			}
-			
+
 			// If that failed, and the hilite has no color, look for a texture
 			// in the geometry attributes.
 			if ( (! theShader.isvalid()) &&
@@ -476,7 +495,7 @@ void	QORenderer::Renderer::HandleGeometryAttributes(
 			{
 				theShader = CQ3AttributeSet_GetTextureShader( inGeomAttSet );
 			}
-			
+
 			if ( theShader.isvalid() )
 			{
 				// Send the shader back to the view, which will cause the
@@ -484,22 +503,22 @@ void	QORenderer::Renderer::HandleGeometryAttributes(
 				E3View_SubmitRetained( inView, theShader.get() );
 			}
 		}
-		
+
 		if (inGeomAttSet != nullptr)
 		{
 			AdjustGeomState( inGeomAttSet, mGeomState, mAttributesMask );
 		}
-		
+
 		if (hiliteAtts != nullptr)
 		{
 			AdjustGeomState( hiliteAtts, mGeomState, mAttributesMask );
 		}
 	}
-	
+
 	// When texturing is turned off, we handle it just in time
 	mTextures.HandlePendingTextureRemoval();
 	mPPLighting.UpdateTexture( mTextures.IsTextureActive() );
-	
+
 	// update specular and emissive materials in OpenGL
 	UpdateSpecularMaterial();
 	UpdateEmissiveMaterial();
@@ -517,51 +536,51 @@ void	QORenderer::Renderer::CalcVertexState(
 	// Initialize output
 	outVertex.point = inSrcVertex.point;
 	outVertex.flags = kVertexFlagNone;
-	
+
 	// fill in colors, normal, UV
 	const TQ3ColorRGB*	diffuseColor = nullptr;
 	const TQ3ColorRGB*	transparentColor = nullptr;
 	const TQ3ColorRGB*	emissiveColor = nullptr;
 	const TQ3Vector3D*	normalVector = nullptr;
 	const TQ3Param2D*	uvParam = nullptr;
-	
+
 	// See what's in the attribute set for the vertex
 	TQ3AttributeSet atts = inSrcVertex.attributeSet;
 	if (atts != nullptr)
 	{
 		TQ3XAttributeMask	theMask = Q3XAttributeSet_GetMask(
 			atts );
-		
+
 		if ( (theMask & kQ3XAttributeMaskNormal) != 0 )
 		{
 			normalVector = (const TQ3Vector3D*) Q3XAttributeSet_GetPointer(
 				atts, kQ3AttributeTypeNormal );
 		}
-		
+
 		if ( (theMask & kQ3XAttributeMaskDiffuseColor) != 0 )
 		{
 			diffuseColor = (const TQ3ColorRGB*) Q3XAttributeSet_GetPointer(
 				atts, kQ3AttributeTypeDiffuseColor );
 		}
-		
+
 		if ( (theMask & kQ3XAttributeMaskTransparencyColor) != 0 )
 		{
 			transparentColor = (const TQ3ColorRGB*) Q3XAttributeSet_GetPointer(
 				atts, kQ3AttributeTypeTransparencyColor );
 		}
-		
+
 		if ( (theMask & kQ3XAttributeMaskEmissiveColor) != 0 )
 		{
 			emissiveColor = (const TQ3ColorRGB*) Q3XAttributeSet_GetPointer(
 				atts, kQ3AttributeTypeEmissiveColor );
 		}
-		
+
 		if ( (theMask & kQ3XAttributeMaskSurfaceUV) != 0 )
 		{
 			uvParam = (const TQ3Param2D*) Q3XAttributeSet_GetPointer(
 				atts, kQ3AttributeTypeSurfaceUV );
 		}
-		
+
 		if ( (uvParam == nullptr) &&
 			((theMask & kQ3XAttributeMaskShadingUV) != 0) )
 		{
@@ -569,7 +588,7 @@ void	QORenderer::Renderer::CalcVertexState(
 				atts, kQ3AttributeTypeShadingUV );
 		}
 	}
-	
+
 	/*
 		The legacy behavior is that unless the illumination is nullptr, a texture
 		replaces the underlying color.
@@ -580,7 +599,7 @@ void	QORenderer::Renderer::CalcVertexState(
 	{
 		diffuseColor = &kWhiteColor;
 	}
-	
+
 	// if no color or if highlighting is on, get geom state color
 	else
 	{
@@ -589,30 +608,30 @@ void	QORenderer::Renderer::CalcVertexState(
 			diffuseColor = mGeomState.diffuseColor;
 		}
 	}
-	
+
 	if ( (emissiveColor == nullptr) || (mGeomState.highlightState == kQ3On) )
 	{
 		emissiveColor = mGeomState.emissiveColor;
 	}
-	
+
 	if (normalVector != nullptr)
 	{
 		Q3FastVector3D_Normalize( normalVector, &outVertex.normal );
 		outVertex.flags |= kVertexHaveNormal;
 	}
-	
+
 	if (diffuseColor != nullptr)
 	{
 		outVertex.diffuseColor = *diffuseColor;
 		outVertex.flags |= kVertexHaveDiffuse;
 	}
-	
+
 	if (emissiveColor != nullptr)
 	{
 		outVertex.emissiveColor = *emissiveColor;
 		outVertex.flags |= kVertexHaveEmissive;
 	}
-	
+
 	if (transparentColor != nullptr)
 	{
 		outVertex.vertAlpha = (transparentColor->r + transparentColor->g +
@@ -626,7 +645,7 @@ void	QORenderer::Renderer::CalcVertexState(
 	{
 		outVertex.flags |= kVertexHaveTransparency;
 	}
-	
+
 	if (uvParam != nullptr)
 	{
 		outVertex.uv = *uvParam;
@@ -636,16 +655,16 @@ void	QORenderer::Renderer::CalcVertexState(
 
 /*!
 	@function	FindTriMeshData
-	
+
 	@abstract	Locate attribute data and determine whether this TriMesh
 				qualifies for our fast path.
-	
+
 	@discussion	Required data: vertex normals.
-	
+
 				Optional data: vertex UVs, vertex diffuse colors.
-				
+
 				Ignored data: edges and edge attributes, triangle normals.
-				
+
 				Forbidden data: vertex transparency colors, triangle diffuse
 				colors (unless vertex diffuse colors also exist),
 				triangle transparency colors, triangle surface shaders.
@@ -656,19 +675,19 @@ QORenderer::SlowPathMask	QORenderer::Renderer::FindTriMeshData(
 {
 	E3Memory_Clear( &outArrays, sizeof(outArrays) );
 	outArrays.vertPosition = inData.points;
-	
+
 	SlowPathMask	slowMask = kSlowPathMask_FastPath;
-	
+
 	if (mTextures.IsTextureTransparent())
 	{
 		slowMask |= kSlowPathMask_Transparency;
 	}
-	
+
 	TQ3Uns32 j;
 	const TQ3TriMeshAttributeData*	attData;
-	
+
 	attData = inData.triangleAttributeTypes;
-	
+
 	for (j = 0; j < inData.numTriangleAttributeTypes; ++j)
 	{
 		switch (attData[j].attributeType)
@@ -682,19 +701,19 @@ QORenderer::SlowPathMask	QORenderer::Renderer::FindTriMeshData(
 				outArrays.faceColor = static_cast<const TQ3ColorRGB*>(
 					attData[j].data );
 				break;
-				
+
 			case kQ3AttributeTypeTransparencyColor:
 				outArrays.faceTransparency = static_cast<const TQ3ColorRGB*>(
 					attData[j].data );
 				slowMask |= kSlowPathMask_Transparency;
 				break;
-			
+
 			case kQ3AttributeTypeEmissiveColor:
 				outArrays.faceEmissive = static_cast<const TQ3ColorRGB*>(
 					attData[j].data );
 				slowMask |= kSlowPathMask_EmissiveColor;
 				break;
-			
+
 			case kQ3AttributeTypeSurfaceShader:
 				outArrays.faceSurfaceShader = static_cast<TQ3Object*>(
 					attData[j].data );
@@ -702,9 +721,9 @@ QORenderer::SlowPathMask	QORenderer::Renderer::FindTriMeshData(
 				break;
 		}
 	}
-	
+
 	attData = inData.vertexAttributeTypes;
-	
+
 	for (j = 0; j < inData.numVertexAttributeTypes; ++j)
 	{
 		switch (attData[j].attributeType)
@@ -713,18 +732,18 @@ QORenderer::SlowPathMask	QORenderer::Renderer::FindTriMeshData(
 				outArrays.vertNormal = static_cast<const TQ3Vector3D*>(
 					attData[j].data );
 				break;
-			
+
 			case kQ3AttributeTypeSurfaceUV:
 			case kQ3AttributeTypeShadingUV:
 				outArrays.vertUV = static_cast<const TQ3Param2D*>(
 					attData[j].data );
 				break;
-			
+
 			case kQ3AttributeTypeDiffuseColor:
 				outArrays.vertColor = static_cast<const TQ3ColorRGB*>(
 					attData[j].data );
 				break;
-			
+
 			case kQ3AttributeTypeTransparencyColor:
 				outArrays.vertTransparency = static_cast<const TQ3ColorRGB*>(
 					attData[j].data );
@@ -738,7 +757,7 @@ QORenderer::SlowPathMask	QORenderer::Renderer::FindTriMeshData(
 				break;
 		}
 	}
-	
+
 	for (j = 0; j < inData.numEdgeAttributeTypes; ++j)
 	{
 		switch (inData.edgeAttributeTypes[j].attributeType)
@@ -749,22 +768,22 @@ QORenderer::SlowPathMask	QORenderer::Renderer::FindTriMeshData(
 				break;
 		}
 	}
-	
+
 	if (outArrays.vertNormal == nullptr)
 	{
 		slowMask |= kSlowPathMask_NoVertexNormals;
 	}
-	
+
 	if ( (outArrays.faceColor != nullptr) && (outArrays.vertColor == nullptr) )
 	{
 		slowMask |= kSlowPathMask_FaceColors;
 	}
-	
+
 	if ( mGeomState.alpha < mAlphaThreshold )
 	{
 		slowMask |= kSlowPathMask_Transparency;
 	}
-	
+
 	return slowMask;
 }
 
@@ -785,10 +804,10 @@ static void GetCachedTriangleStrip(
 								std::vector<TQ3Uns32>& outStrip )
 {
 	bool	isStripComputeNeeded = false;
-	
+
 	TQ3Uns32	arraySize;
 	const TQ3Uns32*	theArray = nullptr;
-	
+
 	if (kQ3Success == CETriangleStripElement_GetData( inTriMesh, &arraySize,
 		&theArray ))
 	{
@@ -803,12 +822,12 @@ static void GetCachedTriangleStrip(
 		Q3Object_GetProperty( inRenderer,
 			kQ3RendererPropertyAutomaticTriangleStrips, sizeof(TQ3Boolean),
 			nullptr, &isAutoStripPreferred );
-		
+
 		if (isAutoStripPreferred == kQ3True)
 		{
 			MakeStrip( inGeomData.numTriangles,
 				&inGeomData.triangles[0].pointIndices[0], outStrip );
-			
+
 			// We consider the strip worthwhile if the number of indices is no
 			// more than twice the number of triangles.
 			if (outStrip.size() <= 2 * inGeomData.numTriangles)
@@ -837,62 +856,62 @@ void QORenderer::Renderer::CalcTriMeshVertState(
 							QORenderer::Vertex& outVertex )
 {
 	outVertex.point = inData.vertPosition[ inVertNum ];
-	
+
 	outVertex.flags = kVertexFlagNone;
 	TQ3ColorRGB	transparentColor = kWhiteColor;
 	bool	haveTransparentColor = false;
-	
+
 	// Look for per-vertex attributes.
 	if (inData.vertNormal != nullptr)
 	{
 		outVertex.normal = inData.vertNormal[ inVertNum ];
 		outVertex.flags |= kVertexHaveNormal;
 	}
-	
+
 	if (inData.vertUV != nullptr)
 	{
 		outVertex.uv = inData.vertUV[ inVertNum ];
 		outVertex.flags |= kVertexHaveUV;
 	}
-	
+
 	if (inData.vertColor != nullptr)
 	{
 		outVertex.diffuseColor = inData.vertColor[ inVertNum ];
 		outVertex.flags |= kVertexHaveDiffuse;
 	}
-	
+
 	if (inData.vertEmissive != nullptr)
 	{
 		outVertex.emissiveColor = inData.vertEmissive[ inVertNum ];
 		outVertex.flags |= kVertexHaveEmissive;
 	}
-	
+
 	if (inData.vertTransparency != nullptr)
 	{
 		transparentColor = inData.vertTransparency[ inVertNum ];
 		haveTransparentColor = true;
 	}
-	
-	
+
+
 	// Inherit attributes from faces.
 	if ( (inData.vertNormal == nullptr) && (inData.faceNormal != nullptr) )
 	{
 		outVertex.normal = inData.faceNormal[ inFaceNum ];
 		outVertex.flags |= kVertexHaveNormal;
 	}
-	
+
 	if ( (inData.vertColor == nullptr) && (inData.faceColor != nullptr) )
 	{
 		outVertex.diffuseColor = inData.faceColor[ inFaceNum ];
 		outVertex.flags |= kVertexHaveDiffuse;
 	}
-	
+
 	if ( (inData.vertEmissive == nullptr) && (inData.faceEmissive != nullptr) )
 	{
 		outVertex.emissiveColor = inData.faceEmissive[ inFaceNum ];
 		outVertex.flags |= kVertexHaveEmissive;
 	}
-	
+
 	if ( (inData.vertTransparency == nullptr) && (inData.faceTransparency != nullptr) )
 	{
 		transparentColor = inData.faceTransparency[ inFaceNum ];
@@ -910,7 +929,7 @@ void QORenderer::Renderer::CalcTriMeshVertState(
 		outVertex.diffuseColor = kWhiteColor;
 		outVertex.flags |= kVertexHaveDiffuse;
 	}
-	
+
 	// if no color or if highlighting is on, get geom state color
 	else
 	{
@@ -919,14 +938,14 @@ void QORenderer::Renderer::CalcTriMeshVertState(
 			(
 				((outVertex.flags & kVertexHaveDiffuse) == 0) ||
 				(mGeomState.highlightState == kQ3On) )
-			) 
+			)
 		{
 			outVertex.diffuseColor = *mGeomState.diffuseColor;
 			outVertex.flags |= kVertexHaveDiffuse;
 		}
 	}
-	
-	
+
+
 	// Convert transparency color to alpha.
 	if ( haveTransparentColor )
 	{
@@ -941,8 +960,8 @@ void QORenderer::Renderer::CalcTriMeshVertState(
 	{
 		outVertex.flags |= kVertexHaveTransparency;
 	}
-	
-	
+
+
 	// Emissive color from geom state?
 	if (
 		(mGeomState.emissiveColor != nullptr) &&
@@ -951,7 +970,7 @@ void QORenderer::Renderer::CalcTriMeshVertState(
 		(
 			((outVertex.flags & kVertexHaveEmissive) == 0) ||
 			(mGeomState.highlightState == kQ3On) )
-		) 
+		)
 	{
 		outVertex.emissiveColor = *mGeomState.emissiveColor;
 		outVertex.flags |= kVertexHaveEmissive;
@@ -961,7 +980,7 @@ void QORenderer::Renderer::CalcTriMeshVertState(
 
 /*!
 	@function	IsSimplyTransparent
-	
+
 	@abstract	Test whether a TriMesh is transparent due to global state,
 				either a global texture shader with an alpha channel or else a
 				global transparency color, and can be handled by a relatively
@@ -994,11 +1013,11 @@ static TQ3Area ScreenAreaOfBounds( TQ3ViewObject inView, const TQ3BoundingBox& i
 	// Get the corners of the bounds.
 	TQ3Point3D	localCorners[8];
 	E3BoundingBox_GetCorners( &inLocalBounds, localCorners );
-	
+
 	// Transform corners to screen space.
 	TQ3Point2D screenCorners[8];
 	E3View_TransformArrayLocalToWindow( inView, 8, localCorners, screenCorners );
-	
+
 	// Get area
 	TQ3Area theArea = E3Area_SetFromPoints2D( 8, screenCorners );
 	return theArea;
@@ -1054,7 +1073,7 @@ void	QORenderer::Renderer::RenderSlowPathTriMesh(
 	Vertex		theVertices[3];
 	TQ3Uns32	faceNum;
 	VertexFlags	flagUnion, flagIntersection;
-	
+
 	for (faceNum = 0; faceNum < inGeomData.numTriangles; ++faceNum)
 	{
 		TQ3Object	faceShader = nullptr;
@@ -1067,25 +1086,25 @@ void	QORenderer::Renderer::RenderSlowPathTriMesh(
 			E3Push_Submit( inView );
 			E3View_SubmitRetained( inView, faceShader );
 		}
-	
+
 		const TQ3Uns32* vertIndices = inGeomData.triangles[ faceNum ].pointIndices;
-		
+
 		CalcTriMeshVertState( vertIndices[0], faceNum, inData, theVertices[0] );
 		CalcTriMeshVertState( vertIndices[1], faceNum, inData, theVertices[1] );
 		CalcTriMeshVertState( vertIndices[2], faceNum, inData, theVertices[2] );
-		
+
 		if (suppressTransparency)
 		{
 			theVertices[0].flags &= ~ kVertexHaveTransparency;
 			theVertices[1].flags &= ~ kVertexHaveTransparency;
 			theVertices[2].flags &= ~ kVertexHaveTransparency;
 		}
-		
+
 		flagUnion = theVertices[0].flags | theVertices[1].flags |
 			theVertices[2].flags;
 		flagIntersection = theVertices[0].flags & theVertices[1].flags &
 			theVertices[2].flags;
-		
+
 		// if we lack normals, calculate one.
 		if ( (flagIntersection & kVertexHaveNormal) == 0 )
 		{
@@ -1095,7 +1114,7 @@ void	QORenderer::Renderer::RenderSlowPathTriMesh(
 				&theVertices[2].point,
 				&triNormal );
 			Q3FastVector3D_Normalize( &triNormal, &triNormal );
-			
+
 			if (mStyleState.mOrientation == kQ3OrientationStyleClockwise)
 			{
 				Q3FastVector3D_Negate( &triNormal, &triNormal );
@@ -1106,7 +1125,7 @@ void	QORenderer::Renderer::RenderSlowPathTriMesh(
 			theVertices[1].flags |= kVertexHaveNormal;
 			theVertices[2].flags |= kVertexHaveNormal;
 		}
-		
+
 		// if the color or texture is translucent, add the triangle to a
 		// buffer of transparent stuff, otherwise add it to a buffer of opaque
 		// triangles.
@@ -1119,7 +1138,7 @@ void	QORenderer::Renderer::RenderSlowPathTriMesh(
 		{
 			mTriBuffer.AddTriangle( theVertices );
 		}
-		
+
 		if (faceShader != nullptr)
 		{
 			E3Pop_Submit( inView );
@@ -1129,7 +1148,7 @@ void	QORenderer::Renderer::RenderSlowPathTriMesh(
 
 /*!
 	@function	RenderFastPathTriMesh
-	
+
 	@abstract	This is the core of fast-path TriMesh rendering.
 */
 void	QORenderer::Renderer::RenderFastPathTriMesh(
@@ -1144,7 +1163,7 @@ void	QORenderer::Renderer::RenderFastPathTriMesh(
 	{
 		inVertNormals = nullptr;
 	}
-		
+
 	// If there is a texture, and illumination is not nullptr, use white as the
 	// underlying color.
 	if ( mTextures.IsTextureActive() &&
@@ -1154,35 +1173,35 @@ void	QORenderer::Renderer::RenderFastPathTriMesh(
 		mSLFuncs.glVertexAttrib3fv( Shader().CurrentProgram()->mColorAttribLoc, &kWhiteColor.r );
 		inVertColors = nullptr;
 	}
-	
+
 	// If no vertex colors, set the color.
 	else if (inVertColors == nullptr)
 	{
 		mSLFuncs.glVertexAttrib3fv( Shader().CurrentProgram()->mColorAttribLoc, &mGeomState.diffuseColor->r );
 	}
-	
+
 	// Enable/disable array states.
 	mGLClientStates.EnableNormalArray( inVertNormals != nullptr );
 	mGLClientStates.EnableTextureArray( inVertUVs != nullptr );
 	mGLClientStates.EnableColorArray( inVertColors != nullptr );
-	
+
 	if ( (inTriMesh != nullptr) &&
 		(inGeomData.numTriangles >= kMinTrianglesToCache) )
 	{
 		std::vector<TQ3Uns32>	triangleStrip;
 		CQ3ObjectRef nakedMesh( E3TriMesh_GetNakedGeometry( inTriMesh ) );
-		
+
 		TQ3Uns32 layerDataSize = 0;
 		TQ3Status hasLayers = Q3Object_GetProperty( (TQ3Object _Nonnull) nakedMesh.get(), kQ3GeometryPropertyLayerShifts,
 			0, &layerDataSize, nullptr );
 		mGLClientStates.EnableLayerShiftArray( hasLayers == kQ3Success );
-		
+
 		{
 			// In edge fill style, the degenerate triangles created by
 			// MakeStrip draw bogus edges.
 			GLenum	mode = (mStyleState.mFill == kQ3FillStyleEdges)?
 				GL_TRIANGLES : GL_TRIANGLE_STRIP;
-			
+
 			if (kQ3False == RenderCachedVBO( *this, nakedMesh.get(), mode ))
 			{
 				if (mode == GL_TRIANGLE_STRIP)
@@ -1190,7 +1209,7 @@ void	QORenderer::Renderer::RenderFastPathTriMesh(
 					GetCachedTriangleStrip( mRendererObject, inTriMesh,
 						inGeomData, triangleStrip );
 				}
-				
+
 				if (triangleStrip.empty())
 				{
 					Q3_CHECK_DRAW_ELEMENTS( inGeomData.numPoints,
@@ -1211,7 +1230,7 @@ void	QORenderer::Renderer::RenderFastPathTriMesh(
 						GL_TRIANGLE_STRIP, static_cast<TQ3Uns32>(triangleStrip.size()),
 						&triangleStrip[0] );
 				}
-				
+
 				RenderCachedVBO( *this, nakedMesh.get(), mode );
 			}
 		}
@@ -1228,7 +1247,7 @@ void	QORenderer::Renderer::RenderFastPathTriMesh(
 
 /*!
 	@function	FindExplicitEdgesOfFrontFaces
-	
+
 	@abstract	Find which edges belong to at least one front-facing triangle.
 */
 static void FindExplicitEdgesOfFrontFaces(
@@ -1243,23 +1262,23 @@ static void FindExplicitEdgesOfFrontFaces(
 	TQ3Matrix4x4	localToWorld;
 	Q3View_GetLocalToWorldMatrixState( inView, &localToWorld );
 	TQ3Matrix4x4 worldToLocal = Q3Invert( localToWorld );
-	
+
 	// Get camera placement and type
 	CQ3ObjectRef	theCamera( CQ3View_GetCamera( inView ) );
 	TQ3CameraPlacement	thePlacement;
 	Q3Camera_GetPlacement( (TQ3Object _Nonnull) theCamera.get(), &thePlacement );
 	bool	isOrthographic = (Q3Camera_GetType( (TQ3Object _Nonnull) theCamera.get() ) ==
 		kQ3CameraTypeOrthographic);
-	
+
 	TQ3Vector3D		viewVector, faceNormalVector;
 	TQ3Uns32	faceIndex;
 	TQ3Point3D	cameraLocal;
-	
+
 	if (isOrthographic)
 	{
 		// Get the view vector in local coordinates
 		viewVector = (thePlacement.pointOfInterest - thePlacement.cameraLocation) * worldToLocal;
-		
+
 		if (inOrientation == kQ3OrientationStyleClockwise)
 		{
 			// Logically we should flip the normal vector, but it is equivalent
@@ -1272,31 +1291,31 @@ static void FindExplicitEdgesOfFrontFaces(
 		// Get the camera location in local coordinates
 		cameraLocal = thePlacement.cameraLocation * worldToLocal;
 	}
-	
+
 	for (TQ3Uns32 edgeIndex = 0; edgeIndex < inGeomData.numEdges; ++edgeIndex)
 	{
 		const TQ3TriMeshEdgeData& edgeData( inGeomData.edges[edgeIndex] );
 		bool isFront = false;
-		
+
 		for (int whichFace = 0; whichFace < 2; ++whichFace)
 		{
 			faceIndex = edgeData.triangleIndices[whichFace];
-			
+
 			if (faceIndex != kQ3ArrayIndexNULL)
 			{
 				const TQ3TriMeshTriangleData& faceData(
 					inGeomData.triangles[ faceIndex ] );
-				
+
 				Q3FastPoint3D_CrossProductTri(
 					&inGeomData.points[ faceData.pointIndices[0] ],
 					&inGeomData.points[ faceData.pointIndices[1] ],
 					&inGeomData.points[ faceData.pointIndices[2] ],
 					&faceNormalVector );
-				
+
 				if (! isOrthographic)
 				{
 					viewVector = inGeomData.points[ faceData.pointIndices[0] ] - cameraLocal;
-					
+
 					if (inOrientation == kQ3OrientationStyleClockwise)
 					{
 						// Logically we should flip the normal vector, but it is equivalent
@@ -1304,7 +1323,7 @@ static void FindExplicitEdgesOfFrontFaces(
 						viewVector = -viewVector;
 					}
 				}
-				
+
 				if (Q3Dot3D( faceNormalVector, viewVector ) < 0.0f)
 				{
 					isFront = true;
@@ -1312,7 +1331,7 @@ static void FindExplicitEdgesOfFrontFaces(
 				}
 			}
 		}
-		
+
 		if (isFront)
 		{
 			outEdgeIndices.push_back( edgeIndex );
@@ -1335,7 +1354,7 @@ void	QORenderer::Renderer::RenderExplicitEdges(
 {
 	// Turn off texturing.
 	mTextures.SetCurrentTexture( nullptr, nullptr );
-	
+
 	// If we are culling back faces, we will only render edges belonging to front-facing triangles.
 	std::vector< TQ3Uns32 >		renderedEdgeIndices;
 	size_t edgeCount = inGeomData.numEdges;
@@ -1348,7 +1367,7 @@ void	QORenderer::Renderer::RenderExplicitEdges(
 	{
 		return;	// nothing to render
 	}
-	
+
 	// With the old glBegin( GL_LINES ) way of doing things, we could handle per-edge colors
 	// by calling glColor3fv inside the loop.  That's not possible with OpenGL 3's compulsory
 	// array drawing.  We can only use per-vertex colors.  A vertex may have different colors
@@ -1366,7 +1385,7 @@ void	QORenderer::Renderer::RenderExplicitEdges(
 		colors.resize( 2 * edgeCount );
 	}
 	TQ3Uns32 edgeIndex;
-	
+
 	if (mStyleState.mBackfacing == kQ3BackfacingStyleRemove)
 	{
 		for (size_t i = 0; i < edgeCount; ++i)
@@ -1420,7 +1439,7 @@ void	QORenderer::Renderer::RenderExplicitEdges(
 	mGLClientStates.EnableNormalArray( inVertNormals != nullptr );
 	mGLClientStates.EnableTextureArray( false );
 	mGLClientStates.EnableColorArray( (inVertColors != nullptr) || (inEdgeColors != nullptr) );
-	
+
 	RenderImmediateVBO( GL_LINES, *this, static_cast<TQ3Uns32>(2 * edgeCount),
 		&points[0], (inVertNormals != nullptr)? &normals[0] : nullptr,
 		(inVertColors != nullptr) || (inEdgeColors != nullptr)? &colors[0] : nullptr,
@@ -1479,7 +1498,7 @@ static void	ImmediateModePop(
 
 /*!
 	@function		SubmitTriMesh
-	
+
 	@abstract		Handle a TriMesh submitted for rendering.
 */
 bool	QORenderer::Renderer::SubmitTriMesh(
@@ -1495,14 +1514,14 @@ bool	QORenderer::Renderer::SubmitTriMesh(
 	{
 		return true; // not sure if this can happen
 	}
-	
+
 	if ( (mViewIllumination == kQ3IlluminationTypeNULL) && (mLights.IsFirstPass() == false))
 	{
 		// Since nullptr illumination disables lighting,  geometries with nullptr
 		// illumination should only be handled in the first light pass.
 		return true;
 	}
-	
+
 	// Cull objects not visible from the current camera, except when marking
 	// shadows
 	if ( ! mLights.IsShadowMarkingPass() &&
@@ -1510,34 +1529,34 @@ bool	QORenderer::Renderer::SubmitTriMesh(
 	{
 		return true;
 	}
-	
+
 	// Cull objects not lit during a shadowing pass
 	if (mLights.IsLit( inGeomData->bBox ) == false)
 	{
 		return true;
 	}
-	
+
 	bool didHandle = false;
-	
+
 	ImmediateModePush( inView, inTriMesh, inGeomData->triMeshAttributeSet );
-	
+
 	// Activate our context
 	GLDrawContext_SetCurrent( mGLContext, kQ3False );
-	
+
 	// Allow usual lighting
 	mLights.SetLowDimensionalMode( false, mViewIllumination );
 
-	
+
 	// update color and texture from geometry attribute set
 	HandleGeometryAttributes( inGeomData->triMeshAttributeSet, inView,
 		true );
-		
+
 
 	// Look for a cached optimized geometry.
 	bool	wasValid;
 	CQ3ObjectRef	cachedGeom( GetCachedOptimizedTriMesh( inTriMesh,
 		wasValid ) );
-	
+
 	// If we found an optimized version, get its data.
 	CLockTriMeshData	locker;
 	if (cachedGeom.isvalid())
@@ -1545,35 +1564,35 @@ bool	QORenderer::Renderer::SubmitTriMesh(
 		inGeomData = locker.Lock( cachedGeom.get() );
 		inTriMesh = cachedGeom.get();
 	}
-	
+
 	// Find data and test for fast path.
 	MeshArrays	dataArrays;
-	
+
 	SlowPathMask whyNotFastPath = FindTriMeshData( *inGeomData, dataArrays );
-	
+
 	// Of the various conditions that can knock us off the fast path,
 	// Q3TriMesh_Optimize can fix two of them: lack of vertex normals,
 	// and face colors but not vertex colors.
 	const SlowPathMask kFixableMask = kSlowPathMask_NoVertexNormals |
 		kSlowPathMask_FaceColors;
-	
+
 	if ( (whyNotFastPath != kSlowPathMask_FastPath) &&
 		((whyNotFastPath & ~kFixableMask) == kSlowPathMask_FastPath) &&
 		(! wasValid) &&
 		(inTriMesh != nullptr) )
 	{
 		cachedGeom = CQ3ObjectRef( Q3TriMesh_Optimize( inTriMesh ) );
-		
+
 		if (cachedGeom.isvalid())
 		{
 			SetCachedOptimizedTriMesh( inTriMesh, cachedGeom.get() );
 			inGeomData = locker.Lock( cachedGeom.get() );
 			inTriMesh = cachedGeom.get();
-			
+
 			whyNotFastPath = FindTriMeshData( *inGeomData, dataArrays );
 		}
 	}
-	
+
 	// Special handling when shadow marking
 	if (mLights.IsShadowMarkingPass())
 	{
@@ -1587,7 +1606,7 @@ bool	QORenderer::Renderer::SubmitTriMesh(
 		}
 		didHandle = true;
 	}
-	
+
 	// If we are in edge-fill mode and explicit edges have been provided,
 	// we may want to handle them here.
 	if ( (! didHandle) &&
@@ -1596,7 +1615,7 @@ bool	QORenderer::Renderer::SubmitTriMesh(
 		if (inGeomData->numEdges > 0)
 		{
 			mPPLighting.PreGeomSubmit( inTriMesh, 1 );
-			
+
 			RenderExplicitEdges( inView, *inGeomData, dataArrays.vertNormal,
 								dataArrays.vertColor, dataArrays.edgeColor );
 			didHandle = true;
@@ -1610,35 +1629,35 @@ bool	QORenderer::Renderer::SubmitTriMesh(
 	if ( (whyNotFastPath == kSlowPathMask_FastPath) && (! didHandle) )
 	{
 		mPPLighting.PreGeomSubmit( inTriMesh, 2 );
-		
+
 		RenderFastPathTriMesh( inTriMesh, *inGeomData, dataArrays.vertNormal,
 			dataArrays.vertUV, dataArrays.vertColor );
-		
+
 		didHandle = true;
 	}
-	
+
 	if (! didHandle)
 	{
 		mPPLighting.PreGeomSubmit( inTriMesh, 2 );
-		
+
 		RenderSlowPathTriMesh( inTriMesh, inView, *inGeomData, dataArrays );
 		didHandle = true;
 	}
-	
+
 	if (didHandle)
 	{
 		mNumPrimitivesRenderedInFrame += inGeomData->numTriangles;
 	}
-	
+
 	ImmediateModePop( inView, inTriMesh, inGeomData->triMeshAttributeSet );
-	
+
 	return didHandle;
 }
 
 
 /*!
 	@function	SubmitTriangle
-	
+
 	@abstract	Handle a Triangle submitted for rendering.
 */
 void	QORenderer::Renderer::SubmitTriangle(
@@ -1657,14 +1676,14 @@ void	QORenderer::Renderer::SubmitTriangle(
 
 	// Activate our context
 	GLDrawContext_SetCurrent( mGLContext, kQ3False );
-	
+
 	// Allow usual lighting
 	mLights.SetLowDimensionalMode( false, mViewIllumination );
-	
+
 	// update color and texture from geometry attribute set
 	HandleGeometryAttributes( inGeomData->triangleAttributeSet, inView,
 		true );
-	
+
 	// Notify per-pixel lighting
 	mPPLighting.PreGeomSubmit( inTriangle, 2 );
 
@@ -1701,7 +1720,7 @@ void	QORenderer::Renderer::SubmitTriangle(
 		}
 	}
 #endif
-	
+
 	// Get the vertices
 	Vertex		theVertices[3];
 	int	i;
@@ -1711,7 +1730,7 @@ void	QORenderer::Renderer::SubmitTriangle(
 		CalcVertexState( inGeomData->vertices[i], theVertices[i] );
 		flagUnion |= theVertices[i].flags;
 	}
-	
+
 	// If vertex normals were not provided, look for a triangle normal,
 	// and if that fails, calculate one.
 	if ( (flagUnion & kVertexHaveNormal) == 0 )
@@ -1735,7 +1754,7 @@ void	QORenderer::Renderer::SubmitTriangle(
 				&inGeomData->vertices[2].point,
 				&triNormal );
 			Q3FastVector3D_Normalize( &triNormal, &triNormal );
-			
+
 			if (mStyleState.mOrientation == kQ3OrientationStyleClockwise)
 			{
 				Q3FastVector3D_Negate( &triNormal, &triNormal );
@@ -1747,7 +1766,7 @@ void	QORenderer::Renderer::SubmitTriangle(
 			theVertices[i].flags |= kVertexHaveNormal;
 		}
 	}
-	
+
 	// if the color or texture is translucent, add the triangle to a
 	// buffer of transparent stuff, otherwise add it to a buffer of opaque
 	// triangles.
@@ -1770,14 +1789,14 @@ void	QORenderer::Renderer::SubmitTriangle(
 	}
 
 	ImmediateModePop( inView, inTriangle, inGeomData->triangleAttributeSet );
-	
+
 	mNumPrimitivesRenderedInFrame += 1;
 }
 
 
 /*!
 	@function	SubmitPoint
-	
+
 	@abstract	Handle a Point submitted for rendering.
 */
 void	QORenderer::Renderer::SubmitPoint(
@@ -1796,17 +1815,17 @@ void	QORenderer::Renderer::SubmitPoint(
 
 	// Activate our context
 	GLDrawContext_SetCurrent( mGLContext, kQ3False );
-	
+
 	// update color from geometry attribute set
 	HandleGeometryAttributes( inGeomData->pointAttributeSet, nullptr,
 		false );
-	
+
 	// It does not make sense to me for the appearance of a Point to
 	// depend on the direction of the light.
 	// Temporarily turn off all non-ambient lights, and
 	// boost the ambient light by an equal intensity.
 	mLights.SetLowDimensionalMode( true, mViewIllumination );
-		
+
 	// Notify per-pixel lighting
 	mPPLighting.PreGeomSubmit( nullptr, 0 );
 
@@ -1816,7 +1835,7 @@ void	QORenderer::Renderer::SubmitPoint(
 	srcVertex.attributeSet = inGeomData->pointAttributeSet;
 	Vertex	dstVertex;
 	CalcVertexState( srcVertex, dstVertex );
-	
+
 	// Submit the point unless it is translucent
 	if ( (dstVertex.flags & kVertexHaveTransparency) != 0 )
 	{
@@ -1834,14 +1853,14 @@ void	QORenderer::Renderer::SubmitPoint(
 			((dstVertex.flags & kVertexHaveDiffuse) != 0)? &dstVertex.diffuseColor : nullptr,
 			nullptr, 0, nullptr );
 	}
-	
+
 	mNumPrimitivesRenderedInFrame += 1;
 }
 
 
 /*!
 	@function	SubmitLine
-	
+
 	@abstract	Handle a Line submitted for rendering.
 */
 void	QORenderer::Renderer::SubmitLine(
@@ -1860,17 +1879,17 @@ void	QORenderer::Renderer::SubmitLine(
 
 	// Activate our context
 	GLDrawContext_SetCurrent( mGLContext, kQ3False );
-	
+
 	// update color from geometry attribute set
 	HandleGeometryAttributes( inGeomData->lineAttributeSet, nullptr,
 		false );
-	
+
 	// It does not make sense to me for the appearance of a Line to
 	// depend on the direction of the light.
 	// Temporarily turn off all non-ambient lights, and
 	// boost the ambient light by an equal intensity.
 	mLights.SetLowDimensionalMode( true, mViewIllumination );
-		
+
 	// Notify per-pixel lighting
 	mPPLighting.PreGeomSubmit( nullptr, 1 );
 
@@ -1897,7 +1916,7 @@ void	QORenderer::Renderer::SubmitLine(
 		TQ3Vector3D normals[2];
 		TQ3Param2D uvs[2];
 		TQ3ColorRGB colors[2];
-		
+
 		for (i = 0; i < 2; ++i)
 		{
 			points[i] = theVertices[i].point;
@@ -1914,25 +1933,25 @@ void	QORenderer::Renderer::SubmitLine(
 				colors[i] = theVertices[i].diffuseColor;
 			}
 		}
-		
+
 		mGLClientStates.EnableNormalArray( (flagUnion & kVertexHaveNormal) != 0 );
 		mGLClientStates.EnableTextureArray( (flagUnion & kVertexHaveUV) != 0 );
 		mGLClientStates.EnableColorArray( (flagUnion & kVertexHaveDiffuse) != 0 );
-		
-		RenderImmediateVBO( GL_LINES, *this, 
+
+		RenderImmediateVBO( GL_LINES, *this,
 			2, points, ((flagUnion & kVertexHaveNormal) != 0)? normals : nullptr,
 			((flagUnion & kVertexHaveDiffuse) != 0)? colors : nullptr,
 			((flagUnion & kVertexHaveUV) != 0)? uvs : nullptr,
 			0, nullptr );
 	}
-	
+
 	mNumPrimitivesRenderedInFrame += 1;
 }
 
 static bool HasSegmentAtts( const TQ3PolyLineData* inGeomData )
 {
 	bool	hasSegAtts = false;
-	
+
 	if (inGeomData->segmentAttributeSet != nullptr)
 	{
 		for (TQ3Uns32 i = 0; i < inGeomData->numVertices - 1; ++i)
@@ -1944,7 +1963,7 @@ static bool HasSegmentAtts( const TQ3PolyLineData* inGeomData )
 			}
 		}
 	}
-	
+
 	return hasSegAtts;
 }
 
@@ -1965,12 +1984,12 @@ static void	PassBuckOnPolyLine(
 		inPolyLine = Q3PolyLine_New( inGeomData );
 		tempGeom = CQ3ObjectRef( inPolyLine );
 	}
-	
+
 	if (inPolyLine != nullptr)
 	{
 		CQ3ObjectRef	decomposed( Q3Geometry_GetDecomposed( inPolyLine,
 			inView ) );
-		
+
 		if (decomposed.isvalid())
 		{
 			E3View_SubmitRetained( inView, decomposed.get() );
@@ -1980,9 +1999,9 @@ static void	PassBuckOnPolyLine(
 
 /*!
 	@function	SubmitLine
-	
+
 	@abstract	Handle a PolyLine submitted for rendering.
-	
+
 	@discussion	Currently we ignore segmentAttributeSet, as does the
 				Interactive Renderer.
 */
@@ -2003,20 +2022,20 @@ void	QORenderer::Renderer::SubmitPolyLine(
 
 	// Activate our context
 	GLDrawContext_SetCurrent( mGLContext, kQ3False );
-	
+
 	// update color from geometry attribute set
 	HandleGeometryAttributes( inGeomData->polyLineAttributeSet, nullptr,
 		false );
-	
+
 	// It does not make sense to me for the appearance of a Line to
 	// depend on the direction of the light.
 	// Temporarily turn off all non-ambient lights, and
 	// boost the ambient light by an equal intensity.
 	mLights.SetLowDimensionalMode( true, mViewIllumination );
-	
+
 	// Notify per-pixel lighting
 	mPPLighting.PreGeomSubmit( inPolyLine, 1 );
-	
+
 	// Get the vertices
 	std::vector< Vertex >	theVertices( inGeomData->numVertices );
 	TQ3Uns32 i;
@@ -2024,7 +2043,7 @@ void	QORenderer::Renderer::SubmitPolyLine(
 	{
 		CalcVertexState( inGeomData->vertices[i], theVertices[i] );
 	}
-	
+
 	// Set up working arrays for vertex attributes
 	E3FastArray<TQ3Point3D>		points;
 	E3FastArray<TQ3Vector3D>	normals;
@@ -2035,14 +2054,14 @@ void	QORenderer::Renderer::SubmitPolyLine(
 	normals.reserve( maxIndices );
 	uvs.reserve( maxIndices );
 	colors.reserve( maxIndices );
-	
+
 	// Figure out which arrays we actually need for at least one point.
 	VertexFlags	flagUnion = 0;
 	for (i = 0; i < inGeomData->numVertices; ++i)
 	{
 		flagUnion |= theVertices[i].flags;
 	}
-	
+
 	// For each line segment, either defer it if it uses transparency,
 	// or add it to an array for immediate rendering.
 	for (i = 0; i < inGeomData->numVertices - 1; ++i)
@@ -2072,21 +2091,21 @@ void	QORenderer::Renderer::SubmitPolyLine(
 			}
 		}
 	}
-	
+
 	// If we have some to render immediately, do it.
 	if (points.size() > 0)
 	{
 		mGLClientStates.EnableNormalArray( (flagUnion & kVertexHaveNormal) != 0 );
 		mGLClientStates.EnableTextureArray( (flagUnion & kVertexHaveUV) != 0 );
 		mGLClientStates.EnableColorArray( (flagUnion & kVertexHaveDiffuse) != 0 );
-		
+
 		RenderImmediateVBO( GL_LINES, *this, points.size(), &points[0],
 			((flagUnion & kVertexHaveNormal) != 0)? &normals[0] : nullptr,
 			((flagUnion & kVertexHaveDiffuse) != 0)? &colors[0] : nullptr,
 			((flagUnion & kVertexHaveUV) != 0)? &uvs[0] : nullptr,
 			0, nullptr );
 	}
-	
+
 	mNumPrimitivesRenderedInFrame += inGeomData->numVertices - 1;
 }
 

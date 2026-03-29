@@ -34,9 +34,9 @@
 
 /*!
 	@function	Write3DMF
-	
+
 	@abstract	Write Quesa objects to a binary 3DMF stream.
-	
+
 	@param		inObjects		Objects to write.
 	@param		inBinStream		A stream to write to.
 	@result		Success or failure of the operation.
@@ -45,12 +45,12 @@ bool	Write3DMF( const std::vector<CQ3ObjectRef>& inObjects,
 					FILE* inBinStream )
 {
 	bool didWrite = false;
-	
+
 	// Set up a dummy pixmap on which to base a draw context.
-	int width = 32;
-	int height = 32;
-	int rowBytes = width * 4;
-	int dataSize = height * rowBytes;
+	TQ3Uns32 width = 32;
+	TQ3Uns32 height = 32;
+	TQ3Uns32 rowBytes = width * 4;
+	TQ3Uns32 dataSize = height * rowBytes;
 	std::vector<char> dataBuf( dataSize );
 	TQ3Pixmap pixmap =
 	{
@@ -63,21 +63,21 @@ bool	Write3DMF( const std::vector<CQ3ObjectRef>& inObjects,
 		kQ3EndianLittle,
 		kQ3EndianLittle
 	};
-	
+
 	// Create a view.
 	CQ3ObjectRef theView( Q3View_NewWithDefaults( kQ3DrawContextTypePixmap,
 		&pixmap ) );
-	
+
 	// Create a storage object and a file.
 	CQ3ObjectRef theStorage( Q3FileStreamStorage_New( inBinStream ) );
 	CQ3ObjectRef theFile( Q3File_New() );
-	
+
 	if ( theView.isvalid() and theStorage.isvalid() and theFile.isvalid() )
 	{
 		Q3File_SetStorage( theFile.get(), theStorage.get() );
-		
+
 		Q3File_OpenWrite( theFile.get(), kQ3FileModeNormal );
-		
+
 		if (kQ3Success == Q3View_StartWriting( theView.get(),theFile.get() ))
 		{
 			for (std::vector<CQ3ObjectRef>::const_iterator i = inObjects.begin();
@@ -88,12 +88,12 @@ bool	Write3DMF( const std::vector<CQ3ObjectRef>& inObjects,
 					didWrite = true;
 				}
 			}
-				
+
 			Q3View_EndWriting( theView.get() );
 		}
-		
+
 		Q3File_Close( theFile.get() );
 	}
-	
+
 	return didWrite;
 }
