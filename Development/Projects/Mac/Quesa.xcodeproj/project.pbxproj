@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 46;
+	objectVersion = 54;
 	objects = {
 
 /* Begin PBXAggregateTarget section */
@@ -44,6 +44,12 @@
 		7FAFC28A251B98D100013244 /* TrackerCoreOSX.mm in Sources */ = {isa = PBXBuildFile; fileRef = 7F00A018251B8E2400ED9F40 /* TrackerCoreOSX.mm */; };
 		7FAFC28E251B98D300013244 /* ControllerDriverCoreOSX.mm in Sources */ = {isa = PBXBuildFile; fileRef = 7F00A017251B8E2400ED9F40 /* ControllerDriverCoreOSX.mm */; };
 		7FAFC292251B98D600013244 /* ControllerCoreOSX.mm in Sources */ = {isa = PBXBuildFile; fileRef = 7F00A015251B8E2400ED9F40 /* ControllerCoreOSX.mm */; };
+		7FF471152F94D44D0018476E /* IPCprotocolXPC.h in Headers */ = {isa = PBXBuildFile; fileRef = 7FF471142F94D44D0018476E /* IPCprotocolXPC.h */; };
+		7FF471172F94D48B0018476E /* Q3DcontrollerXPC.mm in Sources */ = {isa = PBXBuildFile; fileRef = 7FF471162F94D48B0018476E /* Q3DcontrollerXPC.mm */; };
+		7FF471192F94D4B30018476E /* Q3DdbXPC.mm in Sources */ = {isa = PBXBuildFile; fileRef = 7FF471182F94D4B30018476E /* Q3DdbXPC.mm */; };
+		7FF4711B2F94D4E20018476E /* ControllerCoreOSX_XPC.mm in Sources */ = {isa = PBXBuildFile; fileRef = 7FF4711A2F94D4E20018476E /* ControllerCoreOSX_XPC.mm */; };
+		7FF4711D2F94D4F70018476E /* IPCConfiguration.h in Headers */ = {isa = PBXBuildFile; fileRef = 7FF4711C2F94D4F70018476E /* IPCConfiguration.h */; };
+		7FF471282F94E6550018476E /* XPCServiceTemplatemain.mm in Sources */ = {isa = PBXBuildFile; fileRef = 7FF471272F94E6550018476E /* XPCServiceTemplatemain.mm */; };
 		AB3A7CA6055E63B200CA83BE /* E3GeometryBox.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AB3A7B87055E63B100CA83BE /* E3GeometryBox.cpp */; };
 		AB3A7CA8055E63B200CA83BE /* E3GeometryCone.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AB3A7B89055E63B100CA83BE /* E3GeometryCone.cpp */; };
 		AB3A7CAA055E63B200CA83BE /* E3GeometryCylinder.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AB3A7B8B055E63B100CA83BE /* E3GeometryCylinder.cpp */; };
@@ -611,6 +617,22 @@
 		7F55E9CA239A8AB300468537 /* E3Controller.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; path = E3Controller.cpp; sourceTree = "<group>"; };
 		7F55E9CB239A8AB300468537 /* E3Controller.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = E3Controller.h; sourceTree = "<group>"; };
 		7F55E9CF239A8B6E00468537 /* QuesaController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = QuesaController.h; sourceTree = "<group>"; };
+		7FF471142F94D44D0018476E /* IPCprotocolXPC.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IPCprotocolXPC.h; sourceTree = "<group>"; };
+		7FF471162F94D48B0018476E /* Q3DcontrollerXPC.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = Q3DcontrollerXPC.mm; sourceTree = "<group>"; };
+		7FF471182F94D4B30018476E /* Q3DdbXPC.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = Q3DdbXPC.mm; sourceTree = "<group>"; };
+		7FF4711A2F94D4E20018476E /* ControllerCoreOSX_XPC.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = ControllerCoreOSX_XPC.mm; sourceTree = "<group>"; };
+		7FF4711C2F94D4F70018476E /* IPCConfiguration.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IPCConfiguration.h; sourceTree = "<group>"; };
+		7FF4711E2F94D5000018476E /* Quesa3DDeviceServer-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "Quesa3DDeviceServer-Info.plist"; sourceTree = "<group>"; };
+		7FF4711F2F94D52D0018476E /* PDO_TO_XPC_MIGRATION.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = PDO_TO_XPC_MIGRATION.md; sourceTree = "<group>"; };
+		7FF471202F94D9B70018476E /* XPC_INTEGRATION_CHECKLIST.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = XPC_INTEGRATION_CHECKLIST.md; sourceTree = "<group>"; };
+		7FF471212F94DA050018476E /* README_XPC_MIGRATION.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README_XPC_MIGRATION.md; sourceTree = "<group>"; };
+		7FF471222F94DA3C0018476E /* FILE_INDEX.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = FILE_INDEX.md; sourceTree = "<group>"; };
+		7FF471232F94E5FB0018476E /* XPCServiceTemplateTemplateInfo.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = XPCServiceTemplateTemplateInfo.plist; sourceTree = "<group>"; };
+		7FF471242F94E6260018476E /* XPCServiceTemplateREADME.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = XPCServiceTemplateREADME.md; sourceTree = "<group>"; };
+		7FF471252F94E6400018476E /* install_templates.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = install_templates.sh; sourceTree = "<group>"; };
+		7FF471262F94E64B0018476E /* uninstall_templates.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = uninstall_templates.sh; sourceTree = "<group>"; };
+		7FF471272F94E6550018476E /* XPCServiceTemplatemain.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = XPCServiceTemplatemain.mm; sourceTree = "<group>"; };
+		7FF471292F94E65B0018476E /* XPCServiceTemplateInfo.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = XPCServiceTemplateInfo.plist; sourceTree = "<group>"; };
 		8D07F2C80486CC7A007CD1D0 /* Quesa.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Quesa.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		AB3A7B85055E63B100CA83BE /* E3Geometry.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 30; path = E3Geometry.cpp; sourceTree = "<group>"; };
 		AB3A7B86055E63B100CA83BE /* E3Geometry.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = E3Geometry.h; sourceTree = "<group>"; };
@@ -1017,6 +1039,22 @@
 			isa = PBXGroup;
 			children = (
 				7F43581B251BAADE005E2D3C /* IPCprotocolPDO.h */,
+				7FF471142F94D44D0018476E /* IPCprotocolXPC.h */,
+				7FF471162F94D48B0018476E /* Q3DcontrollerXPC.mm */,
+				7FF471182F94D4B30018476E /* Q3DdbXPC.mm */,
+				7FF4711A2F94D4E20018476E /* ControllerCoreOSX_XPC.mm */,
+				7FF4711C2F94D4F70018476E /* IPCConfiguration.h */,
+				7FF4711E2F94D5000018476E /* Quesa3DDeviceServer-Info.plist */,
+				7FF4711F2F94D52D0018476E /* PDO_TO_XPC_MIGRATION.md */,
+				7FF471202F94D9B70018476E /* XPC_INTEGRATION_CHECKLIST.md */,
+				7FF471212F94DA050018476E /* README_XPC_MIGRATION.md */,
+				7FF471222F94DA3C0018476E /* FILE_INDEX.md */,
+				7FF471232F94E5FB0018476E /* XPCServiceTemplateTemplateInfo.plist */,
+				7FF471242F94E6260018476E /* XPCServiceTemplateREADME.md */,
+				7FF471252F94E6400018476E /* install_templates.sh */,
+				7FF471262F94E64B0018476E /* uninstall_templates.sh */,
+				7FF471272F94E6550018476E /* XPCServiceTemplatemain.mm */,
+				7FF471292F94E65B0018476E /* XPCServiceTemplateInfo.plist */,
 			);
 			path = IPC;
 			sourceTree = "<group>";
@@ -1536,10 +1574,12 @@
 				AB83B5F8055E72B90034F56A /* QuesaGroup.h in Headers */,
 				AB83B5F9055E72B90034F56A /* QuesaIO.h in Headers */,
 				7F4DF25D252DFC630004FFF8 /* Q3Ddb.h in Headers */,
+				7FF4711D2F94D4F70018476E /* IPCConfiguration.h in Headers */,
 				AB83B5FA055E72B90034F56A /* QuesaLight.h in Headers */,
 				AB83B5FB055E72B90034F56A /* QuesaMath.h in Headers */,
 				AB83B5FC055E72B90034F56A /* QuesaMemory.h in Headers */,
 				AB83B5FD055E72B90034F56A /* QuesaPick.h in Headers */,
+				7FF471152F94D44D0018476E /* IPCprotocolXPC.h in Headers */,
 				7F00A021251B8E2400ED9F40 /* ControllerCoreOSX.h in Headers */,
 				7F55E9D0239A8B6E00468537 /* QuesaController.h in Headers */,
 				7F4DF25E252DFC630004FFF8 /* Q3DcontrollerPDO.h in Headers */,
@@ -1764,6 +1804,7 @@
 				AB3A7CD6055E63B200CA83BE /* QD3DGeometry.cpp in Sources */,
 				AB3A7CD7055E63B200CA83BE /* QD3DGroup.cpp in Sources */,
 				BE6D57B8261D188300F44B8D /* render.c in Sources */,
+				7FF471172F94D48B0018476E /* Q3DcontrollerXPC.mm in Sources */,
 				AB3A7CD8055E63B200CA83BE /* QD3DIO.cpp in Sources */,
 				BE6D57B6261D188300F44B8D /* tess.c in Sources */,
 				BE2BCA3223F4BE6C00AE7F4A /* QOGLSLShaders.cpp in Sources */,
@@ -1789,6 +1830,7 @@
 				AB3A7CF4055E63B200CA83BE /* E3Pool.cpp in Sources */,
 				AB3A7CF8055E63B200CA83BE /* E3System.cpp in Sources */,
 				7F55E9C8239A8A8800468537 /* QD3DController.cpp in Sources */,
+				7FF4711B2F94D4E20018476E /* ControllerCoreOSX_XPC.mm in Sources */,
 				AB3A7CFA055E63B200CA83BE /* E3Tessellate.cpp in Sources */,
 				AB3A7CFC055E63B200CA83BE /* E3Utils.cpp in Sources */,
 				AB3A7CFF055E63B200CA83BE /* E3Camera.cpp in Sources */,
@@ -1831,6 +1873,7 @@
 				AB3A7D66055E63B200CA83BE /* E3FFR_3DMF_Text.cpp in Sources */,
 				AB3A7D68055E63B200CA83BE /* E3FFW_3DMFBin_Geometry.cpp in Sources */,
 				AB3A7D6A055E63B200CA83BE /* E3FFW_3DMFBin_Register.cpp in Sources */,
+				7FF471282F94E6550018476E /* XPCServiceTemplatemain.mm in Sources */,
 				AB3A7D6C055E63B200CA83BE /* E3FFW_3DMFBin_Writer.cpp in Sources */,
 				AB83B99E055E77880034F56A /* E3MacDebug.cpp in Sources */,
 				AB83B9A8055E77880034F56A /* E3MacSystem.cpp in Sources */,
@@ -1856,6 +1899,7 @@
 				BE7F26BA0B7BB92C00933ED1 /* QOOpaqueTriBuffer.cpp in Sources */,
 				BE7F26BD0B7BB92C00933ED1 /* QORegister.cpp in Sources */,
 				BE7F26BF0B7BB92C00933ED1 /* QORenderer.cpp in Sources */,
+				7FF471192F94D4B30018476E /* Q3DdbXPC.mm in Sources */,
 				BE7F26C10B7BB92C00933ED1 /* QOStartAndEnd.cpp in Sources */,
 				BE6D57A6261D188300F44B8D /* tessmono.c in Sources */,
 				BE7F26C20B7BB92C00933ED1 /* QOStatics.cpp in Sources */,
