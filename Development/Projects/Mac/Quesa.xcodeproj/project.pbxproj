@@ -813,8 +813,7 @@
 		7FF471222F94DA3C0018476E /* FILE_INDEX.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = FILE_INDEX.md; sourceTree = "<group>"; };
 		7FF4712A2F94EC230018476E /* OBJECTIVE_C_CODING_STANDARDS_APPLIED.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = OBJECTIVE_C_CODING_STANDARDS_APPLIED.md; sourceTree = "<group>"; };
 		7FF4712B2F94F0790018476E /* Q3DcontrollerXPC.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Q3DcontrollerXPC.h; sourceTree = "<group>"; };
-		7FF471EF2F94F10E0018476E /* Framework-XPC.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = "Framework-XPC.framework"; sourceTree = BUILT_PRODUCTS_DIR; };
-		7FF471F02F94F10F0018476E /* Framework copy-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "Framework copy-Info.plist"; path = "/Users/ole/Development/Projects/QuesaCtrl/Quesa/Development/Projects/Mac/Framework copy-Info.plist"; sourceTree = "<absolute>"; };
+		7FF471EF2F94F10E0018476E /* Quesa.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Quesa.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		8D07F2C80486CC7A007CD1D0 /* Quesa.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Quesa.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		AB3A7B85055E63B100CA83BE /* E3Geometry.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 30; path = E3Geometry.cpp; sourceTree = "<group>"; };
 		AB3A7B86055E63B100CA83BE /* E3Geometry.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = E3Geometry.h; sourceTree = "<group>"; };
@@ -1172,7 +1171,7 @@
 				B1756AFF080A71C30056134C /* libQuesa.a */,
 				BE5EE91626191CF90049B72A /* Quesa.framework */,
 				BE5EE9E126195C8A0049B72A /* libQuesa.a */,
-				7FF471EF2F94F10E0018476E /* Framework-XPC.framework */,
+				7FF471EF2F94F10E0018476E /* Quesa.framework */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -1186,7 +1185,6 @@
 				0867D69AFE84028FC02AAC07 /* External Frameworks */,
 				034768DDFF38A45A11DB9C8B /* Products */,
 				BE5EE944261934840049B72A /* Frameworks */,
-				7FF471F02F94F10F0018476E /* Framework copy-Info.plist */,
 			);
 			name = Quesa;
 			sourceTree = "<group>";
@@ -1891,7 +1889,7 @@
 			name = "Framework-XPC";
 			productInstallPath = "$(HOME)/Library/Frameworks";
 			productName = Quesa;
-			productReference = 7FF471EF2F94F10E0018476E /* Framework-XPC.framework */;
+			productReference = 7FF471EF2F94F10E0018476E /* Quesa.framework */;
 			productType = "com.apple.product-type.framework";
 		};
 		8D07F2BC0486CC7A007CD1D0 /* Framework */ = {
@@ -2732,11 +2730,11 @@
 					"QUESA_USE_XPC=1",
 				);
 				GCC_WARN_PROTOTYPE_CONVERSION = YES;
-				INFOPLIST_FILE = "Framework copy-Info.plist";
+				INFOPLIST_FILE = ../../Source/Platform/Mac/Resources/Info.plist;
 				INSTALL_PATH = "$(USER_LIBRARY_DIR)/Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 11.0;
 				PRODUCT_BUNDLE_IDENTIFIER = org.Quesa.Quesa;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = Quesa;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SKIP_INSTALL = NO;
 			};
@@ -2758,11 +2756,11 @@
 					"QUESA_USE_XPC=1",
 				);
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
-				INFOPLIST_FILE = "Framework copy-Info.plist";
+				INFOPLIST_FILE = ../../Source/Platform/Mac/Resources/Info.plist;
 				INSTALL_PATH = "$(USER_LIBRARY_DIR)/Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 11.0;
 				PRODUCT_BUNDLE_IDENTIFIER = org.Quesa.Quesa;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = Quesa;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SKIP_INSTALL = NO;
 			};
