@@ -1,11 +1,11 @@
 /*  NAME:
- Q3Ddb.h
- 
+ Q3DcontrollerXPC.h
+
  DESCRIPTION:
- QuesaOSXDeviceServer: Implementation of Quesa controller API calls.
- 
+ Header for XPC-based implementation of Quesa controller.
+
     COPYRIGHT:
-        Copyright (c) 2011-2021, Quesa Developers. All rights reserved.
+        Copyright (c) 2011-2026, Quesa Developers. All rights reserved.
 
         For the current release of Quesa, please see:
 
@@ -14,23 +14,22 @@
         For the current release of Quesa including 3D device support,
         please see: <https://github.com/h-haris/Quesa>
 
-        
         Redistribution and use in source and binary forms, with or without
         modification, are permitted provided that the following conditions
         are met:
-        
+
             o Redistributions of source code must retain the above copyright
               notice, this list of conditions and the following disclaimer.
-        
+
             o Redistributions in binary form must reproduce the above
               copyright notice, this list of conditions and the following
               disclaimer in the documentation and/or other materials provided
               with the distribution.
-        
+
             o Neither the name of Quesa nor the names of its contributors
               may be used to endorse or promote products derived from this
               software without specific prior written permission.
-        
+
         THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
         "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
         LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
@@ -45,25 +44,51 @@
     ___________________________________________________________________________
  */
 
-
-#import <Cocoa/Cocoa.h>
-#import "IPCprotocolPDO.h"
+#import <Foundation/Foundation.h>
+#import "Q3Ddb.h"
+#import "IPCprotocolXPC.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface Q3Ddb : NSObject <NSApplicationDelegate, Q3DODeviceDB>
+@interface Q3DcontrollerXPC : NSObject <Q3XPCController>
 
-@property (nonatomic, strong, nullable) NSConnection *theConnection;
-@property (nonatomic, assign) TQ3Uns32 controllerListSerialNumber;
-@property (nonatomic, strong) NSMutableArray *controllerPDOs;
+// Core properties
+@property (nonatomic, weak, nullable) id publicDB;
+@property (nonatomic, copy) NSString *UUID;
+@property (nonatomic, copy, nullable) NSString *driverStateUUID;
+@property (nonatomic, copy) NSString *signature;
+@property (nonatomic, assign) TQ3ControllerRef controllerRef;
 
-- (instancetype)init;
-- (void)registerVendConnection;
-- (void)incControllerListSerialNumber;
-- (NSUInteger)dbIndexOfTrackerUUID:(NSString *)aTrackerUUID;
-- (NSUInteger)dbIndexOfSignature:(NSString *)aDriverSignature;
-- (NSUInteger)dbIndexOfSControllerRef:(TQ3ControllerRef)aControllerRef;
-- (TQ3Boolean)isKnownSignature:(NSString *)aDriverSignature;
+// XPC Connection to driver state
+@property (nonatomic, strong, nullable) NSXPCConnection *driverStateConnection;
+
+// Tracker
+@property (nonatomic, copy, nullable) NSString *trackerUUID;
+@property (nonatomic, strong, nullable) NSXPCConnection *trackerConnection;
+
+// Controller state
+@property (nonatomic, assign) TQ3Uns32 valueCount;
+@property (nonatomic, assign) TQ3Uns32 channelCount;
+@property (nonatomic, assign) TQ3Boolean hasSetChannelMethod;
+@property (nonatomic, assign) TQ3Boolean hasGetChannelMethod;
+@property (nonatomic, assign) TQ3Boolean isActive;
+@property (nonatomic, assign) TQ3Boolean isDecommissioned;
+@property (nonatomic, assign) TQ3Uns32 serialNumber;
+@property (nonatomic, assign) TQ3Uns32 theButtons;
+
+// Values storage
+@property (nonatomic, assign, nullable) float *valuesRef;
+
+// Initializer
+- (instancetype)initWithParametersDB:(id)aDB
+                      controllerUUID:(NSString *)aUUID
+                     driverStateUUID:(NSString *)aDriverStateUUID
+                       controllerRef:(TQ3ControllerRef)aControllerRef
+                          valueCount:(TQ3Uns32)valCnt
+                        channelCount:(TQ3Uns32)chanCnt
+                           signature:(NSString *)sig
+                 hasSetChannelMethod:(TQ3Boolean)hasSCMthd
+                 hasGetChannelMethod:(TQ3Boolean)hasGCMthd;
 
 @end
 

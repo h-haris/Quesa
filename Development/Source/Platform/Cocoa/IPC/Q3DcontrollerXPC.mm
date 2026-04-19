@@ -45,8 +45,7 @@
     ___________________________________________________________________________
  */
 
-#import "Q3Ddb.h"
-#import "IPCprotocolXPC.h"
+#import "Q3DcontrollerXPC.h"
 
 #if Q3_DEBUG
 #import <Foundation/Foundation.h>
@@ -56,38 +55,9 @@
 // Matches the boundary used by ControllerCoreOSX.framework
 #define Q3_CONTROLLER_MAX_VALUECOUNT 256
 
-@interface Q3DcontrollerXPC : NSObject <Q3XPCController>
-
-// Core properties
-@property (nonatomic, weak) id publicDB;
-@property (nonatomic, strong) NSString *UUID;
-@property (nonatomic, strong) NSString *driverStateUUID;
-@property (nonatomic, strong) NSString *signature;
-@property (nonatomic, assign) TQ3ControllerRef controllerRef;
-
-// XPC Connection to driver state
-@property (nonatomic, strong) NSXPCConnection *driverStateConnection;
-
-// Tracker
-@property (nonatomic, strong) NSString *trackerUUID;
-@property (nonatomic, strong) NSXPCConnection *trackerConnection;
-
-// Controller state
-@property (nonatomic, assign) TQ3Uns32 valueCount;
-@property (nonatomic, assign) TQ3Uns32 channelCount;
-@property (nonatomic, assign) TQ3Boolean hasSetChannelMethod;
-@property (nonatomic, assign) TQ3Boolean hasGetChannelMethod;
-@property (nonatomic, assign) TQ3Boolean isActive;
-@property (nonatomic, assign) TQ3Boolean isDecommissioned;
-@property (nonatomic, assign) TQ3Uns32 serialNumber;
-@property (nonatomic, assign) TQ3Uns32 theButtons;
-
-// Values storage
-@property (nonatomic, assign) float *valuesRef;
-
-@end
-
 @implementation Q3DcontrollerXPC
+
+#pragma mark - Lifecycle
 
 - (instancetype)initWithParametersDB:(id)aDB
                       controllerUUID:(NSString *)aUUID
@@ -143,6 +113,8 @@
     [_driverStateConnection invalidate];
     [_trackerConnection invalidate];
 }
+
+#pragma mark - Private Setup Methods
 
 - (void)setupDriverStateConnection
 {

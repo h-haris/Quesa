@@ -60,7 +60,7 @@
 - (id)init {
     if (self = [super init]) {
         //init my own stuff
-        controllerListSerialNumber = 0;
+		_controllerListSerialNumber = 0;
     }
     return self;
 }
@@ -72,12 +72,12 @@
 
 - (void)registerVendConnection
 {
-    theConnection = [[NSConnection new] autorelease];
-    theConnection.rootObject = self;
+	_theConnection = [[NSConnection new] autorelease];
+	_theConnection.rootObject = self;
 
     //make name of ControllerDB public
-    [theConnection registerName:@kQuesa3DeviceServer];
-    [theConnection retain];
+	[_theConnection registerName:@kQuesa3DeviceServer];
+	[_theConnection retain];
 
     _controllerPDOs = [NSMutableArray arrayWithCapacity:2];
     [_controllerPDOs retain];
@@ -98,7 +98,7 @@
 
 
 - (void)incControllerListSerialNumber {
-    controllerListSerialNumber++;
+	_controllerListSerialNumber++;
 }
 
 
@@ -223,10 +223,10 @@
 {
     TQ3Status status = kQ3Success;
 
-    if (controllerListSerialNumber!=*serNum)
+	if (_controllerListSerialNumber!=*serNum)
     {
         *listChanged=kQ3True;
-        *serNum=controllerListSerialNumber;
+		*serNum=_controllerListSerialNumber;
     }
     else
     {
@@ -258,6 +258,8 @@
 
 #pragma mark -
 
+#ifndef QUESA_USE_XPC
+
 Q3Ddb* Q3DDeviceDb;
 
 void startDeviceDB(void)
@@ -278,4 +280,6 @@ void startDeviceDB(void)
         [Q3DDeviceDb registerVendConnection];
     }
 }
+
+#endif // QUESA_USE_XPC
 

@@ -62,6 +62,8 @@
 // Note: In XPC, we use NSString* for controller references instead of void*
 // This allows proper serialization across process boundaries
 
+NS_ASSUME_NONNULL_BEGIN
+
 //=============================================================================
 // Controller XPC Protocol
 //=============================================================================
@@ -228,3 +230,5 @@
                                 reply:(void (^)(TQ3Status status))reply;
 
 @end
+NS_ASSUME_NONNULL_END
+

@@ -46,12 +46,18 @@
  */
 
 #import <Foundation/Foundation.h>
+
+// Only compile this file for XPC service builds
+#if defined(QUESA_XPC_SERVICE_BUILD) || defined(QUESA_USE_XPC)
+
 #import "IPCprotocolXPC.h"
-#import "Q3DcontrollerXPC.mm"
+#import "Q3DcontrollerXPC.h"
 
 #if Q3_DEBUG
 #import <Foundation/Foundation.h>
 #endif
+
+NS_ASSUME_NONNULL_BEGIN
 
 @interface Q3DdbXPC : NSObject <NSXPCListenerDelegate, Q3XPCDeviceDB>
 
@@ -61,7 +67,11 @@
 
 @end
 
+NS_ASSUME_NONNULL_END
+
 @implementation Q3DdbXPC
+
+#pragma mark - Lifecycle
 
 - (instancetype)init
 {
@@ -80,6 +90,8 @@
     }
     return self;
 }
+
+#pragma mark - Public Methods
 
 - (void)run
 {
@@ -268,8 +280,11 @@
 
 @end
 
+#endif // QUESA_XPC_SERVICE_BUILD || QUESA_USE_XPC
+
 #pragma mark -
 
+#ifdef QUESA_XPC_SERVICE_BUILD
 // XPC Service main function
 int main(int argc, const char *argv[])
 {
@@ -280,3 +295,4 @@ int main(int argc, const char *argv[])
     }
     return 0;
 }
+#endif // QUESA_XPC_SERVICE_BUILD
