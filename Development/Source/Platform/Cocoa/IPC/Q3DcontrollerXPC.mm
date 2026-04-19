@@ -517,4 +517,29 @@
     }
 }
 
+#pragma mark - NSXPCListenerDelegate
+
+- (BOOL)listener:(NSXPCListener *)listener shouldAcceptNewConnection:(NSXPCConnection *)newConnection
+{
+    // Export this controller instance via the anonymous listener
+    newConnection.exportedInterface = [NSXPCInterface interfaceWithProtocol:@protocol(Q3XPCController)];
+    newConnection.exportedObject = self;
+    
+    newConnection.interruptionHandler = ^{
+        NSLog(@"Controller %@ connection interrupted", self.UUID);
+    };
+    
+    newConnection.invalidationHandler = ^{
+        NSLog(@"Controller %@ connection invalidated", self.UUID);
+    };
+    
+    [newConnection resume];
+    
+#if Q3_DEBUG
+    NSLog(@"Accepted connection to controller: %@", self.UUID);
+#endif
+    
+    return YES;
+}
+
 @end

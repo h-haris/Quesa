@@ -49,7 +49,9 @@
 #import "IPCprotocolXPC.h"
 #import "ControllerCoreOSX.h"
 #import "ControllerCoreOSXinternals.h"
-// Note: TrackerCoreOSX.h removed - using XPC-based tracker implementation
+#import "Q3DdbXPC.h"           // In-process device database
+#import "Q3DcontrollerXPC.h"   // In-process controller
+// Note: No external XPC service needed - using anonymous listeners!
 
 #import <Foundation/Foundation.h>
 
@@ -57,46 +59,83 @@
 //      Internal variables
 //-----------------------------------------------------------------------------
 
-static NSXPCConnection *privateDeviceDBConnection = nil;
+// In-process device database (no external XPC service needed!)
+static Q3DdbXPC *sharedDeviceDB = nil;
+static NSXPCListener *deviceDBListener = nil;
+
+// Controller endpoints (using anonymous listeners)
 static NSMutableDictionary<NSString *, NSXPCConnection *> *controllerConnections = nil;
+static NSMutableDictionary<NSString *, Q3DcontrollerXPC *> *controllerInstances = nil;
 
 //=============================================================================
 //      Internal function prototypes
 //-----------------------------------------------------------------------------
 
-#pragma mark - XPC Connection Management
+#pragma mark - In-Process XPC Setup (MachXPC-style)
 
+// Initialize in-process device database with anonymous XPC listener
+static void initializeInProcessDeviceDB(void)
+{
+    if (sharedDeviceDB != nil)
+        return;
+    
+    // Create the device database instance (runs in-process!)
+    sharedDeviceDB = [[Q3DdbXPC alloc] initForInProcess];
+    
+    // Create anonymous listener (no external service needed)
+    deviceDBListener = [NSXPCListener anonymousListener];
+    deviceDBListener.delegate = sharedDeviceDB;
+    [deviceDBListener resume];
+    
+    // Initialize storage
+    if (controllerConnections == nil)
+        controllerConnections = [NSMutableDictionary dictionary];
+    
+    if (controllerInstances == nil)
+        controllerInstances = [NSMutableDictionary dictionary];
+    
+#if Q3_DEBUG
+    NSLog(@"✅ Initialized in-process device DB (MachXPC-style - no external XPC service!)");
+#endif
+}
+
+// Get a connection to the in-process device database
 static TQ3Status connectionToDeviceDB(NSXPCConnection **outConnection)
 {
-    if (privateDeviceDBConnection == nil)
+    static NSXPCConnection *inProcessConnection = nil;
+    
+    if (inProcessConnection == nil)
     {
-        privateDeviceDBConnection = [[NSXPCConnection alloc] 
-            initWithMachServiceName:@kQuesa3DDeviceServerXPC
-                            options:0];
+        initializeInProcessDeviceDB();
         
-        privateDeviceDBConnection.remoteObjectInterface = 
+        // Create connection using anonymous endpoint (in-process!)
+        inProcessConnection = [[NSXPCConnection alloc] 
+            initWithListenerEndpoint:deviceDBListener.endpoint];
+        
+        inProcessConnection.remoteObjectInterface = 
             [NSXPCInterface interfaceWithProtocol:@protocol(Q3XPCDeviceDB)];
         
-        privateDeviceDBConnection.interruptionHandler = ^{
-            NSLog(@"XPC connection to device database interrupted");
+        inProcessConnection.interruptionHandler = ^{
+            NSLog(@"In-process device DB connection interrupted");
         };
         
-        privateDeviceDBConnection.invalidationHandler = ^{
-            NSLog(@"XPC connection to device database invalidated");
-            privateDeviceDBConnection = nil;
+        inProcessConnection.invalidationHandler = ^{
+            NSLog(@"In-process device DB connection invalidated");
+            inProcessConnection = nil;
         };
         
-        [privateDeviceDBConnection resume];
+        [inProcessConnection resume];
         
 #if Q3_DEBUG
-        NSLog(@"Established XPC connection to device database");
+        NSLog(@"Connected to in-process device DB via anonymous endpoint");
 #endif
     }
     
-    *outConnection = privateDeviceDBConnection;
+    *outConnection = inProcessConnection;
     return kQ3Success;
 }
 
+// Get connection to a specific controller (using in-process anonymous endpoint)
 static NSXPCConnection *connectionForController(NSString *controllerUUID)
 {
     if (controllerConnections == nil)
@@ -108,39 +147,38 @@ static NSXPCConnection *connectionForController(NSString *controllerUUID)
     
     if (connection == nil)
     {
-        NSXPCConnection *dbConnection = nil;
-        if (connectionToDeviceDB(&dbConnection) == kQ3Success)
+        // Get the controller instance
+        Q3DcontrollerXPC *controller = controllerInstances[controllerUUID];
+        
+        if (controller)
         {
-            // Request endpoint for this controller
-            dispatch_semaphore_t sema = dispatch_semaphore_create(0);
-            __block NSXPCListenerEndpoint *endpoint = nil;
+            // Create anonymous listener for this controller
+            NSXPCListener *controllerListener = [NSXPCListener anonymousListener];
+            controllerListener.delegate = (id<NSXPCListenerDelegate>)controller;
+            [controllerListener resume];
             
-            [[dbConnection remoteObjectProxy] connectionForController:controllerUUID
-                                                                reply:^(NSXPCListenerEndpoint *ep) {
-                endpoint = ep;
-                dispatch_semaphore_signal(sema);
-            }];
+            // Create connection using the anonymous endpoint (all in-process!)
+            connection = [[NSXPCConnection alloc] 
+                initWithListenerEndpoint:controllerListener.endpoint];
             
-            dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
+            connection.remoteObjectInterface = 
+                [NSXPCInterface interfaceWithProtocol:@protocol(Q3XPCController)];
             
-            if (endpoint)
-            {
-                connection = [[NSXPCConnection alloc] initWithListenerEndpoint:endpoint];
-                connection.remoteObjectInterface = 
-                    [NSXPCInterface interfaceWithProtocol:@protocol(Q3XPCController)];
-                
-                connection.interruptionHandler = ^{
-                    NSLog(@"Controller connection interrupted: %@", controllerUUID);
-                };
-                
-                connection.invalidationHandler = ^{
-                    NSLog(@"Controller connection invalidated: %@", controllerUUID);
-                    [controllerConnections removeObjectForKey:controllerUUID];
-                };
-                
-                [connection resume];
-                controllerConnections[controllerUUID] = connection;
-            }
+            connection.interruptionHandler = ^{
+                NSLog(@"Controller connection interrupted: %@", controllerUUID);
+            };
+            
+            connection.invalidationHandler = ^{
+                NSLog(@"Controller connection invalidated: %@", controllerUUID);
+                [controllerConnections removeObjectForKey:controllerUUID];
+            };
+            
+            [connection resume];
+            controllerConnections[controllerUUID] = connection;
+            
+#if Q3_DEBUG
+            NSLog(@"Created in-process connection to controller: %@", controllerUUID);
+#endif
         }
     }
     
@@ -1218,11 +1256,23 @@ CC3OSXTracker_GetEventCoordinates(TC3TrackerInstanceDataPtr trackerObject, TQ3Un
 
 static void CC3OSX_CleanupXPCConnections(void)
 {
-    [privateDeviceDBConnection invalidate];
-    privateDeviceDBConnection = nil;
-    
+    // Invalidate all controller connections
     [controllerConnections enumerateKeysAndObjectsUsingBlock:^(NSString *key, NSXPCConnection *conn, BOOL *stop) {
         [conn invalidate];
     }];
     [controllerConnections removeAllObjects];
+    
+    // Clean up controller instances
+    [controllerInstances removeAllObjects];
+    
+    // Stop device DB listener
+    [deviceDBListener invalidate];
+    deviceDBListener = nil;
+    
+    // Release device DB
+    sharedDeviceDB = nil;
+    
+#if Q3_DEBUG
+    NSLog(@"Cleaned up in-process XPC connections");
+#endif
 }

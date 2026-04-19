@@ -1,8 +1,9 @@
 /*  NAME:
- Q3DcontrollerXPC.h
+ Q3DdbXPC.h
 
  DESCRIPTION:
- Header for XPC-based implementation of Quesa controller.
+ Header for XPC-based Device Database implementation.
+ Can be used for both external XPC service and in-process anonymous listeners.
 
     COPYRIGHT:
         Copyright (c) 2011-2026, Quesa Developers. All rights reserved.
@@ -45,50 +46,57 @@
  */
 
 #import <Foundation/Foundation.h>
-#import "Q3Ddb.h"
 #import "IPCprotocolXPC.h"
+
+@class Q3DcontrollerXPC;
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface Q3DcontrollerXPC : NSObject <Q3XPCController, NSXPCListenerDelegate>
+/*!
+ * @class Q3DdbXPC
+ * @abstract Device database that manages controllers and trackers.
+ * @discussion This class can work in two modes:
+ *             1. External XPC Service: Uses Mach service name for IPC
+ *             2. In-Process: Uses anonymous NSXPCListener for same-process communication
+ *
+ * For in-process usage (MachXPC-style), create an instance and use anonymousListener:
+ *     Q3DdbXPC *db = [[Q3DdbXPC alloc] init];
+ *     NSXPCListener *listener = [NSXPCListener anonymousListener];
+ *     listener.delegate = db;
+ *     [listener resume];
+ */
+@interface Q3DdbXPC : NSObject <NSXPCListenerDelegate, Q3XPCDeviceDB>
 
-// Core properties
-@property (nonatomic, weak, nullable) id publicDB;
-@property (nonatomic, copy) NSString *UUID;
-@property (nonatomic, copy, nullable) NSString *driverStateUUID;
-@property (nonatomic, copy) NSString *signature;
-@property (nonatomic, assign) TQ3ControllerRef controllerRef;
+/// XPC listener (can be anonymous for in-process or service for external)
+@property (nonatomic, strong) NSXPCListener *listener;
 
-// XPC Connection to driver state
-@property (nonatomic, strong, nullable) NSXPCConnection *driverStateConnection;
+/// Array of controller objects managed by this database
+@property (nonatomic, strong) NSMutableArray<Q3DcontrollerXPC *> *controllerObjects;
 
-// Tracker
-@property (nonatomic, copy, nullable) NSString *trackerUUID;
-@property (nonatomic, strong, nullable) NSXPCConnection *trackerConnection;
+/// Serial number incremented when controller list changes
+@property (nonatomic, assign) TQ3Uns32 controllerListSerialNumber;
 
-// Controller state
-@property (nonatomic, assign) TQ3Uns32 valueCount;
-@property (nonatomic, assign) TQ3Uns32 channelCount;
-@property (nonatomic, assign) TQ3Boolean hasSetChannelMethod;
-@property (nonatomic, assign) TQ3Boolean hasGetChannelMethod;
-@property (nonatomic, assign) TQ3Boolean isActive;
-@property (nonatomic, assign) TQ3Boolean isDecommissioned;
-@property (nonatomic, assign) TQ3Uns32 serialNumber;
-@property (nonatomic, assign) TQ3Uns32 theButtons;
+/*!
+ * @method initForInProcess
+ * @abstract Initialize for in-process use with anonymous listener
+ * @discussion Use this for MachXPC-style in-process communication
+ * @return Initialized instance ready for anonymous listener
+ */
+- (instancetype)initForInProcess;
 
-// Values storage
-@property (nonatomic, assign, nullable) float *valuesRef;
+/*!
+ * @method run
+ * @abstract Start the XPC listener
+ * @discussion Call this to begin accepting XPC connections
+ */
+- (void)run;
 
-// Initializer
-- (instancetype)initWithParametersDB:(id)aDB
-                      controllerUUID:(NSString *)aUUID
-                     driverStateUUID:(NSString *)aDriverStateUUID
-                       controllerRef:(TQ3ControllerRef)aControllerRef
-                          valueCount:(TQ3Uns32)valCnt
-                        channelCount:(TQ3Uns32)chanCnt
-                           signature:(NSString *)sig
-                 hasSetChannelMethod:(TQ3Boolean)hasSCMthd
-                 hasGetChannelMethod:(TQ3Boolean)hasGCMthd;
+/*!
+ * @method incControllerListSerialNumber
+ * @abstract Increment the controller list serial number
+ * @discussion Called when controllers are added/removed/changed
+ */
+- (void)incControllerListSerialNumber;
 
 @end
 

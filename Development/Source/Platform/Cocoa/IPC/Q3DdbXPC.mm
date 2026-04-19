@@ -50,24 +50,12 @@
 // Only compile this file for XPC service builds
 #if defined(QUESA_XPC_SERVICE_BUILD) || defined(QUESA_USE_XPC)
 
-#import "IPCprotocolXPC.h"
+#import "Q3DdbXPC.h"
 #import "Q3DcontrollerXPC.h"
 
 #if Q3_DEBUG
 #import <Foundation/Foundation.h>
 #endif
-
-NS_ASSUME_NONNULL_BEGIN
-
-@interface Q3DdbXPC : NSObject <NSXPCListenerDelegate, Q3XPCDeviceDB>
-
-@property (nonatomic, strong) NSXPCListener *listener;
-@property (nonatomic, strong) NSMutableArray<Q3DcontrollerXPC *> *controllerObjects;
-@property (nonatomic, assign) TQ3Uns32 controllerListSerialNumber;
-
-@end
-
-NS_ASSUME_NONNULL_END
 
 @implementation Q3DdbXPC
 
@@ -80,12 +68,29 @@ NS_ASSUME_NONNULL_END
         _controllerListSerialNumber = 0;
         _controllerObjects = [NSMutableArray arrayWithCapacity:2];
         
-        // Create XPC listener
+        // For external XPC service: Create listener with Mach service name
         _listener = [[NSXPCListener alloc] initWithMachServiceName:@kQuesa3DDeviceServerXPC];
         _listener.delegate = self;
         
 #if Q3_DEBUG
-        NSLog(@"Q3DdbXPC initialized with service name: %s", kQuesa3DDeviceServerXPC);
+        NSLog(@"Q3DdbXPC initialized for external XPC service: %s", kQuesa3DDeviceServerXPC);
+#endif
+    }
+    return self;
+}
+
+- (instancetype)initForInProcess
+{
+    if (self = [super init])
+    {
+        _controllerListSerialNumber = 0;
+        _controllerObjects = [NSMutableArray arrayWithCapacity:2];
+        
+        // For in-process: Don't create listener here - caller will use anonymous listener
+        _listener = nil;
+        
+#if Q3_DEBUG
+        NSLog(@"Q3DdbXPC initialized for in-process use (MachXPC-style)");
 #endif
     }
     return self;
