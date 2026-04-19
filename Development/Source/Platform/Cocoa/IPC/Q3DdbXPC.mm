@@ -141,7 +141,8 @@
 - (NSUInteger)dbIndexOfTrackerUUID:(NSString *)aTrackerUUID
 {
     return [_controllerObjects indexOfObjectPassingTest:^BOOL(Q3DcontrollerXPC *obj, NSUInteger idx, BOOL *stop) {
-        return [aTrackerUUID isEqualToString:obj.trackerUUID];
+        NSString *trackerUUID = obj.trackerUUID;
+        return trackerUUID != nil && [aTrackerUUID isEqualToString:trackerUUID];
     }];
 }
 
@@ -280,6 +281,172 @@
     else
     {
         reply(nil);
+    }
+}
+
+- (void)newController:(NSDictionary *)controllerData reply:(void (^)(NSString * _Nullable))reply
+{
+    NSString *signature = controllerData[@"signature"] ?: @"";
+    TQ3Uns32 valueCount = [controllerData[@"valueCount"] unsignedIntValue];
+    TQ3Uns32 channelCount = [controllerData[@"channelCount"] unsignedIntValue];
+    
+    Q3DcontrollerXPC *theControllerObject = nil;
+    
+    // Check if a controller with the same signature already exists (matches PDO behavior)
+    NSUInteger foundSignatureAt = [self dbIndexOfSignature:signature];
+    
+    if (foundSignatureAt != NSNotFound)
+    {
+        // Reuse existing controller with same signature
+        theControllerObject = _controllerObjects[foundSignatureAt];
+        
+#if Q3_DEBUG
+        NSLog(@"Reusing existing controller with signature: %@", signature);
+#endif
+    }
+    else
+    {
+        // Create new controller
+        NSString *controllerUUID = [[NSUUID UUID] UUIDString];
+        NSString *driverStateUUID = [[NSUUID UUID] UUIDString];
+        
+        theControllerObject = [[Q3DcontrollerXPC alloc] initWithParametersDB:self
+                                                                 controllerUUID:controllerUUID
+                                                                driverStateUUID:driverStateUUID
+                                                                  controllerRef:nil
+                                                                     valueCount:valueCount
+                                                                   channelCount:channelCount
+                                                                      signature:signature
+                                                            hasSetChannelMethod:kQ3False
+                                                            hasGetChannelMethod:kQ3False];
+        
+        [_controllerObjects addObject:theControllerObject];
+        
+#if Q3_DEBUG
+        NSLog(@"Created new controller with signature: %@", signature);
+#endif
+    }
+    
+    // Recommission and activate (matches PDO behavior)
+    theControllerObject.isDecommissioned = kQ3False;
+    theControllerObject.serialNumber = 1;
+    theControllerObject.theButtons = 0;
+    
+    [theControllerObject setActivation:kQ3True reply:^(TQ3Status status) {
+        // Controller activated, return UUID
+        reply(theControllerObject.UUID);
+    }];
+    
+    [self incControllerListSerialNumber];
+}
+
+- (void)decommissionController:(NSString *)controllerUUID reply:(void (^)(void))reply
+{
+    NSUInteger idx = [self dbIndexOfControllerUUID:controllerUUID];
+    
+    if (idx != NSNotFound)
+    {
+        Q3DcontrollerXPC *controller = _controllerObjects[idx];
+        controller.isDecommissioned = kQ3True;
+        [_controllerObjects removeObjectAtIndex:idx];
+        [self incControllerListSerialNumber];
+    }
+    
+    reply();
+}
+
+- (void)newTrackerWithReply:(void (^)(NSString * _Nullable))reply
+{
+    // Create a new tracker UUID
+    NSString *trackerUUID = [[NSUUID UUID] UUIDString];
+    reply(trackerUUID);
+}
+
+- (void)deleteTracker:(NSString *)trackerUUID reply:(void (^)(void))reply
+{
+    // Find and remove tracker from controller
+    NSUInteger foundTrackerAt = [self dbIndexOfTrackerUUID:trackerUUID];
+    
+    if (foundTrackerAt != NSNotFound)
+    {
+        Q3DcontrollerXPC *theControllerObject = _controllerObjects[foundTrackerAt];
+        [theControllerObject setTracker:nil attachToSysCursor:kQ3True reply:^(TQ3Status status) {
+            // Tracker removed
+        }];
+    }
+    
+    reply();
+}
+
+- (void)getButtonsForTracker:(NSString *)trackerUUID reply:(void (^)(TQ3Uns32, TQ3Status))reply
+{
+    NSUInteger foundTrackerAt = [self dbIndexOfTrackerUUID:trackerUUID];
+    
+    if (foundTrackerAt != NSNotFound)
+    {
+        Q3DcontrollerXPC *controller = _controllerObjects[foundTrackerAt];
+        [controller getButtonsWithReply:^(TQ3Uns32 buttons, TQ3Status status) {
+            reply(buttons, status);
+        }];
+    }
+    else
+    {
+        reply(0, kQ3Failure);
+    }
+}
+
+- (void)setEventCoordinatesForTracker:(NSString *)trackerUUID
+                            timestamp:(TQ3Uns32)timeStamp
+                              buttons:(TQ3Uns32)buttons
+                             position:(TQ3Point3D)position
+                          orientation:(TQ3Quaternion)orientation
+                                reply:(void (^)(TQ3Status))reply
+{
+    NSUInteger foundTrackerAt = [self dbIndexOfTrackerUUID:trackerUUID];
+    
+    if (foundTrackerAt != NSNotFound)
+    {
+        Q3DcontrollerXPC *controller = _controllerObjects[foundTrackerAt];
+        
+        // Store the event coordinates
+        [controller setButtons:buttons reply:^(TQ3Status buttonsStatus) {
+            [controller setTrackerPosition:position reply:^(TQ3Status posStatus) {
+                [controller setTrackerOrientation:orientation reply:^(TQ3Status orientStatus) {
+                    reply(kQ3Success);
+                }];
+            }];
+        }];
+    }
+    else
+    {
+        reply(kQ3Failure);
+    }
+}
+
+- (void)getEventCoordinatesForTracker:(NSString *)trackerUUID
+                            timestamp:(TQ3Uns32)timeStamp
+                                reply:(void (^)(TQ3Uns32, TQ3Point3D, TQ3Quaternion, TQ3Status))reply
+{
+    NSUInteger foundTrackerAt = [self dbIndexOfTrackerUUID:trackerUUID];
+    
+    if (foundTrackerAt != NSNotFound)
+    {
+        Q3DcontrollerXPC *controller = _controllerObjects[foundTrackerAt];
+        
+        // Get the event coordinates
+        [controller getButtonsWithReply:^(TQ3Uns32 buttons, TQ3Status buttonsStatus) {
+            [controller getTrackerPositionWithReply:^(TQ3Point3D position, TQ3Status posStatus) {
+                [controller getTrackerOrientationWithReply:^(TQ3Quaternion orientation, TQ3Status orientStatus) {
+                    reply(buttons, position, orientation, kQ3Success);
+                }];
+            }];
+        }];
+    }
+    else
+    {
+        TQ3Point3D zeroPos = {0, 0, 0};
+        TQ3Quaternion identityQuat = {1, 0, 0, 0};
+        reply(0, zeroPos, identityQuat, kQ3Failure);
     }
 }
 

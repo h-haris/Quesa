@@ -799,6 +799,8 @@
 		7FCCBF912F95182200AB5675 /* DUPLICATE_SYMBOLS_FIX.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = DUPLICATE_SYMBOLS_FIX.md; sourceTree = "<group>"; };
 		7FCCBF922F95211000AB5675 /* Q3DdbXPC.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Q3DdbXPC.h; sourceTree = "<group>"; };
 		7FCCBF942F95216A00AB5675 /* IN_PROCESS_XPC_GUIDE.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = IN_PROCESS_XPC_GUIDE.md; sourceTree = "<group>"; };
+		7FCCBF962F95253900AB5675 /* PDO_XPC_METHOD_COMPARISON.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = PDO_XPC_METHOD_COMPARISON.md; sourceTree = "<group>"; };
+		7FCCBF972F95262900AB5675 /* SIGNATURE_REUSE_FIX.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = SIGNATURE_REUSE_FIX.md; sourceTree = "<group>"; };
 		7FF471142F94D44D0018476E /* IPCprotocolXPC.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IPCprotocolXPC.h; sourceTree = "<group>"; };
 		7FF471162F94D48B0018476E /* Q3DcontrollerXPC.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = Q3DcontrollerXPC.mm; sourceTree = "<group>"; };
 		7FF471182F94D4B30018476E /* Q3DdbXPC.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = Q3DdbXPC.mm; sourceTree = "<group>"; };
@@ -811,7 +813,7 @@
 		7FF471222F94DA3C0018476E /* FILE_INDEX.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = FILE_INDEX.md; sourceTree = "<group>"; };
 		7FF4712A2F94EC230018476E /* OBJECTIVE_C_CODING_STANDARDS_APPLIED.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = OBJECTIVE_C_CODING_STANDARDS_APPLIED.md; sourceTree = "<group>"; };
 		7FF4712B2F94F0790018476E /* Q3DcontrollerXPC.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Q3DcontrollerXPC.h; sourceTree = "<group>"; };
-		7FF471EF2F94F10E0018476E /* Framework(XPC).framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = "Framework(XPC).framework"; sourceTree = BUILT_PRODUCTS_DIR; };
+		7FF471EF2F94F10E0018476E /* Framework-XPC.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = "Framework-XPC.framework"; sourceTree = BUILT_PRODUCTS_DIR; };
 		7FF471F02F94F10F0018476E /* Framework copy-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "Framework copy-Info.plist"; path = "/Users/ole/Development/Projects/QuesaCtrl/Quesa/Development/Projects/Mac/Framework copy-Info.plist"; sourceTree = "<absolute>"; };
 		8D07F2C80486CC7A007CD1D0 /* Quesa.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Quesa.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		AB3A7B85055E63B100CA83BE /* E3Geometry.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 30; path = E3Geometry.cpp; sourceTree = "<group>"; };
@@ -1170,7 +1172,7 @@
 				B1756AFF080A71C30056134C /* libQuesa.a */,
 				BE5EE91626191CF90049B72A /* Quesa.framework */,
 				BE5EE9E126195C8A0049B72A /* libQuesa.a */,
-				7FF471EF2F94F10E0018476E /* Framework(XPC).framework */,
+				7FF471EF2F94F10E0018476E /* Framework-XPC.framework */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -1245,6 +1247,8 @@
 				7FCCBF912F95182200AB5675 /* DUPLICATE_SYMBOLS_FIX.md */,
 				7FCCBF922F95211000AB5675 /* Q3DdbXPC.h */,
 				7FCCBF942F95216A00AB5675 /* IN_PROCESS_XPC_GUIDE.md */,
+				7FCCBF962F95253900AB5675 /* PDO_XPC_METHOD_COMPARISON.md */,
+				7FCCBF972F95262900AB5675 /* SIGNATURE_REUSE_FIX.md */,
 			);
 			path = IPC;
 			sourceTree = "<group>";
@@ -1872,9 +1876,9 @@
 /* End PBXHeadersBuildPhase section */
 
 /* Begin PBXNativeTarget section */
-		7FF4712D2F94F10E0018476E /* Framework(XPC) */ = {
+		7FF4712D2F94F10E0018476E /* Framework-XPC */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 7FF471EC2F94F10E0018476E /* Build configuration list for PBXNativeTarget "Framework(XPC)" */;
+			buildConfigurationList = 7FF471EC2F94F10E0018476E /* Build configuration list for PBXNativeTarget "Framework-XPC" */;
 			buildPhases = (
 				7FF4712E2F94F10E0018476E /* Headers */,
 				7FF471542F94F10E0018476E /* Sources */,
@@ -1884,10 +1888,10 @@
 			);
 			dependencies = (
 			);
-			name = "Framework(XPC)";
+			name = "Framework-XPC";
 			productInstallPath = "$(HOME)/Library/Frameworks";
 			productName = Quesa;
-			productReference = 7FF471EF2F94F10E0018476E /* Framework(XPC).framework */;
+			productReference = 7FF471EF2F94F10E0018476E /* Framework-XPC.framework */;
 			productType = "com.apple.product-type.framework";
 		};
 		8D07F2BC0486CC7A007CD1D0 /* Framework */ = {
@@ -1990,7 +1994,7 @@
 			projectRoot = ../../..;
 			targets = (
 				8D07F2BC0486CC7A007CD1D0 /* Framework */,
-				7FF4712D2F94F10E0018476E /* Framework(XPC) */,
+				7FF4712D2F94F10E0018476E /* Framework-XPC */,
 				BE5EE87226191CF90049B72A /* FrameworkNoGL */,
 				B1756AFE080A71C30056134C /* Static Library */,
 				BE5EE95C26195C8A0049B72A /* Static NoGL */,
@@ -2715,9 +2719,12 @@
 			buildSettings = {
 				CLANG_UNDEFINED_BEHAVIOR_SANITIZER_NULLABILITY = YES;
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = G3MPC84XT7;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"$(inherited)",
 					"Q3_EXPORT_SYMBOLS=1",
@@ -2730,6 +2737,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 11.0;
 				PRODUCT_BUNDLE_IDENTIFIER = org.Quesa.Quesa;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SKIP_INSTALL = NO;
 			};
 			name = Debug;
@@ -2740,7 +2748,10 @@
 			buildSettings = {
 				CLANG_UNDEFINED_BEHAVIOR_SANITIZER_NULLABILITY = YES;
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
 				DEAD_CODE_STRIPPING = YES;
+				DEVELOPMENT_TEAM = G3MPC84XT7;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"$(inherited)",
 					"Q3_EXPORT_SYMBOLS=1",
@@ -2752,6 +2763,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 11.0;
 				PRODUCT_BUNDLE_IDENTIFIER = org.Quesa.Quesa;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SKIP_INSTALL = NO;
 			};
 			name = Release;
@@ -2762,9 +2774,12 @@
 			buildSettings = {
 				CLANG_UNDEFINED_BEHAVIOR_SANITIZER_NULLABILITY = YES;
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = G3MPC84XT7;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"$(inherited)",
 					"Q3_EXPORT_SYMBOLS=1",
@@ -2773,6 +2788,7 @@
 				GCC_WARN_PROTOTYPE_CONVERSION = YES;
 				MACOSX_DEPLOYMENT_TARGET = 11.0;
 				PRODUCT_BUNDLE_IDENTIFIER = org.Quesa.Quesa;
+				PROVISIONING_PROFILE_SPECIFIER = "";
 			};
 			name = Debug;
 		};
@@ -2782,10 +2798,14 @@
 			buildSettings = {
 				CLANG_UNDEFINED_BEHAVIOR_SANITIZER_NULLABILITY = YES;
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
 				DEAD_CODE_STRIPPING = YES;
+				DEVELOPMENT_TEAM = G3MPC84XT7;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
 				MACOSX_DEPLOYMENT_TARGET = 11.0;
 				PRODUCT_BUNDLE_IDENTIFIER = org.Quesa.Quesa;
+				PROVISIONING_PROFILE_SPECIFIER = "";
 			};
 			name = Release;
 		};
@@ -2833,9 +2853,12 @@
 			buildSettings = {
 				CLANG_UNDEFINED_BEHAVIOR_SANITIZER_NULLABILITY = YES;
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = G3MPC84XT7;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"$(inherited)",
 					"Q3_EXPORT_SYMBOLS=1",
@@ -2846,6 +2869,7 @@
 				INSTALL_PATH = "$(USER_LIBRARY_DIR)/Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 11.0;
 				PRODUCT_BUNDLE_IDENTIFIER = org.Quesa.Quesa;
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SKIP_INSTALL = NO;
 			};
 			name = Debug;
@@ -2856,7 +2880,10 @@
 			buildSettings = {
 				CLANG_UNDEFINED_BEHAVIOR_SANITIZER_NULLABILITY = YES;
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
 				DEAD_CODE_STRIPPING = YES;
+				DEVELOPMENT_TEAM = G3MPC84XT7;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"$(inherited)",
 					"Q3_EXPORT_SYMBOLS=1",
@@ -2866,6 +2893,7 @@
 				INSTALL_PATH = "$(USER_LIBRARY_DIR)/Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 11.0;
 				PRODUCT_BUNDLE_IDENTIFIER = org.Quesa.Quesa;
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SKIP_INSTALL = NO;
 			};
 			name = Release;
@@ -2931,7 +2959,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		7FF471EC2F94F10E0018476E /* Build configuration list for PBXNativeTarget "Framework(XPC)" */ = {
+		7FF471EC2F94F10E0018476E /* Build configuration list for PBXNativeTarget "Framework-XPC" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				7FF471ED2F94F10E0018476E /* Debug */,

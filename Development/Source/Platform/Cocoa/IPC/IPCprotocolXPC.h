@@ -143,6 +143,12 @@ NS_ASSUME_NONNULL_BEGIN
                hasGetChannelMethod:(TQ3Boolean)hasGCMthd
                              reply:(void (^)(NSString * _Nullable uuid, TQ3Status status))reply;
 
+// Controller Creation and Decommission
+- (void)newController:(NSDictionary *)controllerData
+                reply:(void (^)(NSString * _Nullable uuid))reply;
+- (void)decommissionController:(NSString *)controllerUUID
+                         reply:(void (^)(void))reply;
+
 // Controller Enumeration
 - (void)nextCC3Controller:(NSString * _Nullable)currentControllerUUID
                     reply:(void (^)(NSString * _Nullable nextControllerUUID))reply;
@@ -151,7 +157,25 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)getListChangedWithReply:(void (^)(TQ3Boolean listChanged, TQ3Uns32 serialNumber, TQ3Status status))reply;
 
 // Tracker Management
+- (void)newTrackerWithReply:(void (^)(NSString * _Nullable trackerUUID))reply;
+- (void)deleteTracker:(NSString *)trackerUUID reply:(void (^)(void))reply;
 - (void)trackerDeleted:(NSString *)deletedTrackerUUID reply:(void (^)(TQ3Status status))reply;
+
+// Tracker Operations
+- (void)getButtonsForTracker:(NSString *)trackerUUID
+                       reply:(void (^)(TQ3Uns32 buttons, TQ3Status status))reply;
+- (void)setEventCoordinatesForTracker:(NSString *)trackerUUID
+                            timestamp:(TQ3Uns32)timeStamp
+                              buttons:(TQ3Uns32)buttons
+                             position:(TQ3Point3D)position
+                          orientation:(TQ3Quaternion)orientation
+                                reply:(void (^)(TQ3Status status))reply;
+- (void)getEventCoordinatesForTracker:(NSString *)trackerUUID
+                            timestamp:(TQ3Uns32)timeStamp
+                                reply:(void (^)(TQ3Uns32 buttons,
+                                                TQ3Point3D position,
+                                                TQ3Quaternion orientation,
+                                                TQ3Status status))reply;
 
 // Signature Validation
 - (void)isKnownSignature:(NSString *)aDriverSignature reply:(void (^)(TQ3Boolean isKnown))reply;
