@@ -49,6 +49,17 @@
 #define ControllerCoreOSX_ControllerCoreOSXinternals_h
 
 //=============================================================================
+//      Forward declarations
+//-----------------------------------------------------------------------------
+#ifdef __OBJC__
+@class TrackerCoreOSX;
+@class NSString;
+#else
+typedef struct TrackerCoreOSX TrackerCoreOSX;
+typedef struct NSString NSString;
+#endif
+
+//=============================================================================
 //      C++ preamble
 //-----------------------------------------------------------------------------
 #ifdef __cplusplus

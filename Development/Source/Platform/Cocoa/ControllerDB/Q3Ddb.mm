@@ -4,6 +4,9 @@
  DESCRIPTION:
     QuesaOSXDeviceServer - acts as registrar of 3D Controller Devices.
     Every 3D Controller Device shall be registered here
+    
+    NOTE: This file is for PDO (legacy) implementation only.
+          For XPC implementation, see Q3DdbXPC.mm
 
     COPYRIGHT:
         Copyright (c) 2011-2021, Quesa Developers. All rights reserved.
@@ -45,6 +48,11 @@
         SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
     ___________________________________________________________________________
  */
+
+// This entire file is only for PDO (non-XPC) builds
+#include "IPCConfiguration.h"
+
+#if (QUESA_USE_XPC != 1)
 
 #import "Q3Ddb.h"
 #import "Q3DcontrollerPDO.h"
@@ -258,8 +266,6 @@
 
 #pragma mark -
 
-#ifndef QUESA_USE_XPC
-
 Q3Ddb* Q3DDeviceDb;
 
 void startDeviceDB(void)
@@ -281,5 +287,5 @@ void startDeviceDB(void)
     }
 }
 
-#endif // QUESA_USE_XPC
+#endif // QUESA_USE_XPC != 1
 

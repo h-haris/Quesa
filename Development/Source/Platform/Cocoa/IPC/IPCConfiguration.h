@@ -54,28 +54,24 @@
 // IPC Implementation Selection
 //=============================================================================
 
-// Uncomment the following line to use XPC instead of PDO
-// #define QUESA_USE_XPC 1
+// IMPORTANT: QUESA_USE_XPC must be defined in build settings for each target:
+//   - Framework (PDO) target: Set QUESA_USE_XPC=0 in build settings
+//   - Framework(XPC) target: Set QUESA_USE_XPC=1 in build settings
 
-// Auto-detect: Use XPC on macOS 10.15+ where PDO is problematic
 #if !defined(QUESA_USE_XPC)
-    #if __MAC_OS_X_VERSION_MIN_REQUIRED >= 101500
-        #define QUESA_USE_XPC 1
-    #else
-        #define QUESA_USE_XPC 0
-    #endif
+    #error "QUESA_USE_XPC must be explicitly defined in build settings! Use QUESA_USE_XPC=0 for PDO or QUESA_USE_XPC=1 for XPC"
 #endif
 
 //=============================================================================
 // Include appropriate protocol header
 //=============================================================================
 
-#if QUESA_USE_XPC
-    #import "IPCprotocolXPC.h"
-    #pragma message "Using XPC for inter-process communication"
+#if (QUESA_USE_XPC!=1)
+  #import "IPCprotocolPDO.h"
+  #pragma message "Using PDO for inter-process communication (DEPRECATED)"
 #else
-    #import "IPCprotocolPDO.h"
-    #pragma message "Using PDO for inter-process communication (DEPRECATED)"
+  #import "IPCprotocolXPC.h"
+  #pragma message "Using XPC for inter-process communication"
 #endif
 
 #endif /* IPCConfiguration_h */

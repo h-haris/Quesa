@@ -214,4 +214,4 @@
 	#define SAFE_STRCPY( dst, src, dstSize )	strlcpy( dst, src, dstSize )
 #endif
 
-#endif
+#endif // !E3PREFIX_HDR

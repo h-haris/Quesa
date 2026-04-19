@@ -112,16 +112,19 @@
     
     [_driverStateConnection invalidate];
     [_trackerConnection invalidate];
+    
+    // Note: [super dealloc] is automatically called by ARC
 }
 
 #pragma mark - Private Setup Methods
 
 - (void)setupDriverStateConnection
 {
-    if (!_driverStateUUID)
+    NSString *serviceUUID = _driverStateUUID;
+    if (!serviceUUID)
         return;
     
-    _driverStateConnection = [[NSXPCConnection alloc] initWithServiceName:_driverStateUUID];
+    _driverStateConnection = [[NSXPCConnection alloc] initWithServiceName:serviceUUID];
     _driverStateConnection.remoteObjectInterface = [NSXPCInterface interfaceWithProtocol:@protocol(Q3XPCControllerDriverState)];
     
     _driverStateConnection.interruptionHandler = ^{
@@ -138,7 +141,8 @@
 
 - (void)setupTrackerConnection
 {
-    if (!_trackerUUID)
+    NSString *trackerUUID = _trackerUUID;
+    if (!trackerUUID)
         return;
     
     if (_trackerConnection)
@@ -147,7 +151,7 @@
         _trackerConnection = nil;
     }
     
-    _trackerConnection = [[NSXPCConnection alloc] initWithServiceName:_trackerUUID];
+    _trackerConnection = [[NSXPCConnection alloc] initWithServiceName:trackerUUID];
     _trackerConnection.remoteObjectInterface = [NSXPCInterface interfaceWithProtocol:@protocol(Q3XPCTracker)];
     
     _trackerConnection.interruptionHandler = ^{
@@ -461,7 +465,7 @@
 - (void)newStateWithReply:(void (^)(NSString * _Nullable, TQ3Status))reply
 {
     CFUUIDRef aStateUUID = CFUUIDCreate(kCFAllocatorDefault);
-    NSString *stateUUIDString = (__bridge_transfer NSString *)CFUUIDCreateString(kCFAllocatorDefault, aStateUUID);
+	NSString *stateUUIDString = ( NSString *)CFUUIDCreateString(kCFAllocatorDefault, aStateUUID);
     CFRelease(aStateUUID);
     
     if (_driverStateConnection)
