@@ -362,7 +362,7 @@ CC3OSXController_GetValues(TQ3ControllerRef controllerRef, TQ3Uns32 valueCount, 
                 
                 if (serialNumber)
                 {
-                    *changed = (*serialNumber != serNum);
+                    *changed = (*serialNumber != serNum) ? kQ3True : kQ3False;
                     *serialNumber = serNum;
                 }
             }

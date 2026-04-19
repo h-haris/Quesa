@@ -1,16 +1,16 @@
 /*  NAME:
  IPCprotocolXPC.h
- 
+
  DESCRIPTION:
  Header file with protocols used for IPC via XPC.
- 
+
  Implementation of Quesa controller API calls.
- 
+
  Under macOS the communication between driver, device server and client
  is implemented as IPC via XPC. This header defines the used protocols.
- 
+
  This replaces the deprecated PDO (Portable Distributed Objects) implementation.
- 
+
     COPYRIGHT:
         Copyright (c) 2013-2026, Quesa Developers. All rights reserved.
 
@@ -21,23 +21,23 @@
         For the current release of Quesa including 3D device support,
         please see: <https://github.com/h-haris/Quesa>
 
-        
+
         Redistribution and use in source and binary forms, with or without
         modification, are permitted provided that the following conditions
         are met:
-        
+
             o Redistributions of source code must retain the above copyright
               notice, this list of conditions and the following disclaimer.
-        
+
             o Redistributions in binary form must reproduce the above
               copyright notice, this list of conditions and the following
               disclaimer in the documentation and/or other materials provided
               with the distribution.
-        
+
             o Neither the name of Quesa nor the names of its contributors
               may be used to endorse or promote products derived from this
               software without specific prior written permission.
-        
+
         THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
         "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
         LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
@@ -77,7 +77,7 @@
 
 // Values
 - (void)getValueCountWithReply:(void (^)(TQ3Uns32 valueCount, TQ3Status status))reply;
-- (void)setValues:(NSArray<NSNumber *> *)values 
+- (void)setValues:(NSArray<NSNumber *> *)values
           ofCount:(TQ3Uns32)valueCount
             reply:(void (^)(TQ3Status status))reply;
 - (void)getValuesWithReply:(void (^)(NSArray<NSNumber *> * _Nullable values,
@@ -94,7 +94,7 @@
 - (void)hasTrackerWithReply:(void (^)(TQ3Boolean hasTracker, TQ3Status status))reply;
 - (void)track2DCursorWithReply:(void (^)(TQ3Boolean trackSys2DCursor, TQ3Status status))reply;
 - (void)track3DCursorWithReply:(void (^)(TQ3Boolean trackSys3DCursor, TQ3Status status))reply;
-- (void)setTracker:(NSString * _Nullable)trackerUUID 
+- (void)setTracker:(NSString * _Nullable)trackerUUID
  attachToSysCursor:(TQ3Boolean)attachToSysCrsr
              reply:(void (^)(TQ3Status status))reply;
 
@@ -188,7 +188,7 @@
 @protocol Q3XPCTracker <NSObject>
 
 // Notification
-- (void)callNotificationWithController:(NSString *)controllerUUID 
+- (void)callNotificationWithController:(NSString *)controllerUUID
                                  reply:(void (^)(TQ3Status status))reply;
 
 // Activation
@@ -228,5 +228,3 @@
                                 reply:(void (^)(TQ3Status status))reply;
 
 @end
-
-#endif /* IPCprotocolXPC_h */

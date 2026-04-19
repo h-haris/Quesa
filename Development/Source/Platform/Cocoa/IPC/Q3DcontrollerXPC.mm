@@ -52,10 +52,14 @@
 #import <Foundation/Foundation.h>
 #endif
 
+// Maximum number of values supported by a controller
+// Matches the boundary used by ControllerCoreOSX.framework
+#define Q3_CONTROLLER_MAX_VALUECOUNT 256
+
 @interface Q3DcontrollerXPC : NSObject <Q3XPCController>
 
 // Core properties
-@property (nonatomic, weak) Q3Ddb *publicDB;
+@property (nonatomic, weak) id publicDB;
 @property (nonatomic, strong) NSString *UUID;
 @property (nonatomic, strong) NSString *driverStateUUID;
 @property (nonatomic, strong) NSString *signature;
@@ -85,7 +89,7 @@
 
 @implementation Q3DcontrollerXPC
 
-- (instancetype)initWithParametersDB:(Q3Ddb *)aDB
+- (instancetype)initWithParametersDB:(id)aDB
                       controllerUUID:(NSString *)aUUID
                      driverStateUUID:(NSString *)aDriverStateUUID
                        controllerRef:(TQ3ControllerRef)aControllerRef
