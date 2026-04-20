@@ -16,7 +16,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "7FF4712D2F94F10E0018476E"
-               BuildableName = "Framework-XPC.framework"
+               BuildableName = "Quesa.framework"
                BlueprintName = "Framework-XPC"
                ReferencedContainer = "container:Quesa.xcodeproj">
             </BuildableReference>
@@ -52,7 +52,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "7FF4712D2F94F10E0018476E"
-            BuildableName = "Framework-XPC.framework"
+            BuildableName = "Quesa.framework"
             BlueprintName = "Framework-XPC"
             ReferencedContainer = "container:Quesa.xcodeproj">
          </BuildableReference>
