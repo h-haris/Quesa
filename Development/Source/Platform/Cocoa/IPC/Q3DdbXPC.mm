@@ -110,6 +110,7 @@
 - (void)incControllerListSerialNumber
 {
     _controllerListSerialNumber++;
+    NSLog(@"incControllerListSerialNumber: serial now %u", (unsigned)_controllerListSerialNumber);
 }
 
 #pragma mark - NSXPCListenerDelegate
@@ -331,13 +332,10 @@
     theControllerObject.isDecommissioned = kQ3False;
     theControllerObject.serialNumber = 1;
     theControllerObject.theButtons = 0;
-    
-    [theControllerObject setActivation:kQ3True reply:^(TQ3Status status) {
-        // Controller activated, return UUID
-        reply(theControllerObject.UUID);
-    }];
-    
+    theControllerObject.isActive = kQ3True;
+
     [self incControllerListSerialNumber];
+    reply(theControllerObject.UUID);
 }
 
 - (void)decommissionController:(NSString *)controllerUUID reply:(void (^)(void))reply

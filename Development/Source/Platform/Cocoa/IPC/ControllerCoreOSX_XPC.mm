@@ -65,11 +65,12 @@ static NSXPCListener *deviceDBListener = nil;
 
 // Controller endpoints (using anonymous listeners)
 static NSMutableDictionary<NSString *, NSXPCConnection *> *controllerConnections = nil;
-static NSMutableDictionary<NSString *, Q3DcontrollerXPC *> *controllerInstances = nil;
 
 //=============================================================================
 //      Internal function prototypes
 //-----------------------------------------------------------------------------
+
+static void CC3OSX_CleanupXPCConnections(void);
 
 #pragma mark - In-Process XPC Setup (MachXPC-style)
 
@@ -78,22 +79,19 @@ static void initializeInProcessDeviceDB(void)
 {
     if (sharedDeviceDB != nil)
         return;
-    
+
     // Create the device database instance (runs in-process!)
     sharedDeviceDB = [[Q3DdbXPC alloc] initForInProcess];
-    
+
     // Create anonymous listener (no external service needed)
     deviceDBListener = [NSXPCListener anonymousListener];
     deviceDBListener.delegate = sharedDeviceDB;
     [deviceDBListener resume];
-    
+
     // Initialize storage
     if (controllerConnections == nil)
         controllerConnections = [NSMutableDictionary dictionary];
-    
-    if (controllerInstances == nil)
-        controllerInstances = [NSMutableDictionary dictionary];
-    
+
 #if Q3_DEBUG
     NSLog(@"✅ Initialized in-process device DB (MachXPC-style - no external XPC service!)");
 #endif
@@ -103,34 +101,34 @@ static void initializeInProcessDeviceDB(void)
 static TQ3Status connectionToDeviceDB(NSXPCConnection **outConnection)
 {
     static NSXPCConnection *inProcessConnection = nil;
-    
+
     if (inProcessConnection == nil)
     {
         initializeInProcessDeviceDB();
-        
+
         // Create connection using anonymous endpoint (in-process!)
-        inProcessConnection = [[NSXPCConnection alloc] 
+        inProcessConnection = [[NSXPCConnection alloc]
             initWithListenerEndpoint:deviceDBListener.endpoint];
-        
-        inProcessConnection.remoteObjectInterface = 
+
+        inProcessConnection.remoteObjectInterface =
             [NSXPCInterface interfaceWithProtocol:@protocol(Q3XPCDeviceDB)];
-        
+
         inProcessConnection.interruptionHandler = ^{
             NSLog(@"In-process device DB connection interrupted");
         };
-        
+
         inProcessConnection.invalidationHandler = ^{
             NSLog(@"In-process device DB connection invalidated");
             inProcessConnection = nil;
         };
-        
+
         [inProcessConnection resume];
-        
+
 #if Q3_DEBUG
         NSLog(@"Connected to in-process device DB via anonymous endpoint");
 #endif
     }
-    
+
     *outConnection = inProcessConnection;
     return kQ3Success;
 }
@@ -142,46 +140,54 @@ static NSXPCConnection *connectionForController(NSString *controllerUUID)
     {
         controllerConnections = [NSMutableDictionary dictionary];
     }
-    
+
     NSXPCConnection *connection = controllerConnections[controllerUUID];
-    
+
     if (connection == nil)
     {
-        // Get the controller instance
-        Q3DcontrollerXPC *controller = controllerInstances[controllerUUID];
-        
+        // Look up the in-process controller object from the shared device database
+        Q3DcontrollerXPC *controller = nil;
+        for (Q3DcontrollerXPC *c in sharedDeviceDB.controllerObjects)
+        {
+            if ([c.UUID isEqualToString:controllerUUID])
+            {
+                controller = c;
+                break;
+            }
+        }
+
         if (controller)
         {
             // Create anonymous listener for this controller
             NSXPCListener *controllerListener = [NSXPCListener anonymousListener];
             controllerListener.delegate = (id<NSXPCListenerDelegate>)controller;
             [controllerListener resume];
-            
+
             // Create connection using the anonymous endpoint (all in-process!)
-            connection = [[NSXPCConnection alloc] 
+            connection = [[NSXPCConnection alloc]
                 initWithListenerEndpoint:controllerListener.endpoint];
-            
-            connection.remoteObjectInterface = 
+
+            connection.remoteObjectInterface =
                 [NSXPCInterface interfaceWithProtocol:@protocol(Q3XPCController)];
-            
+
             connection.interruptionHandler = ^{
                 NSLog(@"Controller connection interrupted: %@", controllerUUID);
             };
-            
+
             connection.invalidationHandler = ^{
                 NSLog(@"Controller connection invalidated: %@", controllerUUID);
                 [controllerConnections removeObjectForKey:controllerUUID];
             };
-            
+
             [connection resume];
             controllerConnections[controllerUUID] = connection;
-            
+
 #if Q3_DEBUG
             NSLog(@"Created in-process connection to controller: %@", controllerUUID);
 #endif
         }
     }
-    
+
     return connection;
 }
 
@@ -196,7 +202,20 @@ typedef struct TC3TrackerInstanceDataXPC
     TQ3TrackerNotifyFunc notifyFunc;
     float positionThreshold;
     float orientationThreshold;
+    TQ3Boolean isActive;
 } TC3TrackerInstanceDataXPC;
+
+// Find the controller XPC connection that currently owns a given tracker UUID.
+static NSXPCConnection *connectionForTrackerUUID(NSString *trackerUUID)
+{
+    if (sharedDeviceDB == nil) return nil;
+    for (Q3DcontrollerXPC *c in sharedDeviceDB.controllerObjects)
+    {
+        if ([c.trackerUUID isEqualToString:trackerUUID])
+            return connectionForController(c.UUID);
+    }
+    return nil;
+}
 
 #pragma mark - Public Controller Functions (Synchronous Wrappers)
 
@@ -208,22 +227,24 @@ CC3OSXController_GetListChanged(TQ3Boolean *listChanged, TQ3Uns32 *serialNumber)
 {
     __block TQ3Status status = kQ3Failure;
     dispatch_semaphore_t sema = dispatch_semaphore_create(0);
-    
+
     NSXPCConnection *connection = nil;
     if (connectionToDeviceDB(&connection) == kQ3Success)
     {
-        [[connection remoteObjectProxy] getListChangedWithReply:^(TQ3Boolean changed, 
+        TQ3Uns32 lastKnownSerialNumber = *serialNumber;
+        [[connection remoteObjectProxy] getListChangedWithReply:^(TQ3Boolean changed,
                                                                    TQ3Uns32 serNum,
                                                                    TQ3Status stat) {
-            *listChanged = changed;
+            // Mirror PDO behavior: changed if serial number differs from caller's last known
+            *listChanged = (serNum != lastKnownSerialNumber) ? kQ3True : kQ3False;
             *serialNumber = serNum;
             status = stat;
             dispatch_semaphore_signal(sema);
         }];
-        
+
         dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
     }
-    
+
     return status;
 }
 
@@ -235,22 +256,27 @@ CC3OSXController_Next(TQ3ControllerRef controllerRef, TQ3ControllerRef *nextCont
 {
     __block TQ3Status status = kQ3Failure;
     dispatch_semaphore_t sema = dispatch_semaphore_create(0);
-    
+
     NSXPCConnection *connection = nil;
     if (connectionToDeviceDB(&connection) == kQ3Success)
     {
         NSString *currentUUID = (__bridge NSString *)controllerRef;
-        
+
+        NSLog(@"CC3OSXController_Next: sending nextCC3Controller:%@", currentUUID);
         [[connection remoteObjectProxy] nextCC3Controller:currentUUID
                                                     reply:^(NSString *nextUUID) {
-            *nextControllerRef = (__bridge TQ3ControllerRef)nextUUID;
+            NSLog(@"CC3OSXController_Next: reply received, nextUUID=%@", nextUUID);
+            // __bridge_retain: caller owns the ref; paired release in CC3OSXController_Decommission
+            *nextControllerRef = (__bridge_retain TQ3ControllerRef)nextUUID;
             status = kQ3Success;
             dispatch_semaphore_signal(sema);
         }];
-        
+
+        NSLog(@"CC3OSXController_Next: waiting on semaphore");
         dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
+        NSLog(@"CC3OSXController_Next: semaphore signaled, status=%d", status);
     }
-    
+
     return status;
 }
 
@@ -262,20 +288,20 @@ CC3OSXController_SetActivation(TQ3ControllerRef controllerRef, TQ3Boolean active
 {
     __block TQ3Status status = kQ3Failure;
     dispatch_semaphore_t sema = dispatch_semaphore_create(0);
-    
+
     NSString *controllerUUID = (__bridge NSString *)controllerRef;
     NSXPCConnection *connection = connectionForController(controllerUUID);
-    
+
     if (connection)
     {
         [[connection remoteObjectProxy] setActivation:active reply:^(TQ3Status stat) {
             status = stat;
             dispatch_semaphore_signal(sema);
         }];
-        
+
         dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
     }
-    
+
     return status;
 }
 
@@ -287,10 +313,10 @@ CC3OSXController_GetActivation(TQ3ControllerRef controllerRef, TQ3Boolean *activ
 {
     __block TQ3Status status = kQ3Failure;
     dispatch_semaphore_t sema = dispatch_semaphore_create(0);
-    
+
     NSString *controllerUUID = (__bridge NSString *)controllerRef;
     NSXPCConnection *connection = connectionForController(controllerUUID);
-    
+
     if (connection)
     {
         [[connection remoteObjectProxy] getActivationWithReply:^(TQ3Boolean act, TQ3Status stat) {
@@ -298,10 +324,10 @@ CC3OSXController_GetActivation(TQ3ControllerRef controllerRef, TQ3Boolean *activ
             status = stat;
             dispatch_semaphore_signal(sema);
         }];
-        
+
         dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
     }
-    
+
     return status;
 }
 
@@ -313,10 +339,10 @@ CC3OSXController_GetSignature(TQ3ControllerRef controllerRef, char *signature, T
 {
     __block TQ3Status status = kQ3Failure;
     dispatch_semaphore_t sema = dispatch_semaphore_create(0);
-    
+
     NSString *controllerUUID = (__bridge NSString *)controllerRef;
     NSXPCConnection *connection = connectionForController(controllerUUID);
-    
+
     if (connection)
     {
         [[connection remoteObjectProxy] getSignatureWithReply:^(NSString *sig, TQ3Status stat) {
@@ -327,10 +353,10 @@ CC3OSXController_GetSignature(TQ3ControllerRef controllerRef, char *signature, T
             status = stat;
             dispatch_semaphore_signal(sema);
         }];
-        
+
         dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
     }
-    
+
     return status;
 }
 
@@ -342,10 +368,10 @@ CC3OSXController_GetButtons(TQ3ControllerRef controllerRef, TQ3Uns32 *buttons)
 {
     __block TQ3Status status = kQ3Failure;
     dispatch_semaphore_t sema = dispatch_semaphore_create(0);
-    
+
     NSString *controllerUUID = (__bridge NSString *)controllerRef;
     NSXPCConnection *connection = connectionForController(controllerUUID);
-    
+
     if (connection)
     {
         [[connection remoteObjectProxy] getButtonsWithReply:^(TQ3Uns32 btns, TQ3Status stat) {
@@ -353,10 +379,10 @@ CC3OSXController_GetButtons(TQ3ControllerRef controllerRef, TQ3Uns32 *buttons)
             status = stat;
             dispatch_semaphore_signal(sema);
         }];
-        
+
         dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
     }
-    
+
     return status;
 }
 
@@ -368,20 +394,20 @@ CC3OSXController_SetButtons(TQ3ControllerRef controllerRef, TQ3Uns32 buttons)
 {
     __block TQ3Status status = kQ3Failure;
     dispatch_semaphore_t sema = dispatch_semaphore_create(0);
-    
+
     NSString *controllerUUID = (__bridge NSString *)controllerRef;
     NSXPCConnection *connection = connectionForController(controllerUUID);
-    
+
     if (connection)
     {
         [[connection remoteObjectProxy] setButtons:buttons reply:^(TQ3Status stat) {
             status = stat;
             dispatch_semaphore_signal(sema);
         }];
-        
+
         dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
     }
-    
+
     return status;
 }
 
@@ -389,15 +415,15 @@ CC3OSXController_SetButtons(TQ3ControllerRef controllerRef, TQ3Uns32 buttons)
 //      CC3OSXController_GetValues
 //-----------------------------------------------------------------------------
 TQ3Status
-CC3OSXController_GetValues(TQ3ControllerRef controllerRef, TQ3Uns32 valueCount, float *values, 
+CC3OSXController_GetValues(TQ3ControllerRef controllerRef, TQ3Uns32 valueCount, float *values,
                            TQ3Boolean *changed, TQ3Uns32 *serialNumber)
 {
     __block TQ3Status status = kQ3Failure;
     dispatch_semaphore_t sema = dispatch_semaphore_create(0);
-    
+
     NSString *controllerUUID = (__bridge NSString *)controllerRef;
     NSXPCConnection *connection = connectionForController(controllerUUID);
-    
+
     if (connection)
     {
         [[connection remoteObjectProxy] getValuesWithReply:^(NSArray<NSNumber *> *vals,
@@ -412,21 +438,21 @@ CC3OSXController_GetValues(TQ3ControllerRef controllerRef, TQ3Uns32 valueCount, 
                 {
                     values[i] = [vals[i] floatValue];
                 }
-                
+
                 if (serialNumber)
                 {
                     *changed = (*serialNumber != serNum) ? kQ3True : kQ3False;
                     *serialNumber = serNum;
                 }
             }
-            
+
             status = stat;
             dispatch_semaphore_signal(sema);
         }];
-        
+
         dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
     }
-    
+
     return status;
 }
 
@@ -438,10 +464,10 @@ CC3OSXController_SetValues(TQ3ControllerRef controllerRef, const float *values, 
 {
     __block TQ3Status status = kQ3Failure;
     dispatch_semaphore_t sema = dispatch_semaphore_create(0);
-    
+
     NSString *controllerUUID = (__bridge NSString *)controllerRef;
     NSXPCConnection *connection = connectionForController(controllerUUID);
-    
+
     if (connection)
     {
         NSMutableArray<NSNumber *> *valuesArray = [NSMutableArray arrayWithCapacity:valueCount];
@@ -449,17 +475,17 @@ CC3OSXController_SetValues(TQ3ControllerRef controllerRef, const float *values, 
         {
             [valuesArray addObject:@(values[i])];
         }
-        
-        [[connection remoteObjectProxy] setValues:valuesArray 
+
+        [[connection remoteObjectProxy] setValues:valuesArray
                                           ofCount:valueCount
                                             reply:^(TQ3Status stat) {
             status = stat;
             dispatch_semaphore_signal(sema);
         }];
-        
+
         dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
     }
-    
+
     return status;
 }
 
@@ -471,29 +497,29 @@ CC3OSXController_New(const TQ3ControllerData *controllerData)
 {
     __block TQ3ControllerRef controllerRef = nullptr;
     dispatch_semaphore_t sema = dispatch_semaphore_create(0);
-    
+
     NSXPCConnection *connection = nil;
     if (connectionToDeviceDB(&connection) == kQ3Success)
     {
         // Create data dictionary for controller
-        NSString *signature = controllerData->signature ? 
+        NSString *signature = controllerData->signature ?
             [NSString stringWithUTF8String:controllerData->signature] : @"";
-        
+
         NSDictionary *dataDict = @{
             @"signature": signature,
             @"valueCount": @(controllerData->valueCount),
             @"channelCount": @(controllerData->channelCount)
         };
-        
+
         [[connection remoteObjectProxy] newController:dataDict
                                                 reply:^(NSString *uuid) {
             controllerRef = (__bridge TQ3ControllerRef)[[uuid copy] retain];
             dispatch_semaphore_signal(sema);
         }];
-        
+
         dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
     }
-    
+
     return controllerRef;
 }
 
@@ -504,7 +530,7 @@ TQ3Status
 CC3OSXController_Decommission(TQ3ControllerRef controllerRef)
 {
     NSString *controllerUUID = (__bridge NSString *)controllerRef;
-    
+
     // Remove from connections cache
     if (controllerConnections)
     {
@@ -515,7 +541,7 @@ CC3OSXController_Decommission(TQ3ControllerRef controllerRef)
             [controllerConnections removeObjectForKey:controllerUUID];
         }
     }
-    
+
     // Notify device DB
     NSXPCConnection *connection = nil;
     if (connectionToDeviceDB(&connection) == kQ3Success)
@@ -524,13 +550,13 @@ CC3OSXController_Decommission(TQ3ControllerRef controllerRef)
                                                          reply:^{
             // Controller decommissioned
         }];
-        
+
         // Release the retained UUID string (manual memory management for non-ARC)
         [controllerUUID release];
-        
+
         return kQ3Success;
     }
-    
+
     return kQ3Failure;
 }
 
@@ -542,10 +568,10 @@ CC3OSXController_GetValueCount(TQ3ControllerRef controllerRef, TQ3Uns32 *valueCo
 {
     __block TQ3Status status = kQ3Failure;
     dispatch_semaphore_t sema = dispatch_semaphore_create(0);
-    
+
     NSString *controllerUUID = (__bridge NSString *)controllerRef;
     NSXPCConnection *connection = connectionForController(controllerUUID);
-    
+
     if (connection)
     {
         [[connection remoteObjectProxy] getValueCountWithReply:^(TQ3Uns32 count, TQ3Status stat) {
@@ -553,10 +579,10 @@ CC3OSXController_GetValueCount(TQ3ControllerRef controllerRef, TQ3Uns32 *valueCo
             status = stat;
             dispatch_semaphore_signal(sema);
         }];
-        
+
         dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
     }
-    
+
     return status;
 }
 
@@ -568,14 +594,14 @@ CC3OSXController_SetChannel(TQ3ControllerRef controllerRef, TQ3Uns32 channel, co
 {
     __block TQ3Status status = kQ3Failure;
     dispatch_semaphore_t sema = dispatch_semaphore_create(0);
-    
+
     NSString *controllerUUID = (__bridge NSString *)controllerRef;
     NSXPCConnection *connection = connectionForController(controllerUUID);
-    
+
     if (connection)
     {
         NSData *channelData = [NSData dataWithBytes:data length:dataSize];
-        
+
         [[connection remoteObjectProxy] setChannel:channel
                                           withData:channelData
                                             ofSize:dataSize
@@ -583,10 +609,10 @@ CC3OSXController_SetChannel(TQ3ControllerRef controllerRef, TQ3Uns32 channel, co
             status = stat;
             dispatch_semaphore_signal(sema);
         }];
-        
+
         dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
     }
-    
+
     return status;
 }
 
@@ -598,10 +624,10 @@ CC3OSXController_GetChannel(TQ3ControllerRef controllerRef, TQ3Uns32 channel, vo
 {
     __block TQ3Status status = kQ3Failure;
     dispatch_semaphore_t sema = dispatch_semaphore_create(0);
-    
+
     NSString *controllerUUID = (__bridge NSString *)controllerRef;
     NSXPCConnection *connection = connectionForController(controllerUUID);
-    
+
     if (connection)
     {
         [[connection remoteObjectProxy] getChannel:channel
@@ -615,10 +641,10 @@ CC3OSXController_GetChannel(TQ3ControllerRef controllerRef, TQ3Uns32 channel, vo
             status = stat;
             dispatch_semaphore_signal(sema);
         }];
-        
+
         dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
     }
-    
+
     return status;
 }
 
@@ -630,26 +656,26 @@ CC3OSXController_SetTracker(TQ3ControllerRef controllerRef, TC3TrackerInstanceDa
 {
     __block TQ3Status status = kQ3Failure;
     dispatch_semaphore_t sema = dispatch_semaphore_create(0);
-    
+
     NSString *controllerUUID = (__bridge NSString *)controllerRef;
     NSXPCConnection *connection = connectionForController(controllerUUID);
-    
+
     if (connection)
     {
         TC3TrackerInstanceDataXPC *trackerXPC = (TC3TrackerInstanceDataXPC *)tracker;
         NSString *trackerUUID = trackerXPC ? trackerXPC->trackerUUID : nil;
         TQ3Boolean attachToSysCursor = (tracker == nullptr) ? kQ3True : kQ3False;
-        
+
         [[connection remoteObjectProxy] setTracker:trackerUUID
                                  attachToSysCursor:attachToSysCursor
                                              reply:^(TQ3Status stat) {
             status = stat;
             dispatch_semaphore_signal(sema);
         }];
-        
+
         dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
     }
-    
+
     return status;
 }
 
@@ -661,10 +687,10 @@ CC3OSXController_HasTracker(TQ3ControllerRef controllerRef, TQ3Boolean *hasTrack
 {
     __block TQ3Status status = kQ3Failure;
     dispatch_semaphore_t sema = dispatch_semaphore_create(0);
-    
+
     NSString *controllerUUID = (__bridge NSString *)controllerRef;
     NSXPCConnection *connection = connectionForController(controllerUUID);
-    
+
     if (connection)
     {
         [[connection remoteObjectProxy] hasTrackerWithReply:^(TQ3Boolean has, TQ3Status stat) {
@@ -672,10 +698,10 @@ CC3OSXController_HasTracker(TQ3ControllerRef controllerRef, TQ3Boolean *hasTrack
             status = stat;
             dispatch_semaphore_signal(sema);
         }];
-        
+
         dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
     }
-    
+
     return status;
 }
 
@@ -687,10 +713,10 @@ CC3OSXController_Track2DCursor(TQ3ControllerRef controllerRef, TQ3Boolean *track
 {
     __block TQ3Status status = kQ3Failure;
     dispatch_semaphore_t sema = dispatch_semaphore_create(0);
-    
+
     NSString *controllerUUID = (__bridge NSString *)controllerRef;
     NSXPCConnection *connection = connectionForController(controllerUUID);
-    
+
     if (connection)
     {
         [[connection remoteObjectProxy] track2DCursorWithReply:^(TQ3Boolean track, TQ3Status stat) {
@@ -698,10 +724,10 @@ CC3OSXController_Track2DCursor(TQ3ControllerRef controllerRef, TQ3Boolean *track
             status = stat;
             dispatch_semaphore_signal(sema);
         }];
-        
+
         dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
     }
-    
+
     return status;
 }
 
@@ -713,10 +739,10 @@ CC3OSXController_Track3DCursor(TQ3ControllerRef controllerRef, TQ3Boolean *track
 {
     __block TQ3Status status = kQ3Failure;
     dispatch_semaphore_t sema = dispatch_semaphore_create(0);
-    
+
     NSString *controllerUUID = (__bridge NSString *)controllerRef;
     NSXPCConnection *connection = connectionForController(controllerUUID);
-    
+
     if (connection)
     {
         [[connection remoteObjectProxy] track3DCursorWithReply:^(TQ3Boolean track, TQ3Status stat) {
@@ -724,10 +750,10 @@ CC3OSXController_Track3DCursor(TQ3ControllerRef controllerRef, TQ3Boolean *track
             status = stat;
             dispatch_semaphore_signal(sema);
         }];
-        
+
         dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
     }
-    
+
     return status;
 }
 
@@ -739,10 +765,10 @@ CC3OSXController_GetTrackerPosition(TQ3ControllerRef controllerRef, TQ3Point3D *
 {
     __block TQ3Status status = kQ3Failure;
     dispatch_semaphore_t sema = dispatch_semaphore_create(0);
-    
+
     NSString *controllerUUID = (__bridge NSString *)controllerRef;
     NSXPCConnection *connection = connectionForController(controllerUUID);
-    
+
     if (connection)
     {
         [[connection remoteObjectProxy] getTrackerPositionWithReply:^(TQ3Point3D pos, TQ3Status stat) {
@@ -750,10 +776,10 @@ CC3OSXController_GetTrackerPosition(TQ3ControllerRef controllerRef, TQ3Point3D *
             status = stat;
             dispatch_semaphore_signal(sema);
         }];
-        
+
         dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
     }
-    
+
     return status;
 }
 
@@ -765,10 +791,10 @@ CC3OSXController_SetTrackerPosition(TQ3ControllerRef controllerRef, const TQ3Poi
 {
     __block TQ3Status status = kQ3Failure;
     dispatch_semaphore_t sema = dispatch_semaphore_create(0);
-    
+
     NSString *controllerUUID = (__bridge NSString *)controllerRef;
     NSXPCConnection *connection = connectionForController(controllerUUID);
-    
+
     if (connection)
     {
         [[connection remoteObjectProxy] setTrackerPosition:*position
@@ -776,10 +802,10 @@ CC3OSXController_SetTrackerPosition(TQ3ControllerRef controllerRef, const TQ3Poi
             status = stat;
             dispatch_semaphore_signal(sema);
         }];
-        
+
         dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
     }
-    
+
     return status;
 }
 
@@ -791,10 +817,10 @@ CC3OSXController_MoveTrackerPosition(TQ3ControllerRef controllerRef, const TQ3Ve
 {
     __block TQ3Status status = kQ3Failure;
     dispatch_semaphore_t sema = dispatch_semaphore_create(0);
-    
+
     NSString *controllerUUID = (__bridge NSString *)controllerRef;
     NSXPCConnection *connection = connectionForController(controllerUUID);
-    
+
     if (connection)
     {
         [[connection remoteObjectProxy] moveTrackerPosition:*delta
@@ -802,10 +828,10 @@ CC3OSXController_MoveTrackerPosition(TQ3ControllerRef controllerRef, const TQ3Ve
             status = stat;
             dispatch_semaphore_signal(sema);
         }];
-        
+
         dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
     }
-    
+
     return status;
 }
 
@@ -817,10 +843,10 @@ CC3OSXController_GetTrackerOrientation(TQ3ControllerRef controllerRef, TQ3Quater
 {
     __block TQ3Status status = kQ3Failure;
     dispatch_semaphore_t sema = dispatch_semaphore_create(0);
-    
+
     NSString *controllerUUID = (__bridge NSString *)controllerRef;
     NSXPCConnection *connection = connectionForController(controllerUUID);
-    
+
     if (connection)
     {
         [[connection remoteObjectProxy] getTrackerOrientationWithReply:^(TQ3Quaternion orient, TQ3Status stat) {
@@ -828,10 +854,10 @@ CC3OSXController_GetTrackerOrientation(TQ3ControllerRef controllerRef, TQ3Quater
             status = stat;
             dispatch_semaphore_signal(sema);
         }];
-        
+
         dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
     }
-    
+
     return status;
 }
 
@@ -843,10 +869,10 @@ CC3OSXController_SetTrackerOrientation(TQ3ControllerRef controllerRef, const TQ3
 {
     __block TQ3Status status = kQ3Failure;
     dispatch_semaphore_t sema = dispatch_semaphore_create(0);
-    
+
     NSString *controllerUUID = (__bridge NSString *)controllerRef;
     NSXPCConnection *connection = connectionForController(controllerUUID);
-    
+
     if (connection)
     {
         [[connection remoteObjectProxy] setTrackerOrientation:*orientation
@@ -854,10 +880,10 @@ CC3OSXController_SetTrackerOrientation(TQ3ControllerRef controllerRef, const TQ3
             status = stat;
             dispatch_semaphore_signal(sema);
         }];
-        
+
         dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
     }
-    
+
     return status;
 }
 
@@ -869,10 +895,10 @@ CC3OSXController_MoveTrackerOrientation(TQ3ControllerRef controllerRef, const TQ
 {
     __block TQ3Status status = kQ3Failure;
     dispatch_semaphore_t sema = dispatch_semaphore_create(0);
-    
+
     NSString *controllerUUID = (__bridge NSString *)controllerRef;
     NSXPCConnection *connection = connectionForController(controllerUUID);
-    
+
     if (connection)
     {
         [[connection remoteObjectProxy] moveTrackerOrientation:*delta
@@ -880,10 +906,10 @@ CC3OSXController_MoveTrackerOrientation(TQ3ControllerRef controllerRef, const TQ
             status = stat;
             dispatch_semaphore_signal(sema);
         }];
-        
+
         dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
     }
-    
+
     return status;
 }
 
@@ -897,15 +923,15 @@ CC3OSXControllerState_New(TQ3Object theObject, TQ3ControllerRef theController)
 {
     // Controller state is managed locally, not via XPC
     // Allocate a state instance
-    TC3ControllerStateInstanceDataPtr stateData = 
+    TC3ControllerStateInstanceDataPtr stateData =
         (TC3ControllerStateInstanceDataPtr)calloc(1, sizeof(TC3ControllerStateInstanceData));
-    
+
     if (stateData)
     {
         stateData->myController = theController;
         stateData->ctrlStateUUIDString = [[NSUUID UUID] UUIDString];
     }
-    
+
     return stateData;
 }
 
@@ -957,7 +983,7 @@ CC3OSXTracker_New(TQ3Object theObject, TQ3TrackerNotifyFunc notifyFunc)
     // Create a tracker object
     __block TC3TrackerInstanceDataXPC *trackerData = nullptr;
     dispatch_semaphore_t sema = dispatch_semaphore_create(0);
-    
+
     NSXPCConnection *connection = nil;
     if (connectionToDeviceDB(&connection) == kQ3Success)
     {
@@ -975,10 +1001,10 @@ CC3OSXTracker_New(TQ3Object theObject, TQ3TrackerNotifyFunc notifyFunc)
             }
             dispatch_semaphore_signal(sema);
         }];
-        
+
         dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
     }
-    
+
     return (TC3TrackerInstanceDataPtr)trackerData;
 }
 
@@ -991,7 +1017,7 @@ CC3OSXTracker_Delete(TC3TrackerInstanceDataPtr trackerObject)
     if (trackerObject)
     {
         TC3TrackerInstanceDataXPC *trackerXPC = (TC3TrackerInstanceDataXPC *)trackerObject;
-        
+
         if (trackerXPC->trackerUUID)
         {
             NSXPCConnection *connection = nil;
@@ -999,7 +1025,7 @@ CC3OSXTracker_Delete(TC3TrackerInstanceDataPtr trackerObject)
             {
                 [[connection remoteObjectProxy] deleteTracker:trackerXPC->trackerUUID reply:^{}];
             }
-            
+
             [trackerXPC->trackerUUID release];
             trackerXPC->trackerUUID = nil;
         }
@@ -1048,8 +1074,13 @@ CC3OSXTracker_GetNotifyThresholds(TC3TrackerInstanceDataPtr trackerObject, float
 TQ3Status
 CC3OSXTracker_SetActivation(TC3TrackerInstanceDataPtr trackerObject, TQ3Boolean active)
 {
-    // Implementation would communicate with tracker via XPC
-    return kQ3Success;
+    if (trackerObject)
+    {
+        TC3TrackerInstanceDataXPC *trackerXPC = (TC3TrackerInstanceDataXPC *)trackerObject;
+        trackerXPC->isActive = active;
+        return kQ3Success;
+    }
+    return kQ3Failure;
 }
 
 //=============================================================================
@@ -1058,8 +1089,14 @@ CC3OSXTracker_SetActivation(TC3TrackerInstanceDataPtr trackerObject, TQ3Boolean 
 TQ3Status
 CC3OSXTracker_GetActivation(TC3TrackerInstanceDataPtr trackerObject, TQ3Boolean *active)
 {
+    if (trackerObject)
+    {
+        TC3TrackerInstanceDataXPC *trackerXPC = (TC3TrackerInstanceDataXPC *)trackerObject;
+        if (active) *active = trackerXPC->isActive;
+        return kQ3Success;
+    }
     if (active) *active = kQ3False;
-    return kQ3Success;
+    return kQ3Failure;
 }
 
 //=============================================================================
@@ -1071,10 +1108,10 @@ CC3OSXTracker_GetButtons(TC3TrackerInstanceDataPtr trackerObject, TQ3Uns32 *butt
     if (trackerObject && buttons)
     {
         TC3TrackerInstanceDataXPC *trackerXPC = (TC3TrackerInstanceDataXPC *)trackerObject;
-        
+
         __block TQ3Status status = kQ3Failure;
         dispatch_semaphore_t sema = dispatch_semaphore_create(0);
-        
+
         NSXPCConnection *connection = nil;
         if (connectionToDeviceDB(&connection) == kQ3Success)
         {
@@ -1084,7 +1121,7 @@ CC3OSXTracker_GetButtons(TC3TrackerInstanceDataPtr trackerObject, TQ3Uns32 *butt
                 status = stat;
                 dispatch_semaphore_signal(sema);
             }];
-            
+
             dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
             return status;
         }
@@ -1099,7 +1136,38 @@ CC3OSXTracker_GetButtons(TC3TrackerInstanceDataPtr trackerObject, TQ3Uns32 *butt
 TQ3Status
 CC3OSXTracker_ChangeButtons(TC3TrackerInstanceDataPtr trackerObject, TQ3ControllerRef controllerRef, TQ3Uns32 buttons, TQ3Uns32 buttonMask)
 {
-    return kQ3Success;
+    if (trackerObject)
+    {
+        NSString *controllerUUID = (__bridge NSString *)controllerRef;
+        NSXPCConnection *connection = connectionForController(controllerUUID);
+        if (connection)
+        {
+            // Read-modify-write: apply buttonMask to current value
+            __block TQ3Uns32 currentButtons = 0;
+            __block TQ3Status getStatus = kQ3Failure;
+            dispatch_semaphore_t getSema = dispatch_semaphore_create(0);
+            [[connection remoteObjectProxy] getButtonsWithReply:^(TQ3Uns32 btns, TQ3Status stat) {
+                currentButtons = btns;
+                getStatus = stat;
+                dispatch_semaphore_signal(getSema);
+            }];
+            dispatch_semaphore_wait(getSema, DISPATCH_TIME_FOREVER);
+
+            if (getStatus == kQ3Success)
+            {
+                TQ3Uns32 newButtons = (currentButtons & ~buttonMask) | (buttons & buttonMask);
+                __block TQ3Status setStatus = kQ3Failure;
+                dispatch_semaphore_t setSema = dispatch_semaphore_create(0);
+                [[connection remoteObjectProxy] setButtons:newButtons reply:^(TQ3Status stat) {
+                    setStatus = stat;
+                    dispatch_semaphore_signal(setSema);
+                }];
+                dispatch_semaphore_wait(setSema, DISPATCH_TIME_FOREVER);
+                return setStatus;
+            }
+        }
+    }
+    return kQ3Failure;
 }
 
 //=============================================================================
@@ -1108,14 +1176,29 @@ CC3OSXTracker_ChangeButtons(TC3TrackerInstanceDataPtr trackerObject, TQ3Controll
 TQ3Status
 CC3OSXTracker_GetPosition(TC3TrackerInstanceDataPtr trackerObject, TQ3Point3D *position, TQ3Vector3D *delta, TQ3Boolean *changed, TQ3Uns32 *serialNumber)
 {
-    if (position) {
-        position->x = position->y = position->z = 0.0f;
+    if (trackerObject)
+    {
+        TC3TrackerInstanceDataXPC *trackerXPC = (TC3TrackerInstanceDataXPC *)trackerObject;
+        NSXPCConnection *connection = connectionForTrackerUUID(trackerXPC->trackerUUID);
+        if (connection)
+        {
+            __block TQ3Status status = kQ3Failure;
+            dispatch_semaphore_t sema = dispatch_semaphore_create(0);
+            [[connection remoteObjectProxy] getTrackerPositionWithReply:^(TQ3Point3D pos, TQ3Status stat) {
+                if (position) *position = pos;
+                if (delta) { delta->x = delta->y = delta->z = 0.0f; }
+                if (changed) *changed = kQ3False;
+                status = stat;
+                dispatch_semaphore_signal(sema);
+            }];
+            dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
+            return status;
+        }
     }
-    if (delta) {
-        delta->x = delta->y = delta->z = 0.0f;
-    }
+    if (position) { position->x = position->y = position->z = 0.0f; }
+    if (delta)    { delta->x = delta->y = delta->z = 0.0f; }
     if (changed) *changed = kQ3False;
-    return kQ3Success;
+    return kQ3Failure;
 }
 
 //=============================================================================
@@ -1124,7 +1207,23 @@ CC3OSXTracker_GetPosition(TC3TrackerInstanceDataPtr trackerObject, TQ3Point3D *p
 TQ3Status
 CC3OSXTracker_SetPosition(TC3TrackerInstanceDataPtr trackerObject, TQ3ControllerRef controllerRef, const TQ3Point3D *position)
 {
-    return kQ3Success;
+    if (trackerObject && position)
+    {
+        NSString *controllerUUID = (__bridge NSString *)controllerRef;
+        NSXPCConnection *connection = connectionForController(controllerUUID);
+        if (connection)
+        {
+            __block TQ3Status status = kQ3Failure;
+            dispatch_semaphore_t sema = dispatch_semaphore_create(0);
+            [[connection remoteObjectProxy] setTrackerPosition:*position reply:^(TQ3Status stat) {
+                status = stat;
+                dispatch_semaphore_signal(sema);
+            }];
+            dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
+            return status;
+        }
+    }
+    return kQ3Failure;
 }
 
 //=============================================================================
@@ -1133,7 +1232,23 @@ CC3OSXTracker_SetPosition(TC3TrackerInstanceDataPtr trackerObject, TQ3Controller
 TQ3Status
 CC3OSXTracker_MovePosition(TC3TrackerInstanceDataPtr trackerObject, TQ3ControllerRef controllerRef, const TQ3Vector3D *delta)
 {
-    return kQ3Success;
+    if (trackerObject && delta)
+    {
+        NSString *controllerUUID = (__bridge NSString *)controllerRef;
+        NSXPCConnection *connection = connectionForController(controllerUUID);
+        if (connection)
+        {
+            __block TQ3Status status = kQ3Failure;
+            dispatch_semaphore_t sema = dispatch_semaphore_create(0);
+            [[connection remoteObjectProxy] moveTrackerPosition:*delta reply:^(TQ3Status stat) {
+                status = stat;
+                dispatch_semaphore_signal(sema);
+            }];
+            dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
+            return status;
+        }
+    }
+    return kQ3Failure;
 }
 
 //=============================================================================
@@ -1142,16 +1257,29 @@ CC3OSXTracker_MovePosition(TC3TrackerInstanceDataPtr trackerObject, TQ3Controlle
 TQ3Status
 CC3OSXTracker_GetOrientation(TC3TrackerInstanceDataPtr trackerObject, TQ3Quaternion *orientation, TQ3Quaternion *delta, TQ3Boolean *changed, TQ3Uns32 *serialNumber)
 {
-    if (orientation) {
-        orientation->w = 1.0f;
-        orientation->x = orientation->y = orientation->z = 0.0f;
+    if (trackerObject)
+    {
+        TC3TrackerInstanceDataXPC *trackerXPC = (TC3TrackerInstanceDataXPC *)trackerObject;
+        NSXPCConnection *connection = connectionForTrackerUUID(trackerXPC->trackerUUID);
+        if (connection)
+        {
+            __block TQ3Status status = kQ3Failure;
+            dispatch_semaphore_t sema = dispatch_semaphore_create(0);
+            [[connection remoteObjectProxy] getTrackerOrientationWithReply:^(TQ3Quaternion orient, TQ3Status stat) {
+                if (orientation) *orientation = orient;
+                if (delta) { delta->w = 1.0f; delta->x = delta->y = delta->z = 0.0f; }
+                if (changed) *changed = kQ3False;
+                status = stat;
+                dispatch_semaphore_signal(sema);
+            }];
+            dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
+            return status;
+        }
     }
-    if (delta) {
-        delta->w = 1.0f;
-        delta->x = delta->y = delta->z = 0.0f;
-    }
+    if (orientation) { orientation->w = 1.0f; orientation->x = orientation->y = orientation->z = 0.0f; }
+    if (delta)       { delta->w = 1.0f; delta->x = delta->y = delta->z = 0.0f; }
     if (changed) *changed = kQ3False;
-    return kQ3Success;
+    return kQ3Failure;
 }
 
 //=============================================================================
@@ -1160,7 +1288,23 @@ CC3OSXTracker_GetOrientation(TC3TrackerInstanceDataPtr trackerObject, TQ3Quatern
 TQ3Status
 CC3OSXTracker_SetOrientation(TC3TrackerInstanceDataPtr trackerObject, TQ3ControllerRef controllerRef, const TQ3Quaternion *orientation)
 {
-    return kQ3Success;
+    if (trackerObject && orientation)
+    {
+        NSString *controllerUUID = (__bridge NSString *)controllerRef;
+        NSXPCConnection *connection = connectionForController(controllerUUID);
+        if (connection)
+        {
+            __block TQ3Status status = kQ3Failure;
+            dispatch_semaphore_t sema = dispatch_semaphore_create(0);
+            [[connection remoteObjectProxy] setTrackerOrientation:*orientation reply:^(TQ3Status stat) {
+                status = stat;
+                dispatch_semaphore_signal(sema);
+            }];
+            dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
+            return status;
+        }
+    }
+    return kQ3Failure;
 }
 
 //=============================================================================
@@ -1169,7 +1313,23 @@ CC3OSXTracker_SetOrientation(TC3TrackerInstanceDataPtr trackerObject, TQ3Control
 TQ3Status
 CC3OSXTracker_MoveOrientation(TC3TrackerInstanceDataPtr trackerObject, TQ3ControllerRef controllerRef, const TQ3Quaternion *delta)
 {
-    return kQ3Success;
+    if (trackerObject && delta)
+    {
+        NSString *controllerUUID = (__bridge NSString *)controllerRef;
+        NSXPCConnection *connection = connectionForController(controllerUUID);
+        if (connection)
+        {
+            __block TQ3Status status = kQ3Failure;
+            dispatch_semaphore_t sema = dispatch_semaphore_create(0);
+            [[connection remoteObjectProxy] moveTrackerOrientation:*delta reply:^(TQ3Status stat) {
+                status = stat;
+                dispatch_semaphore_signal(sema);
+            }];
+            dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
+            return status;
+        }
+    }
+    return kQ3Failure;
 }
 
 //=============================================================================
@@ -1181,16 +1341,16 @@ CC3OSXTracker_SetEventCoordinates(TC3TrackerInstanceDataPtr trackerObject, TQ3Un
     if (trackerObject)
     {
         TC3TrackerInstanceDataXPC *trackerXPC = (TC3TrackerInstanceDataXPC *)trackerObject;
-        
+
         __block TQ3Status status = kQ3Failure;
         dispatch_semaphore_t sema = dispatch_semaphore_create(0);
-        
+
         NSXPCConnection *connection = nil;
         if (connectionToDeviceDB(&connection) == kQ3Success)
         {
             TQ3Point3D pos = position ? *position : (TQ3Point3D){0, 0, 0};
             TQ3Quaternion orient = orientation ? *orientation : (TQ3Quaternion){1, 0, 0, 0};
-            
+
             [[connection remoteObjectProxy] setEventCoordinatesForTracker:trackerXPC->trackerUUID
                                                                 timestamp:timeStamp
                                                                   buttons:buttons
@@ -1200,7 +1360,7 @@ CC3OSXTracker_SetEventCoordinates(TC3TrackerInstanceDataPtr trackerObject, TQ3Un
                 status = stat;
                 dispatch_semaphore_signal(sema);
             }];
-            
+
             dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
             return status;
         }
@@ -1217,16 +1377,16 @@ CC3OSXTracker_GetEventCoordinates(TC3TrackerInstanceDataPtr trackerObject, TQ3Un
     if (trackerObject)
     {
         TC3TrackerInstanceDataXPC *trackerXPC = (TC3TrackerInstanceDataXPC *)trackerObject;
-        
+
         __block TQ3Status status = kQ3Failure;
         dispatch_semaphore_t sema = dispatch_semaphore_create(0);
-        
+
         NSXPCConnection *connection = nil;
         if (connectionToDeviceDB(&connection) == kQ3Success)
         {
             [[connection remoteObjectProxy] getEventCoordinatesForTracker:trackerXPC->trackerUUID
                                                                 timestamp:timeStamp
-                                                                    reply:^(TQ3Uns32 btns, 
+                                                                    reply:^(TQ3Uns32 btns,
                                                                            TQ3Point3D pos,
                                                                            TQ3Quaternion orient,
                                                                            TQ3Status stat) {
@@ -1236,7 +1396,7 @@ CC3OSXTracker_GetEventCoordinates(TC3TrackerInstanceDataPtr trackerObject, TQ3Un
                 status = stat;
                 dispatch_semaphore_signal(sema);
             }];
-            
+
             dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
             return status;
         }
@@ -1261,17 +1421,14 @@ static void CC3OSX_CleanupXPCConnections(void)
         [conn invalidate];
     }];
     [controllerConnections removeAllObjects];
-    
-    // Clean up controller instances
-    [controllerInstances removeAllObjects];
-    
+
     // Stop device DB listener
     [deviceDBListener invalidate];
     deviceDBListener = nil;
-    
+
     // Release device DB
     sharedDeviceDB = nil;
-    
+
 #if Q3_DEBUG
     NSLog(@"Cleaned up in-process XPC connections");
 #endif

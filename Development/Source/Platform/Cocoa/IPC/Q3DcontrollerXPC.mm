@@ -186,8 +186,9 @@
 
 - (void)setActivation:(TQ3Boolean)active reply:(void (^)(TQ3Status))reply
 {
+    NSLog(@"setActivation:reply: called for %@, active=%d", _UUID, active);
     _isActive = active;
-    
+
     // Increment list serial number
     [_publicDB incControllerListSerialNumber];
     
@@ -464,9 +465,7 @@
 
 - (void)newStateWithReply:(void (^)(NSString * _Nullable, TQ3Status))reply
 {
-    CFUUIDRef aStateUUID = CFUUIDCreate(kCFAllocatorDefault);
-	NSString *stateUUIDString = ( NSString *)CFUUIDCreateString(kCFAllocatorDefault, aStateUUID);
-    CFRelease(aStateUUID);
+    NSString *stateUUIDString = [[NSUUID UUID] UUIDString];
     
     if (_driverStateConnection)
     {
