@@ -82,10 +82,14 @@ typedef struct TC3TrackerInstanceData
     TrackerCoreOSX* instance;
 } TC3TrackerInstanceData;
 
+#define TC3_MAX_SAVED_CHANNELS  256
+
 typedef struct TC3ControllerStateInstanceData
 {
     TQ3ControllerRef    myController;
     NSString            *ctrlStateUUIDString;
+    TQ3Uns32            savedChannelCount;
+    TQ3Uns32            savedChannelData[TC3_MAX_SAVED_CHANNELS];
 } TC3ControllerStateInstanceData;
 
 typedef struct TC3ControllerInstanceData

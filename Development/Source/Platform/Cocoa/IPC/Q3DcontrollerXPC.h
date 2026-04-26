@@ -47,8 +47,52 @@
 #import <Foundation/Foundation.h>
 #import "Q3Ddb.h"
 #import "IPCprotocolXPC.h"
+#include "QuesaController.h"
 
 NS_ASSUME_NONNULL_BEGIN
+
+// ============================================================================
+// Q3TrackerXPC — in-process XPC tracker object
+// ============================================================================
+
+@interface Q3TrackerXPC : NSObject <Q3XPCTracker, NSXPCListenerDelegate>
+
+@property (nonatomic, assign) TQ3Boolean isActive;
+@property (nonatomic, assign) TQ3Uns32   theButtons;
+@property (nonatomic, assign) TQ3Point3D     position;
+@property (nonatomic, assign) TQ3Quaternion  orientation;
+@property (nonatomic, assign) TQ3Uns32   positionSerialNumber;
+@property (nonatomic, assign) TQ3Uns32   orientationSerialNumber;
+@property (nonatomic, assign) float      positionThreshold;
+@property (nonatomic, assign) float      orientationThreshold;
+@property (nonatomic, assign) TQ3TrackerNotifyFunc notifyFunc;
+@property (nonatomic, assign) TQ3Object  trackerObject;
+@property (nonatomic, copy)   NSString  *trackerUUID;
+@property (nonatomic, readonly, nullable) NSXPCListenerEndpoint *listenerEndpoint;
+
+- (instancetype)initWithUUID:(NSString *)uuid
+                  notifyFunc:(nullable TQ3TrackerNotifyFunc)func
+               trackerObject:(nullable TQ3Object)obj;
+
+- (void)addEventTimestamp:(TQ3Uns32)ts
+                  buttons:(TQ3Uns32)btns
+                 position:(nullable const TQ3Point3D *)pos
+              orientation:(nullable const TQ3Quaternion *)orient;
+
+- (TQ3Status)getEventAtOrBeforeTimestamp:(TQ3Uns32)ts
+                                 buttons:(nullable TQ3Uns32 *)btns
+                                position:(nullable TQ3Point3D *)pos
+                             orientation:(nullable TQ3Quaternion *)orient;
+
+@end
+
+// Registry of active tracker objects (keyed by UUID)
+void Q3TrackerXPC_Register(NSString *uuid, Q3TrackerXPC *tracker);
+void Q3TrackerXPC_Unregister(NSString *uuid);
+NSXPCListenerEndpoint * _Nullable Q3TrackerXPC_EndpointForUUID(NSString *uuid);
+Q3TrackerXPC * _Nullable Q3TrackerXPC_ForUUID(NSString *uuid);
+
+// ============================================================================
 
 @interface Q3DcontrollerXPC : NSObject <Q3XPCController, NSXPCListenerDelegate>
 
@@ -75,6 +119,10 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, assign) TQ3Boolean isDecommissioned;
 @property (nonatomic, assign) TQ3Uns32 serialNumber;
 @property (nonatomic, assign) TQ3Uns32 theButtons;
+
+// Channel methods (C function pointers stored directly)
+@property (nonatomic, assign, nullable) TQ3ChannelSetMethod channelSetMethod;
+@property (nonatomic, assign, nullable) TQ3ChannelGetMethod channelGetMethod;
 
 // Values storage
 @property (nonatomic, assign, nullable) float *valuesRef;

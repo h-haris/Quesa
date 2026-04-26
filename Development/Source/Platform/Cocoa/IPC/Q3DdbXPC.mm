@@ -110,7 +110,6 @@
 - (void)incControllerListSerialNumber
 {
     _controllerListSerialNumber++;
-    NSLog(@"incControllerListSerialNumber: serial now %u", (unsigned)_controllerListSerialNumber);
 }
 
 #pragma mark - NSXPCListenerDelegate
@@ -186,7 +185,7 @@
         theControllerObject = [[Q3DcontrollerXPC alloc] initWithParametersDB:self
                                                               controllerUUID:aControllerUUID
                                                              driverStateUUID:aControllerDriverUUID
-                                                               controllerRef:(__bridge TQ3ControllerRef)(void *)aControllerRefString
+                                                               controllerRef:(__bridge TQ3ControllerRef)aControllerRefString
                                                                   valueCount:valCnt
                                                                 channelCount:chanCnt
                                                                    signature:sig
@@ -209,7 +208,7 @@
 - (void)nextCC3Controller:(NSString *)currentControllerUUID reply:(void (^)(NSString * _Nullable))reply
 {
     NSUInteger idx;
-    
+
     if (currentControllerUUID == nil)
     {
         idx = 0;
@@ -224,15 +223,15 @@
         }
         idx++;
     }
-    
+
+    // Skip decommissioned controllers
+    while (idx < _controllerObjects.count && _controllerObjects[idx].isDecommissioned == kQ3True)
+        idx++;
+
     if (idx >= _controllerObjects.count)
-    {
         reply(nil);
-    }
     else
-    {
         reply(_controllerObjects[idx].UUID);
-    }
 }
 
 - (void)getListChangedWithReply:(void (^)(TQ3Boolean, TQ3Uns32, TQ3Status))reply
@@ -290,44 +289,47 @@
     NSString *signature = controllerData[@"signature"] ?: @"";
     TQ3Uns32 valueCount = [controllerData[@"valueCount"] unsignedIntValue];
     TQ3Uns32 channelCount = [controllerData[@"channelCount"] unsignedIntValue];
-    
+
+    // Extract channel method function pointers (passed as uint64)
+    TQ3ChannelSetMethod setMethod = NULL;
+    TQ3ChannelGetMethod getMethod = NULL;
+    NSNumber *setMethodNum = controllerData[@"channelSetMethod"];
+    NSNumber *getMethodNum = controllerData[@"channelGetMethod"];
+    if (setMethodNum) setMethod = (TQ3ChannelSetMethod)(uintptr_t)[setMethodNum unsignedLongLongValue];
+    if (getMethodNum) getMethod = (TQ3ChannelGetMethod)(uintptr_t)[getMethodNum unsignedLongLongValue];
+
     Q3DcontrollerXPC *theControllerObject = nil;
-    
+
     // Check if a controller with the same signature already exists (matches PDO behavior)
     NSUInteger foundSignatureAt = [self dbIndexOfSignature:signature];
-    
+
     if (foundSignatureAt != NSNotFound)
     {
         // Reuse existing controller with same signature
         theControllerObject = _controllerObjects[foundSignatureAt];
-        
-#if Q3_DEBUG
-        NSLog(@"Reusing existing controller with signature: %@", signature);
-#endif
     }
     else
     {
         // Create new controller
         NSString *controllerUUID = [[NSUUID UUID] UUIDString];
-        NSString *driverStateUUID = [[NSUUID UUID] UUIDString];
-        
+
         theControllerObject = [[Q3DcontrollerXPC alloc] initWithParametersDB:self
-                                                                 controllerUUID:controllerUUID
-                                                                driverStateUUID:driverStateUUID
-                                                                  controllerRef:nil
-                                                                     valueCount:valueCount
-                                                                   channelCount:channelCount
-                                                                      signature:signature
-                                                            hasSetChannelMethod:kQ3False
-                                                            hasGetChannelMethod:kQ3False];
-        
+                                                               controllerUUID:controllerUUID
+                                                              driverStateUUID:nil
+                                                                controllerRef:nil
+                                                                   valueCount:valueCount
+                                                                 channelCount:channelCount
+                                                                    signature:signature
+                                                          hasSetChannelMethod:(setMethod != NULL ? kQ3True : kQ3False)
+                                                          hasGetChannelMethod:(getMethod != NULL ? kQ3True : kQ3False)];
+
         [_controllerObjects addObject:theControllerObject];
-        
-#if Q3_DEBUG
-        NSLog(@"Created new controller with signature: %@", signature);
-#endif
     }
-    
+
+    // Update channel methods (important for re-creation case)
+    theControllerObject.channelSetMethod = setMethod;
+    theControllerObject.channelGetMethod = getMethod;
+
     // Recommission and activate (matches PDO behavior)
     theControllerObject.isDecommissioned = kQ3False;
     theControllerObject.serialNumber = 1;
@@ -341,15 +343,17 @@
 - (void)decommissionController:(NSString *)controllerUUID reply:(void (^)(void))reply
 {
     NSUInteger idx = [self dbIndexOfControllerUUID:controllerUUID];
-    
+
     if (idx != NSNotFound)
     {
         Q3DcontrollerXPC *controller = _controllerObjects[idx];
         controller.isDecommissioned = kQ3True;
-        [_controllerObjects removeObjectAtIndex:idx];
+        controller.isActive = kQ3False;
+        // Keep controller in array so post-decommission queries (GetActivation, GetSignature, etc.) still work.
+        // nextCC3Controller: skips decommissioned controllers.
         [self incControllerListSerialNumber];
     }
-    
+
     reply();
 }
 
@@ -400,20 +404,14 @@
                           orientation:(TQ3Quaternion)orientation
                                 reply:(void (^)(TQ3Status))reply
 {
-    NSUInteger foundTrackerAt = [self dbIndexOfTrackerUUID:trackerUUID];
-    
-    if (foundTrackerAt != NSNotFound)
+    Q3TrackerXPC *tracker = Q3TrackerXPC_ForUUID(trackerUUID);
+    if (tracker)
     {
-        Q3DcontrollerXPC *controller = _controllerObjects[foundTrackerAt];
-        
-        // Store the event coordinates
-        [controller setButtons:buttons reply:^(TQ3Status buttonsStatus) {
-            [controller setTrackerPosition:position reply:^(TQ3Status posStatus) {
-                [controller setTrackerOrientation:orientation reply:^(TQ3Status orientStatus) {
-                    reply(kQ3Success);
-                }];
-            }];
-        }];
+        [tracker addEventTimestamp:timeStamp
+                           buttons:buttons
+                          position:&position
+                       orientation:&orientation];
+        reply(kQ3Success);
     }
     else
     {
@@ -425,25 +423,22 @@
                             timestamp:(TQ3Uns32)timeStamp
                                 reply:(void (^)(TQ3Uns32, TQ3Point3D, TQ3Quaternion, TQ3Status))reply
 {
-    NSUInteger foundTrackerAt = [self dbIndexOfTrackerUUID:trackerUUID];
-    
-    if (foundTrackerAt != NSNotFound)
+    Q3TrackerXPC *tracker = Q3TrackerXPC_ForUUID(trackerUUID);
+    if (tracker)
     {
-        Q3DcontrollerXPC *controller = _controllerObjects[foundTrackerAt];
-        
-        // Get the event coordinates
-        [controller getButtonsWithReply:^(TQ3Uns32 buttons, TQ3Status buttonsStatus) {
-            [controller getTrackerPositionWithReply:^(TQ3Point3D position, TQ3Status posStatus) {
-                [controller getTrackerOrientationWithReply:^(TQ3Quaternion orientation, TQ3Status orientStatus) {
-                    reply(buttons, position, orientation, kQ3Success);
-                }];
-            }];
-        }];
+        TQ3Uns32 buttons = 0;
+        TQ3Point3D pos = {0.0f, 0.0f, 0.0f};
+        TQ3Quaternion orient = {1.0f, 0.0f, 0.0f, 0.0f};
+        TQ3Status status = [tracker getEventAtOrBeforeTimestamp:timeStamp
+                                                        buttons:&buttons
+                                                       position:&pos
+                                                    orientation:&orient];
+        reply(buttons, pos, orient, status);
     }
     else
     {
-        TQ3Point3D zeroPos = {0, 0, 0};
-        TQ3Quaternion identityQuat = {1, 0, 0, 0};
+        TQ3Point3D zeroPos = {0.0f, 0.0f, 0.0f};
+        TQ3Quaternion identityQuat = {1.0f, 0.0f, 0.0f, 0.0f};
         reply(0, zeroPos, identityQuat, kQ3Failure);
     }
 }

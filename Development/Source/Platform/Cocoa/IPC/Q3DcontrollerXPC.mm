@@ -47,13 +47,260 @@
 
 #import "Q3DcontrollerXPC.h"
 
-#if Q3_DEBUG
 #import <Foundation/Foundation.h>
-#endif
 
 // Maximum number of values supported by a controller
 // Matches the boundary used by ControllerCoreOSX.framework
 #define Q3_CONTROLLER_MAX_VALUECOUNT 256
+
+// ============================================================================
+// Q3TrackerXPC registry
+// ============================================================================
+
+static NSMutableDictionary<NSString *, Q3TrackerXPC *> *sTrackerObjects = nil;
+
+void Q3TrackerXPC_Register(NSString *uuid, Q3TrackerXPC *tracker) {
+    if (!sTrackerObjects) sTrackerObjects = [NSMutableDictionary dictionary];
+    sTrackerObjects[uuid] = tracker;
+}
+
+void Q3TrackerXPC_Unregister(NSString *uuid) {
+    [sTrackerObjects removeObjectForKey:uuid];
+}
+
+NSXPCListenerEndpoint *Q3TrackerXPC_EndpointForUUID(NSString *uuid) {
+    return sTrackerObjects[uuid].listenerEndpoint;
+}
+
+Q3TrackerXPC * _Nullable Q3TrackerXPC_ForUUID(NSString *uuid) {
+    return sTrackerObjects[uuid];
+}
+
+// ============================================================================
+// Q3TrackerXPC implementation
+// ============================================================================
+
+// Event record stored in the tracker's event FIFO buffer
+typedef struct {
+    TQ3Uns32 timestamp;
+    TQ3Uns32 buttons;
+    TQ3Point3D position;
+    TQ3Quaternion orientation;
+} Q3TrackerEventRecord;
+
+@implementation Q3TrackerXPC {
+    NSXPCListener *_listener;
+    NSMutableArray<NSData *> *_eventBuffer; // ordered FIFO, sorted by timestamp
+}
+
+@synthesize listenerEndpoint = _listenerEndpoint;
+
+- (instancetype)initWithUUID:(NSString *)uuid
+                  notifyFunc:(TQ3TrackerNotifyFunc)func
+               trackerObject:(TQ3Object)obj
+{
+    if (self = [super init])
+    {
+        _trackerUUID = [uuid copy];
+        _notifyFunc = func;
+        _trackerObject = obj;
+        _isActive = kQ3False;
+        _theButtons = 0;
+        _position = (TQ3Point3D){0.0f, 0.0f, 0.0f};
+        _orientation = (TQ3Quaternion){1.0f, 0.0f, 0.0f, 0.0f};
+        _positionSerialNumber = 1;
+        _orientationSerialNumber = 1;
+        _positionThreshold = 0.0f;
+        _orientationThreshold = 0.0f;
+
+        _eventBuffer = [NSMutableArray array];
+
+        _listener = [NSXPCListener anonymousListener];
+        _listener.delegate = self;
+        [_listener resume];
+        _listenerEndpoint = _listener.endpoint;
+    }
+    return self;
+}
+
+- (void)addEventTimestamp:(TQ3Uns32)ts
+                  buttons:(TQ3Uns32)btns
+                 position:(const TQ3Point3D *)pos
+              orientation:(const TQ3Quaternion *)orient
+{
+    Q3TrackerEventRecord rec;
+    rec.timestamp = ts;
+    rec.buttons = btns;
+    rec.position = pos ? *pos : (TQ3Point3D){0.0f, 0.0f, 0.0f};
+    rec.orientation = orient ? *orient : (TQ3Quaternion){1.0f, 0.0f, 0.0f, 0.0f};
+    [_eventBuffer addObject:[NSData dataWithBytes:&rec length:sizeof(rec)]];
+}
+
+// Returns kQ3Success if an event with timestamp <= ts is found; removes it from buffer.
+- (TQ3Status)getEventAtOrBeforeTimestamp:(TQ3Uns32)ts
+                                 buttons:(TQ3Uns32 *)btns
+                                position:(TQ3Point3D *)pos
+                             orientation:(TQ3Quaternion *)orient
+{
+    for (NSUInteger i = 0; i < _eventBuffer.count; i++) {
+        Q3TrackerEventRecord rec;
+        [_eventBuffer[i] getBytes:&rec length:sizeof(rec)];
+        if (rec.timestamp <= ts) {
+            if (btns)   *btns = rec.buttons;
+            if (pos)    *pos  = rec.position;
+            if (orient) *orient = rec.orientation;
+            [_eventBuffer removeObjectAtIndex:i];
+            return kQ3Success;
+        }
+    }
+    return kQ3Failure;
+}
+
+#pragma mark - NSXPCListenerDelegate
+
+- (BOOL)listener:(NSXPCListener *)listener shouldAcceptNewConnection:(NSXPCConnection *)conn
+{
+    conn.exportedInterface = [NSXPCInterface interfaceWithProtocol:@protocol(Q3XPCTracker)];
+    conn.exportedObject = self;
+    [conn resume];
+    return YES;
+}
+
+#pragma mark - Q3XPCTracker Protocol
+
+- (void)callNotificationWithController:(NSString *)controllerUUID reply:(void (^)(TQ3Status))reply
+{
+    if (_notifyFunc && _trackerObject)
+    {
+        _notifyFunc(_trackerObject, (__bridge TQ3ControllerRef)controllerUUID);
+    }
+    reply(kQ3Success);
+}
+
+- (void)setActivation:(TQ3Boolean)active reply:(void (^)(TQ3Status))reply
+{
+    _isActive = active;
+    reply(kQ3Success);
+}
+
+- (void)getActivationWithReply:(void (^)(TQ3Boolean, TQ3Status))reply
+{
+    reply(_isActive, kQ3Success);
+}
+
+- (void)changeButtonsWithController:(NSString *)controllerUUID
+                            buttons:(TQ3Uns32)theButtons
+                         buttonMask:(TQ3Uns32)aButtonMask
+                              reply:(void (^)(TQ3Status))reply
+{
+    TQ3Uns32 newButtons = (_theButtons & ~aButtonMask) | (theButtons & aButtonMask);
+    BOOL changed = (newButtons != _theButtons);
+    _theButtons = newButtons;
+
+    if (changed && _notifyFunc && _trackerObject)
+    {
+        _notifyFunc(_trackerObject, (__bridge TQ3ControllerRef)controllerUUID);
+    }
+
+    reply(kQ3Success);
+}
+
+- (void)getPositionWithReply:(void (^)(TQ3Uns32, TQ3Point3D, TQ3Vector3D, TQ3Boolean, TQ3Status))reply
+{
+    TQ3Vector3D zeroDelta = {0.0f, 0.0f, 0.0f};
+    if (_isActive == kQ3True)
+    {
+        reply(_positionSerialNumber, _position, zeroDelta, kQ3False, kQ3Success);
+    }
+    else
+    {
+        TQ3Point3D zeroPos = {0.0f, 0.0f, 0.0f};
+        reply(0, zeroPos, zeroDelta, kQ3False, kQ3Success);
+    }
+}
+
+- (void)setPositionWithController:(NSString *)controllerUUID
+                         position:(TQ3Point3D)aPosition
+                            reply:(void (^)(TQ3Status))reply
+{
+    _position = aPosition;
+    _positionSerialNumber++;
+
+    if (_notifyFunc && _trackerObject)
+    {
+        _notifyFunc(_trackerObject, (__bridge TQ3ControllerRef)controllerUUID);
+    }
+
+    reply(kQ3Success);
+}
+
+- (void)movePositionWithController:(NSString *)controllerUUID
+                             delta:(TQ3Vector3D)aDelta
+                             reply:(void (^)(TQ3Status))reply
+{
+    _position.x += aDelta.x;
+    _position.y += aDelta.y;
+    _position.z += aDelta.z;
+    _positionSerialNumber++;
+
+    if (_notifyFunc && _trackerObject)
+    {
+        _notifyFunc(_trackerObject, (__bridge TQ3ControllerRef)controllerUUID);
+    }
+
+    reply(kQ3Success);
+}
+
+- (void)getOrientationWithReply:(void (^)(TQ3Uns32, TQ3Quaternion, TQ3Quaternion, TQ3Boolean, TQ3Status))reply
+{
+    TQ3Quaternion identityDelta = {1.0f, 0.0f, 0.0f, 0.0f};
+    if (_isActive == kQ3True)
+    {
+        reply(_orientationSerialNumber, _orientation, identityDelta, kQ3False, kQ3Success);
+    }
+    else
+    {
+        TQ3Quaternion identityOrient = {1.0f, 0.0f, 0.0f, 0.0f};
+        reply(0, identityOrient, identityDelta, kQ3False, kQ3Success);
+    }
+}
+
+- (void)setOrientationWithController:(NSString *)controllerUUID
+                         orientation:(TQ3Quaternion)anOrientation
+                               reply:(void (^)(TQ3Status))reply
+{
+    _orientation = anOrientation;
+    _orientationSerialNumber++;
+
+    if (_notifyFunc && _trackerObject)
+    {
+        _notifyFunc(_trackerObject, (__bridge TQ3ControllerRef)controllerUUID);
+    }
+
+    reply(kQ3Success);
+}
+
+- (void)moveOrientationWithController:(NSString *)controllerUUID
+                                delta:(TQ3Quaternion)aDelta
+                                reply:(void (^)(TQ3Status))reply
+{
+    // Quaternion multiply: new = aDelta * current
+    TQ3Quaternion cur = _orientation;
+    _orientation.w = aDelta.w*cur.w - aDelta.x*cur.x - aDelta.y*cur.y - aDelta.z*cur.z;
+    _orientation.x = aDelta.w*cur.x + aDelta.x*cur.w + aDelta.y*cur.z - aDelta.z*cur.y;
+    _orientation.y = aDelta.w*cur.y - aDelta.x*cur.z + aDelta.y*cur.w + aDelta.z*cur.x;
+    _orientation.z = aDelta.w*cur.z + aDelta.x*cur.y - aDelta.y*cur.x + aDelta.z*cur.w;
+    _orientationSerialNumber++;
+
+    if (_notifyFunc && _trackerObject)
+    {
+        _notifyFunc(_trackerObject, (__bridge TQ3ControllerRef)controllerUUID);
+    }
+
+    reply(kQ3Success);
+}
+
+@end
 
 @implementation Q3DcontrollerXPC
 
@@ -92,8 +339,9 @@
         _isDecommissioned = kQ3False;
         _isActive = kQ3False;
         
-        // Setup XPC connection to driver state
-        [self setupDriverStateConnection];
+        // Channel methods are stored as direct function pointers (set by Q3DdbXPC via newController:)
+        _channelSetMethod = NULL;
+        _channelGetMethod = NULL;
         
 #if Q3_DEBUG
         NSLog(@"Q3DcontrollerXPC initialized: %@", _UUID);
@@ -110,7 +358,6 @@
         _valuesRef = nullptr;
     }
     
-    [_driverStateConnection invalidate];
     [_trackerConnection invalidate];
     
     // Note: [super dealloc] is automatically called by ARC
@@ -118,51 +365,39 @@
 
 #pragma mark - Private Setup Methods
 
-- (void)setupDriverStateConnection
-{
-    NSString *serviceUUID = _driverStateUUID;
-    if (!serviceUUID)
-        return;
-    
-    _driverStateConnection = [[NSXPCConnection alloc] initWithServiceName:serviceUUID];
-    _driverStateConnection.remoteObjectInterface = [NSXPCInterface interfaceWithProtocol:@protocol(Q3XPCControllerDriverState)];
-    
-    _driverStateConnection.interruptionHandler = ^{
-        NSLog(@"Driver state connection interrupted for %@", self.UUID);
-    };
-    
-    _driverStateConnection.invalidationHandler = ^{
-        NSLog(@"Driver state connection invalidated for %@", self.UUID);
-        self.driverStateConnection = nil;
-    };
-    
-    [_driverStateConnection resume];
-}
+// setupDriverStateConnection removed — channel methods are now stored as direct function pointers
 
 - (void)setupTrackerConnection
 {
     NSString *trackerUUID = _trackerUUID;
     if (!trackerUUID)
         return;
-    
+
     if (_trackerConnection)
     {
         [_trackerConnection invalidate];
         _trackerConnection = nil;
     }
-    
-    _trackerConnection = [[NSXPCConnection alloc] initWithServiceName:trackerUUID];
+
+    NSXPCListenerEndpoint *endpoint = Q3TrackerXPC_EndpointForUUID(trackerUUID);
+    if (!endpoint)
+    {
+        NSLog(@"setupTrackerConnection: no endpoint for tracker UUID %@", trackerUUID);
+        return;
+    }
+
+    _trackerConnection = [[NSXPCConnection alloc] initWithListenerEndpoint:endpoint];
     _trackerConnection.remoteObjectInterface = [NSXPCInterface interfaceWithProtocol:@protocol(Q3XPCTracker)];
-    
+
     _trackerConnection.interruptionHandler = ^{
         NSLog(@"Tracker connection interrupted for %@", self.trackerUUID);
     };
-    
+
     _trackerConnection.invalidationHandler = ^{
         NSLog(@"Tracker connection invalidated for %@", self.trackerUUID);
         self.trackerConnection = nil;
     };
-    
+
     [_trackerConnection resume];
 }
 
@@ -179,14 +414,13 @@
 - (void)getSignatureWithReply:(void (^)(NSString * _Nullable, TQ3Status))reply
 {
     if (_isDecommissioned == kQ3True)
-        reply(nil, kQ3Success);
+        reply(@"", kQ3Success);  // Empty string so caller's buffer gets zeroed
     else
         reply(_signature, kQ3Success);
 }
 
 - (void)setActivation:(TQ3Boolean)active reply:(void (^)(TQ3Status))reply
 {
-    NSLog(@"setActivation:reply: called for %@, active=%d", _UUID, active);
     _isActive = active;
 
     // Increment list serial number
@@ -221,18 +455,19 @@
     {
         TQ3Uns32 buttonMask = _theButtons ^ buttons;
         _theButtons = buttons;
-        
+
         if (_trackerUUID && _trackerConnection)
         {
             [[_trackerConnection remoteObjectProxy] changeButtonsWithController:_UUID
                                                                         buttons:buttons
                                                                      buttonMask:buttonMask
                                                                           reply:^(TQ3Status status) {
-                // Buttons changed
+                reply(kQ3Success);
             }];
+            return;
         }
     }
-    
+
     reply(kQ3Success);
 }
 
@@ -272,7 +507,7 @@
 
 - (void)getTrackerPositionWithReply:(void (^)(TQ3Point3D, TQ3Status))reply
 {
-    if (_isActive == kQ3True && _trackerUUID && _trackerConnection)
+    if (_trackerUUID && _trackerConnection)
     {
         [[_trackerConnection remoteObjectProxy] getPositionWithReply:^(TQ3Uns32 serialNumber,
                                                                         TQ3Point3D position,
@@ -319,7 +554,7 @@
 
 - (void)getTrackerOrientationWithReply:(void (^)(TQ3Quaternion, TQ3Status))reply
 {
-    if (_isActive == kQ3True && _trackerUUID && _trackerConnection)
+    if (_trackerUUID && _trackerConnection)
     {
         [[_trackerConnection remoteObjectProxy] getOrientationWithReply:^(TQ3Uns32 serialNumber,
                                                                            TQ3Quaternion orientation,
@@ -438,82 +673,44 @@
 
 - (void)setChannel:(TQ3Uns32)channel withData:(NSData *)data ofSize:(TQ3Uns32)dataSize reply:(void (^)(TQ3Status))reply
 {
-    if (_driverStateConnection)
+    if (_channelSetMethod && data)
     {
-        [[_driverStateConnection remoteObjectProxy] setChannel:channel
-                                                       withData:data
-                                                         ofSize:dataSize
-                                                          reply:reply];
+        _channelSetMethod(_controllerRef, channel, data.bytes, dataSize);
     }
-    else
-    {
-        reply(kQ3Failure);
-    }
+    reply(kQ3Success);
 }
 
 - (void)getChannel:(TQ3Uns32)channel reply:(void (^)(NSData * _Nullable, TQ3Uns32, TQ3Status))reply
 {
-    if (_driverStateConnection)
+    uint8_t buf[256] = {0};
+    TQ3Uns32 size = sizeof(buf);
+    if (_channelGetMethod)
     {
-        [[_driverStateConnection remoteObjectProxy] getChannel:channel reply:reply];
+        _channelGetMethod(_controllerRef, channel, buf, &size);  // return value intentionally ignored
     }
-    else
-    {
-        reply(nil, 0, kQ3Failure);
-    }
+    // QD3D always overrides the status to kQ3Success
+    reply([NSData dataWithBytes:buf length:size], size, kQ3Success);
 }
 
 - (void)newStateWithReply:(void (^)(NSString * _Nullable, TQ3Status))reply
 {
-    NSString *stateUUIDString = [[NSUUID UUID] UUIDString];
-    
-    if (_driverStateConnection)
-    {
-        [[_driverStateConnection remoteObjectProxy] newDrvStateWithUUID:stateUUIDString
-                                                                  reply:^(TQ3Status status) {
-            reply(stateUUIDString, status);
-        }];
-    }
-    else
-    {
-        reply(nil, kQ3Failure);
-    }
+    // State save/restore is handled by CC3OSXControllerState_SaveAndReset/Restore directly
+    reply(nil, kQ3Failure);
 }
 
 - (void)deleteStateWithUUID:(NSString *)stateUUID reply:(void (^)(TQ3Status))reply
 {
-    if (_driverStateConnection)
-    {
-        [[_driverStateConnection remoteObjectProxy] deleteDrvStateWithUUID:stateUUID reply:reply];
-    }
-    else
-    {
-        reply(kQ3Failure);
-    }
+    reply(kQ3Failure);
 }
 
 - (void)saveResetStateWithUUID:(NSString *)stateUUID reply:(void (^)(TQ3Status))reply
 {
-    if (_driverStateConnection)
-    {
-        [[_driverStateConnection remoteObjectProxy] saveDrvResetStateWithUUID:stateUUID reply:reply];
-    }
-    else
-    {
-        reply(kQ3Failure);
-    }
+    reply(kQ3Failure);
 }
 
 - (void)restoreStateWithUUID:(NSString *)stateUUID reply:(void (^)(TQ3Status))reply
 {
-    if (_driverStateConnection)
-    {
-        [[_driverStateConnection remoteObjectProxy] restoreDrvStateWithUUID:stateUUID reply:reply];
-    }
-    else
-    {
-        reply(kQ3Failure);
-    }
+    reply(kQ3Failure);
 }
 
 #pragma mark - NSXPCListenerDelegate

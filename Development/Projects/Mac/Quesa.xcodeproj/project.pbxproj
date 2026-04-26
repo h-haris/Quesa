@@ -43,9 +43,10 @@
 		7F961EA0262435D6004186DF /* QuesaController.h in Headers */ = {isa = PBXBuildFile; fileRef = 7F55E9CF239A8B6E00468537 /* QuesaController.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		7FAFC28A251B98D100013244 /* TrackerCoreOSX.mm in Sources */ = {isa = PBXBuildFile; fileRef = 7F00A018251B8E2400ED9F40 /* TrackerCoreOSX.mm */; };
 		7FAFC28E251B98D300013244 /* ControllerDriverCoreOSX.mm in Sources */ = {isa = PBXBuildFile; fileRef = 7F00A017251B8E2400ED9F40 /* ControllerDriverCoreOSX.mm */; };
-		7FAFC292251B98D600013244 /* ControllerCoreOSX.mm in Sources */ = {isa = PBXBuildFile; fileRef = 7F00A015251B8E2400ED9F40 /* ControllerCoreOSX.mm */; };
+		7FAFC292251B98D600013244 /* ControllerCoreOSX.mm in Sources */ = {isa = PBXBuildFile; fileRef = 7F00A015251B8E2400ED9F40 /* ControllerCoreOSX.mm */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
+		7FB9926F2F9E28E50008CAC2 /* E3MacLog.mm in Sources */ = {isa = PBXBuildFile; fileRef = BE513DC022BAF18400545AF8 /* E3MacLog.mm */; };
 		7FCCBF932F95211000AB5675 /* Q3DdbXPC.h in Headers */ = {isa = PBXBuildFile; fileRef = 7FCCBF922F95211000AB5675 /* Q3DdbXPC.h */; };
-		7FCCBF952F95220800AB5675 /* Q3DdbXPC.mm in Sources */ = {isa = PBXBuildFile; fileRef = 7FF471182F94D4B30018476E /* Q3DdbXPC.mm */; };
+		7FCCBF952F95220800AB5675 /* Q3DdbXPC.mm in Sources */ = {isa = PBXBuildFile; fileRef = 7FF471182F94D4B30018476E /* Q3DdbXPC.mm */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		7FF4711D2F94D4F70018476E /* IPCConfiguration.h in Headers */ = {isa = PBXBuildFile; fileRef = 7FF4711C2F94D4F70018476E /* IPCConfiguration.h */; };
 		7FF4712F2F94F10E0018476E /* Quesa.h in Headers */ = {isa = PBXBuildFile; fileRef = AB83B5D8055E72B90034F56A /* Quesa.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		7FF471302F94F10E0018476E /* TrackerCoreOSX.h in Headers */ = {isa = PBXBuildFile; fileRef = 7F00A019251B8E2400ED9F40 /* TrackerCoreOSX.h */; };
@@ -113,7 +114,7 @@
 		7FF471732F94F10E0018476E /* QD3DGeometry.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AB3A7BB8055E63B100CA83BE /* QD3DGeometry.cpp */; };
 		7FF471742F94F10E0018476E /* QD3DGroup.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AB3A7BB9055E63B100CA83BE /* QD3DGroup.cpp */; };
 		7FF471752F94F10E0018476E /* render.c in Sources */ = {isa = PBXBuildFile; fileRef = BE6D5785261D188300F44B8D /* render.c */; };
-		7FF471762F94F10E0018476E /* Q3DcontrollerXPC.mm in Sources */ = {isa = PBXBuildFile; fileRef = 7FF471162F94D48B0018476E /* Q3DcontrollerXPC.mm */; };
+		7FF471762F94F10E0018476E /* Q3DcontrollerXPC.mm in Sources */ = {isa = PBXBuildFile; fileRef = 7FF471162F94D48B0018476E /* Q3DcontrollerXPC.mm */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		7FF471772F94F10E0018476E /* QD3DIO.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AB3A7BBA055E63B100CA83BE /* QD3DIO.cpp */; };
 		7FF471782F94F10E0018476E /* tess.c in Sources */ = {isa = PBXBuildFile; fileRef = BE6D5784261D188300F44B8D /* tess.c */; };
 		7FF471792F94F10E0018476E /* QOGLSLShaders.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BE2BCA3023F4BE6C00AE7F4A /* QOGLSLShaders.cpp */; };
@@ -139,7 +140,7 @@
 		7FF4718D2F94F10E0018476E /* E3Pool.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AB3A7BD7055E63B100CA83BE /* E3Pool.cpp */; };
 		7FF4718E2F94F10E0018476E /* E3System.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AB3A7BDB055E63B100CA83BE /* E3System.cpp */; };
 		7FF4718F2F94F10E0018476E /* QD3DController.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7F55E9C7239A8A8800468537 /* QD3DController.cpp */; };
-		7FF471902F94F10E0018476E /* ControllerCoreOSX_XPC.mm in Sources */ = {isa = PBXBuildFile; fileRef = 7FF4711A2F94D4E20018476E /* ControllerCoreOSX_XPC.mm */; };
+		7FF471902F94F10E0018476E /* ControllerCoreOSX_XPC.mm in Sources */ = {isa = PBXBuildFile; fileRef = 7FF4711A2F94D4E20018476E /* ControllerCoreOSX_XPC.mm */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		7FF471912F94F10E0018476E /* E3Tessellate.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AB3A7BDD055E63B100CA83BE /* E3Tessellate.cpp */; };
 		7FF471922F94F10E0018476E /* E3Utils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AB3A7BDF055E63B100CA83BE /* E3Utils.cpp */; };
 		7FF471932F94F10E0018476E /* E3Camera.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AB3A7BE3055E63B100CA83BE /* E3Camera.cpp */; };
@@ -161,7 +162,7 @@
 		7FF471A42F94F10E0018476E /* E3Shader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AB3A7C03055E63B100CA83BE /* E3Shader.cpp */; };
 		7FF471A52F94F10E0018476E /* E3Storage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AB3A7C05055E63B100CA83BE /* E3Storage.cpp */; };
 		7FF471A62F94F10E0018476E /* E3String.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AB3A7C07055E63B100CA83BE /* E3String.cpp */; };
-		7FF471A72F94F10E0018476E /* ControllerDriverCoreOSX.mm in Sources */ = {isa = PBXBuildFile; fileRef = 7F00A017251B8E2400ED9F40 /* ControllerDriverCoreOSX.mm */; };
+		7FF471A72F94F10E0018476E /* ControllerDriverCoreOSX.mm in Sources */ = {isa = PBXBuildFile; fileRef = 7F00A017251B8E2400ED9F40 /* ControllerDriverCoreOSX.mm */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		7FF471A82F94F10E0018476E /* E3Style.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AB3A7C09055E63B100CA83BE /* E3Style.cpp */; };
 		7FF471A92F94F10E0018476E /* E3Texture.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AB3A7C0B055E63B100CA83BE /* E3Texture.cpp */; };
 		7FF471AA2F94F10E0018476E /* E3Transform.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AB3A7C0D055E63B100CA83BE /* E3Transform.cpp */; };
@@ -440,7 +441,6 @@
 		BE2BCA3223F4BE6C00AE7F4A /* QOGLSLShaders.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BE2BCA3023F4BE6C00AE7F4A /* QOGLSLShaders.cpp */; };
 		BE2BCA3323F4BE6C00AE7F4A /* QOGLSLShaders.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BE2BCA3023F4BE6C00AE7F4A /* QOGLSLShaders.cpp */; };
 		BE392D090B6D0CCA00A351AC /* CQ3ObjectRef_Gets.h in Headers */ = {isa = PBXBuildFile; fileRef = BE392D070B6D0CCA00A351AC /* CQ3ObjectRef_Gets.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		BE513DC222BAF18400545AF8 /* E3MacLog.mm in Sources */ = {isa = PBXBuildFile; fileRef = BE513DC022BAF18400545AF8 /* E3MacLog.mm */; };
 		BE513DC322BAF18400545AF8 /* E3MacLog.mm in Sources */ = {isa = PBXBuildFile; fileRef = BE513DC022BAF18400545AF8 /* E3MacLog.mm */; };
 		BE59B562145B8D5B0027E0DE /* GLShadowVolumeManager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BE59B561145B8D5B0027E0DE /* GLShadowVolumeManager.cpp */; };
 		BE59B564145B8D5B0027E0DE /* GLShadowVolumeManager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BE59B561145B8D5B0027E0DE /* GLShadowVolumeManager.cpp */; };
