@@ -145,9 +145,12 @@
         NSLog(@"Tracker connection interrupted for %@", self.trackerUUID);
     };
 
+    __weak NSXPCConnection *weakConn = _trackerConnection;
     _trackerConnection.invalidationHandler = ^{
         NSLog(@"Tracker connection invalidated for %@", self.trackerUUID);
-        self.trackerConnection = nil;
+        if (self.trackerConnection == weakConn) {
+            self.trackerConnection = nil;
+        }
     };
 
     [_trackerConnection resume];

@@ -445,6 +445,10 @@ CC3OSXController_GetValues(TQ3ControllerRef controllerRef, TQ3Uns32 valueCount, 
                     if (changed) *changed = (*serialNumber != serNum) ? kQ3True : kQ3False;
                     *serialNumber = serNum;
                 }
+                else
+                {
+                    if (changed) *changed = kQ3True;
+                }
             }
             else
             {
@@ -1256,7 +1260,7 @@ CC3OSXTracker_GetPosition(TC3TrackerInstanceDataPtr trackerObject, TQ3Point3D *p
                 TQ3Uns32 currentSerial = xpcObj.positionSerialNumber;
                 if (position) *position = xpcObj.position;
                 if (delta)    { delta->x = delta->y = delta->z = 0.0f; }
-                if (changed)  *changed = (serialNumber && *serialNumber != currentSerial) ? kQ3True : kQ3False;
+                if (changed)  *changed = (!serialNumber || *serialNumber != currentSerial) ? kQ3True : kQ3False;
                 if (serialNumber) *serialNumber = currentSerial;
             }
             else
@@ -1343,7 +1347,7 @@ CC3OSXTracker_GetOrientation(TC3TrackerInstanceDataPtr trackerObject, TQ3Quatern
                 TQ3Uns32 currentSerial = xpcObj.orientationSerialNumber;
                 if (orientation) *orientation = xpcObj.orientation;
                 if (delta)       { delta->w = 1.0f; delta->x = delta->y = delta->z = 0.0f; }
-                if (changed)     *changed = (serialNumber && *serialNumber != currentSerial) ? kQ3True : kQ3False;
+                if (changed)     *changed = (!serialNumber || *serialNumber != currentSerial) ? kQ3True : kQ3False;
                 if (serialNumber) *serialNumber = currentSerial;
             }
             else
