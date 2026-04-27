@@ -775,13 +775,13 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		7F00A015251B8E2400ED9F40 /* ControllerCoreOSX.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = ControllerCoreOSX.mm; path = ControllerCoreOSX/ControllerCoreOSX.mm; sourceTree = "<group>"; };
-		7F00A016251B8E2400ED9F40 /* ControllerCoreOSXinternals.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ControllerCoreOSXinternals.h; path = ControllerCoreOSX/ControllerCoreOSXinternals.h; sourceTree = "<group>"; };
-		7F00A017251B8E2400ED9F40 /* ControllerDriverCoreOSX.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = ControllerDriverCoreOSX.mm; path = ControllerCoreOSX/ControllerDriverCoreOSX.mm; sourceTree = "<group>"; };
-		7F00A018251B8E2400ED9F40 /* TrackerCoreOSX.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = TrackerCoreOSX.mm; path = ControllerCoreOSX/TrackerCoreOSX.mm; sourceTree = "<group>"; };
-		7F00A019251B8E2400ED9F40 /* TrackerCoreOSX.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TrackerCoreOSX.h; path = ControllerCoreOSX/TrackerCoreOSX.h; sourceTree = "<group>"; };
-		7F00A01A251B8E2400ED9F40 /* ControllerCoreOSX.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ControllerCoreOSX.h; path = ControllerCoreOSX/ControllerCoreOSX.h; sourceTree = "<group>"; };
-		7F00A01B251B8E2400ED9F40 /* ControllerDriverCoreOSX.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ControllerDriverCoreOSX.h; path = ControllerCoreOSX/ControllerDriverCoreOSX.h; sourceTree = "<group>"; };
+		7F00A015251B8E2400ED9F40 /* ControllerCoreOSX.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = ControllerCoreOSX.mm; path = ControllerCoreOSX.mm; sourceTree = "<group>"; };
+		7F00A016251B8E2400ED9F40 /* ControllerCoreOSXinternals.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ControllerCoreOSXinternals.h; path = ControllerCoreOSXinternals.h; sourceTree = "<group>"; };
+		7F00A017251B8E2400ED9F40 /* ControllerDriverCoreOSX.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = ControllerDriverCoreOSX.mm; path = ControllerDriverCoreOSX.mm; sourceTree = "<group>"; };
+		7F00A018251B8E2400ED9F40 /* TrackerCoreOSX.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = TrackerCoreOSX.mm; path = TrackerCoreOSX.mm; sourceTree = "<group>"; };
+		7F00A019251B8E2400ED9F40 /* TrackerCoreOSX.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TrackerCoreOSX.h; path = TrackerCoreOSX.h; sourceTree = "<group>"; };
+		7F00A01A251B8E2400ED9F40 /* ControllerCoreOSX.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ControllerCoreOSX.h; path = ControllerCoreOSX.h; sourceTree = "<group>"; };
+		7F00A01B251B8E2400ED9F40 /* ControllerDriverCoreOSX.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ControllerDriverCoreOSX.h; path = ControllerDriverCoreOSX.h; sourceTree = "<group>"; };
 		7F43581B251BAADE005E2D3C /* IPCprotocolPDO.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IPCprotocolPDO.h; sourceTree = "<group>"; };
 		7F4DF259252DFC620004FFF8 /* Q3Ddb.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Q3Ddb.h; sourceTree = "<group>"; };
 		7F4DF25A252DFC630004FFF8 /* Q3DcontrollerPDO.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Q3DcontrollerPDO.h; sourceTree = "<group>"; };
@@ -798,7 +798,6 @@
 		7FF471182F94D4B30018476E /* Q3DdbXPC.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = Q3DdbXPC.mm; sourceTree = "<group>"; };
 		7FF4711A2F94D4E20018476E /* ControllerCoreOSX_XPC.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = ControllerCoreOSX_XPC.mm; sourceTree = "<group>"; };
 		7FF4711C2F94D4F70018476E /* IPCConfiguration.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IPCConfiguration.h; sourceTree = "<group>"; };
-		7FF4711E2F94D5000018476E /* Quesa3DDeviceServer-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "Quesa3DDeviceServer-Info.plist"; sourceTree = "<group>"; };
 		7FF4712B2F94F0790018476E /* Q3DcontrollerXPC.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Q3DcontrollerXPC.h; sourceTree = "<group>"; };
 		7FF471EF2F94F10E0018476E /* Quesa.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Quesa.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		8D07F2C80486CC7A007CD1D0 /* Quesa.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Quesa.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -1203,41 +1202,47 @@
 			isa = PBXGroup;
 			children = (
 				7F00A01A251B8E2400ED9F40 /* ControllerCoreOSX.h */,
-				7F00A015251B8E2400ED9F40 /* ControllerCoreOSX.mm */,
 				7F00A016251B8E2400ED9F40 /* ControllerCoreOSXinternals.h */,
+			);
+			path = ControllerCore;
+			sourceTree = "<group>";
+		};
+		7F435816251BAADE005E2D3B /* PDO */ = {
+			isa = PBXGroup;
+			children = (
+				7F00A015251B8E2400ED9F40 /* ControllerCoreOSX.mm */,
 				7F00A01B251B8E2400ED9F40 /* ControllerDriverCoreOSX.h */,
 				7F00A017251B8E2400ED9F40 /* ControllerDriverCoreOSX.mm */,
 				7F00A019251B8E2400ED9F40 /* TrackerCoreOSX.h */,
 				7F00A018251B8E2400ED9F40 /* TrackerCoreOSX.mm */,
-			);
-			name = ControllerCore;
-			sourceTree = "<group>";
-		};
-		7F435817251BAADE005E2D3C /* IPC */ = {
-			isa = PBXGroup;
-			children = (
-				7F43581B251BAADE005E2D3C /* IPCprotocolPDO.h */,
-				7FF471142F94D44D0018476E /* IPCprotocolXPC.h */,
-				7FF471162F94D48B0018476E /* Q3DcontrollerXPC.mm */,
-				7FF471182F94D4B30018476E /* Q3DdbXPC.mm */,
-				7FF4711A2F94D4E20018476E /* ControllerCoreOSX_XPC.mm */,
-				7FF4711C2F94D4F70018476E /* IPCConfiguration.h */,
-				7FF4711E2F94D5000018476E /* Quesa3DDeviceServer-Info.plist */,
-				7FF4712B2F94F0790018476E /* Q3DcontrollerXPC.h */,
-				7FCCBF922F95211000AB5675 /* Q3DdbXPC.h */,
-			);
-			path = IPC;
-			sourceTree = "<group>";
-		};
-		7F4DF264252DFC6F0004FFF8 /* ControllerDB */ = {
-			isa = PBXGroup;
-			children = (
 				7F4DF25A252DFC630004FFF8 /* Q3DcontrollerPDO.h */,
 				7F4DF25C252DFC630004FFF8 /* Q3DcontrollerPDO.mm */,
 				7F4DF259252DFC620004FFF8 /* Q3Ddb.h */,
 				7F4DF25B252DFC630004FFF8 /* Q3Ddb.mm */,
+				7F43581B251BAADE005E2D3C /* IPCprotocolPDO.h */,
 			);
-			path = ControllerDB;
+			path = PDO;
+			sourceTree = "<group>";
+		};
+		7F435817251BAADE005E2D3C /* XPC */ = {
+			isa = PBXGroup;
+			children = (
+				7FF471142F94D44D0018476E /* IPCprotocolXPC.h */,
+				7FF471162F94D48B0018476E /* Q3DcontrollerXPC.mm */,
+				7FF471182F94D4B30018476E /* Q3DdbXPC.mm */,
+				7FF4711A2F94D4E20018476E /* ControllerCoreOSX_XPC.mm */,
+				7FF4712B2F94F0790018476E /* Q3DcontrollerXPC.h */,
+				7FCCBF922F95211000AB5675 /* Q3DdbXPC.h */,
+			);
+			path = XPC;
+			sourceTree = "<group>";
+		};
+		7F4DF264252DFC6F0004FFF8 /* IPC */ = {
+			isa = PBXGroup;
+			children = (
+				7FF4711C2F94D4F70018476E /* IPCConfiguration.h */,
+			);
+			path = IPC;
 			sourceTree = "<group>";
 		};
 		AB3A7B83055E63B100CA83BE /* Core */ = {
@@ -1712,9 +1717,10 @@
 		BEFFD7CE0C4C86E100202EA8 /* Cocoa */ = {
 			isa = PBXGroup;
 			children = (
-				7F4DF264252DFC6F0004FFF8 /* ControllerDB */,
-				7F435817251BAADE005E2D3C /* IPC */,
 				7F00A014251B8E0B00ED9F40 /* ControllerCore */,
+				7F435816251BAADE005E2D3B /* PDO */,
+				7F435817251BAADE005E2D3C /* XPC */,
+				7F4DF264252DFC6F0004FFF8 /* IPC */,
 				BEFFD7CF0C4C86E100202EA8 /* E3CocoaDrawContext.mm */,
 				BEFFD7D20C4C86E100202EA8 /* E3CocoaPrefix.h */,
 				BE513DC122BAF18400545AF8 /* E3MacLog.h */,

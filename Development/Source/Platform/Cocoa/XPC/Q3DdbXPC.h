@@ -3,7 +3,7 @@
 
  DESCRIPTION:
  Header for XPC-based Device Database implementation.
- Can be used for both external XPC service and in-process anonymous listeners.
+ Uses anonymous NSXPCListeners for in-process communication.
 
     COPYRIGHT:
         Copyright (c) 2011-2026, Quesa Developers. All rights reserved.
@@ -54,21 +54,16 @@ NS_ASSUME_NONNULL_BEGIN
 
 /*!
  * @class Q3DdbXPC
- * @abstract Device database that manages controllers and trackers.
- * @discussion This class can work in two modes:
- *             1. External XPC Service: Uses Mach service name for IPC
- *             2. In-Process: Uses anonymous NSXPCListener for same-process communication
+ * @abstract Device database that manages controllers and trackers via in-process XPC.
+ * @discussion Uses anonymous NSXPCListeners for same-process communication.
  *
- * For in-process usage (MachXPC-style), create an instance and use anonymousListener:
- *     Q3DdbXPC *db = [[Q3DdbXPC alloc] init];
+ * Usage:
+ *     Q3DdbXPC *db = [[Q3DdbXPC alloc] initForInProcess];
  *     NSXPCListener *listener = [NSXPCListener anonymousListener];
  *     listener.delegate = db;
  *     [listener resume];
  */
 @interface Q3DdbXPC : NSObject <NSXPCListenerDelegate, Q3XPCDeviceDB>
-
-/// XPC listener (can be anonymous for in-process or service for external)
-@property (nonatomic, strong) NSXPCListener *listener;
 
 /// Array of controller objects managed by this database
 @property (nonatomic, strong) NSMutableArray<Q3DcontrollerXPC *> *controllerObjects;
@@ -83,13 +78,6 @@ NS_ASSUME_NONNULL_BEGIN
  * @return Initialized instance ready for anonymous listener
  */
 - (instancetype)initForInProcess;
-
-/*!
- * @method run
- * @abstract Start the XPC listener
- * @discussion Call this to begin accepting XPC connections
- */
-- (void)run;
 
 /*!
  * @method incControllerListSerialNumber

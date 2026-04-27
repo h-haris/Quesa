@@ -54,10 +54,6 @@
 
 #import <Foundation/Foundation.h>
 
-// XPC Service Names
-#define kQuesa3DDeviceServerXPC         "com.quesa.osx.3ddevice.server.xpc"
-#define kQuesa3DDeviceControllerXPC     "com.quesa.osx.3ddevice.controller.xpc"
-#define kQuesa3DDeviceTrackerXPC        "com.quesa.osx.3ddevice.tracker.xpc"
 
 // Note: In XPC, we use NSString* for controller references instead of void*
 // This allows proper serialization across process boundaries
