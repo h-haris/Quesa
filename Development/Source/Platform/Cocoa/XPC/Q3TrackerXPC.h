@@ -1,8 +1,8 @@
 /*  NAME:
- Q3DcontrollerXPC.h
+ Q3TrackerXPC.h
 
  DESCRIPTION:
- Header for XPC-based implementation of Quesa controller.
+ Header for XPC-based implementation of Quesa tracker.
 
     COPYRIGHT:
         Copyright (c) 2011-2026, Quesa Developers. All rights reserved.
@@ -45,57 +45,50 @@
  */
 
 #import <Foundation/Foundation.h>
-#import "Q3Ddb.h"
 #import "IPCprotocolXPC.h"
-#import "Q3TrackerXPC.h"
 #include "QuesaController.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface Q3DcontrollerXPC : NSObject <Q3XPCController, NSXPCListenerDelegate>
+// ============================================================================
+// Q3TrackerXPC — in-process XPC tracker object
+// ============================================================================
 
-// Core properties
-@property (nonatomic, weak, nullable) id publicDB;
-@property (nonatomic, copy) NSString *UUID;
-@property (nonatomic, copy, nullable) NSString *driverStateUUID;
-@property (nonatomic, copy) NSString *signature;
-@property (nonatomic, assign) TQ3ControllerRef controllerRef;
+@interface Q3TrackerXPC : NSObject <Q3XPCTracker, NSXPCListenerDelegate>
 
-// XPC Connection to driver state
-@property (nonatomic, strong, nullable) NSXPCConnection *driverStateConnection;
-
-// Tracker
-@property (nonatomic, copy, nullable) NSString *trackerUUID;
-@property (nonatomic, strong, nullable) NSXPCConnection *trackerConnection;
-
-// Controller state
-@property (nonatomic, assign) TQ3Uns32 valueCount;
-@property (nonatomic, assign) TQ3Uns32 channelCount;
-@property (nonatomic, assign) TQ3Boolean hasSetChannelMethod;
-@property (nonatomic, assign) TQ3Boolean hasGetChannelMethod;
 @property (nonatomic, assign) TQ3Boolean isActive;
-@property (nonatomic, assign) TQ3Boolean isDecommissioned;
-@property (nonatomic, assign) TQ3Uns32 serialNumber;
-@property (nonatomic, assign) TQ3Uns32 theButtons;
+@property (nonatomic, assign) TQ3Uns32   theButtons;
+@property (nonatomic, assign) TQ3Point3D     position;
+@property (nonatomic, assign) TQ3Quaternion  orientation;
+@property (nonatomic, assign) TQ3Uns32   positionSerialNumber;
+@property (nonatomic, assign) TQ3Uns32   orientationSerialNumber;
+@property (nonatomic, assign) float      positionThreshold;
+@property (nonatomic, assign) float      orientationThreshold;
+@property (nonatomic, assign) TQ3TrackerNotifyFunc notifyFunc;
+@property (nonatomic, assign) TQ3Object  trackerObject;
+@property (nonatomic, copy)   NSString  *trackerUUID;
+@property (nonatomic, readonly, nullable) NSXPCListenerEndpoint *listenerEndpoint;
 
-// Channel methods (C function pointers stored directly)
-@property (nonatomic, assign, nullable) TQ3ChannelSetMethod channelSetMethod;
-@property (nonatomic, assign, nullable) TQ3ChannelGetMethod channelGetMethod;
+- (instancetype)initWithUUID:(NSString *)uuid
+                  notifyFunc:(nullable TQ3TrackerNotifyFunc)func
+               trackerObject:(nullable TQ3Object)obj;
 
-// Values storage
-@property (nonatomic, assign, nullable) float *valuesRef;
+- (void)addEventTimestamp:(TQ3Uns32)ts
+                  buttons:(TQ3Uns32)btns
+                 position:(nullable const TQ3Point3D *)pos
+              orientation:(nullable const TQ3Quaternion *)orient;
 
-// Initializer
-- (instancetype)initWithParametersDB:(id)aDB
-                      controllerUUID:(NSString *)aUUID
-                     driverStateUUID:(NSString *)aDriverStateUUID
-                       controllerRef:(TQ3ControllerRef)aControllerRef
-                          valueCount:(TQ3Uns32)valCnt
-                        channelCount:(TQ3Uns32)chanCnt
-                           signature:(NSString *)sig
-                 hasSetChannelMethod:(TQ3Boolean)hasSCMthd
-                 hasGetChannelMethod:(TQ3Boolean)hasGCMthd;
+- (TQ3Status)getEventAtOrBeforeTimestamp:(TQ3Uns32)ts
+                                 buttons:(nullable TQ3Uns32 *)btns
+                                position:(nullable TQ3Point3D *)pos
+                             orientation:(nullable TQ3Quaternion *)orient;
 
 @end
+
+// Registry of active tracker objects (keyed by UUID)
+void Q3TrackerXPC_Register(NSString *uuid, Q3TrackerXPC *tracker);
+void Q3TrackerXPC_Unregister(NSString *uuid);
+NSXPCListenerEndpoint * _Nullable Q3TrackerXPC_EndpointForUUID(NSString *uuid);
+Q3TrackerXPC * _Nullable Q3TrackerXPC_ForUUID(NSString *uuid);
 
 NS_ASSUME_NONNULL_END
