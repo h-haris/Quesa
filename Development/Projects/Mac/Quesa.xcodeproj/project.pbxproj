@@ -44,9 +44,9 @@
 		7FAFC28A251B98D100013244 /* TrackerCoreOSX.mm in Sources */ = {isa = PBXBuildFile; fileRef = 7F00A018251B8E2400ED9F40 /* TrackerCoreOSX.mm */; };
 		7FAFC28E251B98D300013244 /* ControllerDriverCoreOSX.mm in Sources */ = {isa = PBXBuildFile; fileRef = 7F00A017251B8E2400ED9F40 /* ControllerDriverCoreOSX.mm */; };
 		7FAFC292251B98D600013244 /* ControllerCoreOSX.mm in Sources */ = {isa = PBXBuildFile; fileRef = 7F00A015251B8E2400ED9F40 /* ControllerCoreOSX.mm */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		7FB9926F2F9E28E50008CAC2 /* E3MacLog.mm in Sources */ = {isa = PBXBuildFile; fileRef = BE513DC022BAF18400545AF8 /* E3MacLog.mm */; };
 		7FCCBF932F95211000AB5675 /* Q3DdbXPC.h in Headers */ = {isa = PBXBuildFile; fileRef = 7FCCBF922F95211000AB5675 /* Q3DdbXPC.h */; };
 		7FCCBF952F95220800AB5675 /* Q3DdbXPC.mm in Sources */ = {isa = PBXBuildFile; fileRef = 7FF471182F94D4B30018476E /* Q3DdbXPC.mm */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
+		7FD2D2752F9E6BDC0034EB27 /* E3MacLog.mm in Sources */ = {isa = PBXBuildFile; fileRef = BE513DC022BAF18400545AF8 /* E3MacLog.mm */; };
 		7FF4711D2F94D4F70018476E /* IPCConfiguration.h in Headers */ = {isa = PBXBuildFile; fileRef = 7FF4711C2F94D4F70018476E /* IPCConfiguration.h */; };
 		7FF4712F2F94F10E0018476E /* Quesa.h in Headers */ = {isa = PBXBuildFile; fileRef = AB83B5D8055E72B90034F56A /* Quesa.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		7FF471302F94F10E0018476E /* TrackerCoreOSX.h in Headers */ = {isa = PBXBuildFile; fileRef = 7F00A019251B8E2400ED9F40 /* TrackerCoreOSX.h */; };
@@ -162,7 +162,6 @@
 		7FF471A42F94F10E0018476E /* E3Shader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AB3A7C03055E63B100CA83BE /* E3Shader.cpp */; };
 		7FF471A52F94F10E0018476E /* E3Storage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AB3A7C05055E63B100CA83BE /* E3Storage.cpp */; };
 		7FF471A62F94F10E0018476E /* E3String.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AB3A7C07055E63B100CA83BE /* E3String.cpp */; };
-		7FF471A72F94F10E0018476E /* ControllerDriverCoreOSX.mm in Sources */ = {isa = PBXBuildFile; fileRef = 7F00A017251B8E2400ED9F40 /* ControllerDriverCoreOSX.mm */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		7FF471A82F94F10E0018476E /* E3Style.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AB3A7C09055E63B100CA83BE /* E3Style.cpp */; };
 		7FF471A92F94F10E0018476E /* E3Texture.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AB3A7C0B055E63B100CA83BE /* E3Texture.cpp */; };
 		7FF471AA2F94F10E0018476E /* E3Transform.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AB3A7C0D055E63B100CA83BE /* E3Transform.cpp */; };
@@ -2083,7 +2082,6 @@
 				7FF471A42F94F10E0018476E /* E3Shader.cpp in Sources */,
 				7FF471A52F94F10E0018476E /* E3Storage.cpp in Sources */,
 				7FF471A62F94F10E0018476E /* E3String.cpp in Sources */,
-				7FF471A72F94F10E0018476E /* ControllerDriverCoreOSX.mm in Sources */,
 				7FF471A82F94F10E0018476E /* E3Style.cpp in Sources */,
 				7FF471A92F94F10E0018476E /* E3Texture.cpp in Sources */,
 				7FF471AA2F94F10E0018476E /* E3Transform.cpp in Sources */,
@@ -2261,7 +2259,6 @@
 				BEDC045E08A57C4900FB3A82 /* E3GeometryTriMeshOptimize.cpp in Sources */,
 				BE98E73B09F764A60040CE1B /* E3CocoaStackCrawl.cpp in Sources */,
 				BE7F26510B7BB87F00933ED1 /* GLGPUSharing.cpp in Sources */,
-				BE513DC222BAF18400545AF8 /* E3MacLog.mm in Sources */,
 				BE7F26540B7BB87F00933ED1 /* GLTextureLoader.cpp in Sources */,
 				BE7F26560B7BB87F00933ED1 /* GLVBOManager.cpp in Sources */,
 				BE7F26710B7BB8AD00933ED1 /* MakeStrip.cpp in Sources */,
@@ -2298,6 +2295,7 @@
 				BEE6738211B72BFD00943219 /* StripMaker_FreeFaceSet.cpp in Sources */,
 				BE59B564145B8D5B0027E0DE /* GLShadowVolumeManager.cpp in Sources */,
 				BE8528D118D9043400D37D00 /* QOShaderProgramCache.cpp in Sources */,
+				7FD2D2752F9E6BDC0034EB27 /* E3MacLog.mm in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2725,7 +2723,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_TEAM = G3MPC84XT7;
+				DEVELOPMENT_TEAM = "";
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"$(inherited)",
 					"Q3_EXPORT_SYMBOLS=1",
@@ -2775,7 +2773,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_TEAM = G3MPC84XT7;
+				DEVELOPMENT_TEAM = "";
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
 				MACOSX_DEPLOYMENT_TARGET = 11.0;
 				PRODUCT_BUNDLE_IDENTIFIER = org.Quesa.Quesa;
@@ -2857,7 +2855,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_TEAM = G3MPC84XT7;
+				DEVELOPMENT_TEAM = "";
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"$(inherited)",
 					"Q3_EXPORT_SYMBOLS=1",

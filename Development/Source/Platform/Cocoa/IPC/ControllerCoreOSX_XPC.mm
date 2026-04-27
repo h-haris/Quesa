@@ -65,6 +65,7 @@ static NSXPCListener *deviceDBListener = nil;
 
 // Controller endpoints (using anonymous listeners)
 static NSMutableDictionary<NSString *, NSXPCConnection *> *controllerConnections = nil;
+static NSMutableDictionary<NSString *, NSXPCListener *> *controllerListeners = nil;
 
 //=============================================================================
 //      Internal function prototypes
@@ -91,6 +92,8 @@ static void initializeInProcessDeviceDB(void)
     // Initialize storage
     if (controllerConnections == nil)
         controllerConnections = [NSMutableDictionary dictionary];
+    if (controllerListeners == nil)
+        controllerListeners = [NSMutableDictionary dictionary];
 
     atexit(CC3OSX_CleanupXPCConnections);
 
@@ -160,10 +163,13 @@ static NSXPCConnection *connectionForController(NSString *controllerUUID)
 
         if (controller)
         {
-            // Create anonymous listener for this controller
+            // Create anonymous listener for this controller and store it persistently.
+            // It must outlive the connection — a local ARC variable would be released
+            // when this function returns, invalidating the connection asynchronously.
             NSXPCListener *controllerListener = [NSXPCListener anonymousListener];
             controllerListener.delegate = (id<NSXPCListenerDelegate>)controller;
             [controllerListener resume];
+            controllerListeners[controllerUUID] = controllerListener;
 
             // Create connection using the anonymous endpoint (all in-process!)
             connection = [[NSXPCConnection alloc]
@@ -177,8 +183,8 @@ static NSXPCConnection *connectionForController(NSString *controllerUUID)
             };
 
             connection.invalidationHandler = ^{
-                NSLog(@"Controller connection invalidated: %@", controllerUUID);
                 [controllerConnections removeObjectForKey:controllerUUID];
+                [controllerListeners removeObjectForKey:controllerUUID];
             };
 
             [connection resume];
@@ -263,8 +269,8 @@ CC3OSXController_Next(TQ3ControllerRef controllerRef, TQ3ControllerRef *nextCont
 
         [[connection remoteObjectProxy] nextCC3Controller:currentUUID
                                                     reply:^(NSString *nextUUID) {
-            // Copy and retain: caller owns the ref (non-ARC, matched by release in CC3OSXController_Decommission)
-            *nextControllerRef = nextUUID ? (__bridge TQ3ControllerRef)[[nextUUID copy] retain] : nullptr;
+            // __bridge_retained transfers ownership to the void* caller (caller retains for lifetime of the ref)
+            *nextControllerRef = nextUUID ? (__bridge_retained TQ3ControllerRef)[nextUUID copy] : nullptr;
             status = kQ3Success;
             dispatch_semaphore_signal(sema);
         }];
@@ -440,6 +446,10 @@ CC3OSXController_GetValues(TQ3ControllerRef controllerRef, TQ3Uns32 valueCount, 
                     *serialNumber = serNum;
                 }
             }
+            else
+            {
+                if (changed) *changed = kQ3False;
+            }
 
             status = stat;
             dispatch_semaphore_signal(sema);
@@ -510,7 +520,7 @@ CC3OSXController_New(const TQ3ControllerData *controllerData)
 
         [[connection remoteObjectProxy] newController:dataDict
                                                 reply:^(NSString *uuid) {
-            controllerRef = (__bridge TQ3ControllerRef)[[uuid copy] retain];
+            controllerRef = (__bridge_retained TQ3ControllerRef)[uuid copy];
             dispatch_semaphore_signal(sema);
         }];
 
@@ -550,8 +560,10 @@ CC3OSXController_Decommission(TQ3ControllerRef controllerRef)
         }];
         dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
 
-        // Release the retained UUID string (manual memory management for non-ARC)
-        [controllerUUID release];
+        // Note: we do NOT CFRelease controllerRef here. The caller (driver) retains ownership
+        // of the ref and may continue using it for post-decommission queries (GetActivation,
+        // HasTracker, etc.). The ref is released when the process exits or the driver disposes
+        // its own reference.
 
         return kQ3Success;
     }
@@ -602,9 +614,9 @@ CC3OSXController_SetChannel(TQ3ControllerRef controllerRef, TQ3Uns32 channel, co
         NSData *channelData = [NSData dataWithBytes:data length:dataSize];
 
         [[connection remoteObjectProxy] setChannel:channel
-                                          withData:channelData
-                                            ofSize:dataSize
-                                             reply:^(TQ3Status stat) {
+                                           withData:channelData
+                                             ofSize:dataSize
+                                              reply:^(TQ3Status stat) {
             status = stat;
             dispatch_semaphore_signal(sema);
         }];
@@ -633,7 +645,7 @@ CC3OSXController_GetChannel(TQ3ControllerRef controllerRef, TQ3Uns32 channel, vo
                                              reply:^(NSData *channelData, TQ3Uns32 size, TQ3Status stat) {
             if (channelData && data && dataSize)
             {
-                TQ3Uns32 copySize = MIN((TQ3Uns32)[channelData length], *dataSize);
+                TQ3Uns32 copySize = (TQ3Uns32)[channelData length];
                 [channelData getBytes:data length:copySize];
                 *dataSize = copySize;
             }
@@ -1087,8 +1099,7 @@ CC3OSXTracker_Delete(TC3TrackerInstanceDataPtr trackerObject)
                 [[connection remoteObjectProxy] deleteTracker:trackerXPC->trackerUUID reply:^{}];
             }
 
-            [trackerXPC->trackerUUID release];
-            trackerXPC->trackerUUID = nil;
+            trackerXPC->trackerUUID = nil; // ARC releases the NSString
         }
         free(trackerXPC);
     }
@@ -1491,6 +1502,9 @@ static void CC3OSX_CleanupXPCConnections(void)
         [conn invalidate];
     }];
     [controllerConnections removeAllObjects];
+
+    // Release controller listeners (kept alive to support connections)
+    [controllerListeners removeAllObjects];
 
     // Stop device DB listener
     [deviceDBListener invalidate];

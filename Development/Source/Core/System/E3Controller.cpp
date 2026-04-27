@@ -478,7 +478,7 @@ TQ3Status
 E3Controller_SetChannel(TQ3ControllerRef controllerRef, TQ3Uns32 channel, const void *data, TQ3Uns32 dataSize)
 {
 #if QUESA_SUPPORT_CONTROLLER
-	return(CC3OSXController_SetChannel(controllerRef, channel,  data, dataSize));
+	return CC3OSXController_SetChannel(controllerRef, channel, data, dataSize);
 #else
 	return(kQ3Failure);
 #endif

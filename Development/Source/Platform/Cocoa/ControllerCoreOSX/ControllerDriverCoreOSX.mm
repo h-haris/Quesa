@@ -47,6 +47,11 @@
 
 
 #include "E3Prefix.h"
+
+// XPC builds do not use ControllerDriverCoreOSX — channel methods are called
+// directly as function pointers stored in Q3DcontrollerXPC.
+#if (QUESA_USE_XPC != 1)
+
 #import "ControllerDriverCoreOSX.h"
 
 @implementation ControllerDriverCoreOSX
@@ -316,3 +321,5 @@
 }
 
 @end
+
+#endif // QUESA_USE_XPC != 1
