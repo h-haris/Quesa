@@ -98,7 +98,7 @@ static void initializeInProcessDeviceDB(void)
     atexit(CC3OSX_CleanupXPCConnections);
 
 #if Q3_DEBUG
-    NSLog(@"✅ Initialized in-process device DB (MachXPC-style - no external XPC service!)");
+    NSLog(@"Initialized in-process device DB (MachXPC-style - no external XPC service!)");
 #endif
 }
 
