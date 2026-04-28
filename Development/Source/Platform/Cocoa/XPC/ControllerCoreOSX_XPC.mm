@@ -51,7 +51,6 @@
 #import "ControllerCoreOSXinternals.h"
 #import "Q3DdbXPC.h"           // In-process device database
 #import "Q3DcontrollerXPC.h"   // In-process controller
-// Note: No external XPC service needed - using anonymous listeners!
 
 #import <Foundation/Foundation.h>
 
@@ -59,13 +58,28 @@
 //      Internal variables
 //-----------------------------------------------------------------------------
 
-// In-process device database (no external XPC service needed!)
-static Q3DdbXPC *sharedDeviceDB = nil;
-static NSXPCListener *deviceDBListener = nil;
+// Mach bootstrap service name used by both the device-DB host and clients.
+static NSString * const kQ3DeviceDBServiceName = @"com.quesa.devicedb";
 
-// Controller endpoints (using anonymous listeners)
+// Set when this process hosts the device database.
+static Q3DdbXPC        *sharedDeviceDB      = nil;
+static NSXPCListener   *deviceDBListener     = nil;  // anonymous — used for the in-process connection
+static NSXPCListener   *deviceDBMachListener = nil;  // Mach-name listener — effective when this process is the QuesaDeviceDB LaunchAgent
+
+// Single connection to the device database (may be in-process or cross-process).
+static NSXPCConnection *sDeviceDBConnection = nil;
+
+// Per-controller cached connections and their backing listeners.
 static NSMutableDictionary<NSString *, NSXPCConnection *> *controllerConnections = nil;
-static NSMutableDictionary<NSString *, NSXPCListener *> *controllerListeners = nil;
+static NSMutableDictionary<NSString *, NSXPCListener *>   *controllerListeners   = nil;
+
+// Driver-side channel state: per-controller objects + anonymous listeners kept alive.
+// Only populated in driver processes (when channel methods are present).
+static NSMutableDictionary<NSString *, id>             *driverStateObjects   = nil;
+static NSMutableDictionary<NSString *, NSXPCListener *> *driverStateListeners = nil;
+
+// Channel count cache: populated at newController time for use in SaveAndReset.
+static NSMutableDictionary<NSString *, NSNumber *> *sCachedChannelCounts = nil;
 
 //=============================================================================
 //      Internal function prototypes
@@ -73,129 +87,295 @@ static NSMutableDictionary<NSString *, NSXPCListener *> *controllerListeners = n
 
 static void CC3OSX_CleanupXPCConnections(void);
 
-#pragma mark - In-Process XPC Setup (MachXPC-style)
+#pragma mark - Driver-State XPC (driver side)
 
-// Initialize in-process device database with anonymous XPC listener
+// Implements Q3XPCControllerDriverState in the driver process.
+// The LaunchAgent's Q3DcontrollerXPC connects back to this for SetChannel / GetChannel.
+@interface Q3DriverStateXPC : NSObject <Q3XPCControllerDriverState, NSXPCListenerDelegate>
+- (instancetype)initWithChannelSetMethod:(TQ3ChannelSetMethod)setMethod
+                        channelGetMethod:(TQ3ChannelGetMethod)getMethod
+                           controllerRef:(TQ3ControllerRef)ref;
+@end
+
+@implementation Q3DriverStateXPC {
+    TQ3ChannelSetMethod _setMethod;
+    TQ3ChannelGetMethod _getMethod;
+    TQ3ControllerRef    _ref;
+}
+
+- (instancetype)initWithChannelSetMethod:(TQ3ChannelSetMethod)setMethod
+                        channelGetMethod:(TQ3ChannelGetMethod)getMethod
+                           controllerRef:(TQ3ControllerRef)ref
+{
+    if (self = [super init]) {
+        _setMethod = setMethod;
+        _getMethod = getMethod;
+        _ref       = ref;
+    }
+    return self;
+}
+
+- (void)setChannel:(TQ3Uns32)channel
+          withData:(NSData * _Nullable)data
+            ofSize:(TQ3Uns32)dataSize
+             reply:(void (^)(TQ3Status))reply
+{
+    if (_setMethod && data)
+        _setMethod(_ref, channel, data.bytes, dataSize);
+    reply(kQ3Success);
+}
+
+- (void)getChannel:(TQ3Uns32)channel
+             reply:(void (^)(NSData * _Nullable, TQ3Uns32, TQ3Status))reply
+{
+    uint8_t buf[256] = {0};
+    TQ3Uns32 size = sizeof(buf);
+    if (_getMethod)
+        _getMethod(_ref, channel, buf, &size);
+    reply([NSData dataWithBytes:buf length:size], size, kQ3Success);
+}
+
+// State save/restore across processes is not supported — return failure so
+// callers fall back to the in-process path when available.
+- (void)newDrvStateWithUUID:(NSString *)stateUUID reply:(void (^)(TQ3Status))reply
+    { reply(kQ3Failure); }
+- (void)deleteDrvStateWithUUID:(NSString *)stateUUID reply:(void (^)(TQ3Status))reply
+    { reply(kQ3Failure); }
+- (void)saveDrvResetStateWithUUID:(NSString *)stateUUID reply:(void (^)(TQ3Status))reply
+    { reply(kQ3Failure); }
+- (void)restoreDrvStateWithUUID:(NSString *)stateUUID reply:(void (^)(TQ3Status))reply
+    { reply(kQ3Failure); }
+
+// NSXPCListenerDelegate — accept connections from the LaunchAgent.
+- (BOOL)listener:(NSXPCListener *)listener shouldAcceptNewConnection:(NSXPCConnection *)conn
+{
+    conn.exportedInterface = [NSXPCInterface interfaceWithProtocol:
+                                @protocol(Q3XPCControllerDriverState)];
+    conn.exportedObject = self;
+    [conn resume];
+    return YES;
+}
+
+@end
+
+#pragma mark - In-Process XPC Setup
+
+// Start hosting the device database in this process.
+//
+// An anonymous listener is created for the reliable in-process XPC connection.
+// A Mach-service listener is also started under kQ3DeviceDBServiceName; this
+// is only effective when the process IS the launchd-registered host for that
+// name (i.e. the QuesaDeviceDB LaunchAgent).  In all other processes it starts
+// silently without registering, which is harmless.
 static void initializeInProcessDeviceDB(void)
 {
     if (sharedDeviceDB != nil)
         return;
 
-    // Create the device database instance (runs in-process!)
     sharedDeviceDB = [[Q3DdbXPC alloc] initForInProcess];
 
-    // Create anonymous listener (no external service needed)
+    // Anonymous listener — always works, used for the in-process XPC connection.
     deviceDBListener = [NSXPCListener anonymousListener];
     deviceDBListener.delegate = sharedDeviceDB;
     [deviceDBListener resume];
 
-    // Initialize storage
+    // Mach-service listener — effective only when this process is registered
+    // with launchd as the QuesaDeviceDB LaunchAgent.
+    deviceDBMachListener = [[NSXPCListener alloc] initWithMachServiceName:kQ3DeviceDBServiceName];
+    deviceDBMachListener.delegate = sharedDeviceDB;
+    [deviceDBMachListener resume];
+
     if (controllerConnections == nil)
         controllerConnections = [NSMutableDictionary dictionary];
     if (controllerListeners == nil)
         controllerListeners = [NSMutableDictionary dictionary];
 
-    atexit(CC3OSX_CleanupXPCConnections);
+    static dispatch_once_t atexitToken;
+    dispatch_once(&atexitToken, ^{ atexit(CC3OSX_CleanupXPCConnections); });
 
 #if Q3_DEBUG
-    NSLog(@"Initialized in-process device DB (MachXPC-style - no external XPC service!)");
+    NSLog(@"Hosting device DB (anonymous + Mach service: %@)", kQ3DeviceDBServiceName);
 #endif
 }
 
-// Get a connection to the in-process device database
+// Start the device database server and run the main run loop indefinitely.
+// Intended to be called from the QuesaDeviceDB LaunchAgent's main().
+// Does not return under normal operation.
+void Q3XPC_StartDeviceDBServer(void)
+{
+    initializeInProcessDeviceDB();
+    [[NSRunLoop mainRunLoop] run];
+}
+
+// Return a connection to the device database.
+//
+// Strategy:
+//   1. Try to connect to an already-running device DB via the Mach bootstrap name.
+//      This succeeds when a driver process in another address space has already
+//      called Q3Controller_New (which registers the DB under kQ3DeviceDBServiceName).
+//   2. If no external server responds within 200 ms, become the server ourselves:
+//      start an in-process DB and register it under the same Mach name so future
+//      cross-process clients (other apps) can reach it.
 static TQ3Status connectionToDeviceDB(NSXPCConnection **outConnection)
 {
-    static NSXPCConnection *inProcessConnection = nil;
-
-    if (inProcessConnection == nil)
+    if (sDeviceDBConnection)
     {
-        initializeInProcessDeviceDB();
-
-        // Create connection using anonymous endpoint (in-process!)
-        inProcessConnection = [[NSXPCConnection alloc]
-            initWithListenerEndpoint:deviceDBListener.endpoint];
-
-        inProcessConnection.remoteObjectInterface =
-            [NSXPCInterface interfaceWithProtocol:@protocol(Q3XPCDeviceDB)];
-
-        inProcessConnection.interruptionHandler = ^{
-            NSLog(@"In-process device DB connection interrupted");
-        };
-
-        inProcessConnection.invalidationHandler = ^{
-            NSLog(@"In-process device DB connection invalidated");
-            inProcessConnection = nil;
-        };
-
-        [inProcessConnection resume];
-
-#if Q3_DEBUG
-        NSLog(@"Connected to in-process device DB via anonymous endpoint");
-#endif
+        *outConnection = sDeviceDBConnection;
+        return kQ3Success;
     }
 
-    *outConnection = inProcessConnection;
+    // --- probe for the QuesaDeviceDB LaunchAgent via the Mach service name ---
+    //
+    // When the LaunchAgent is installed, launchd activates it on the first
+    // connection attempt; the probe succeeds immediately.
+    {
+        NSXPCConnection *probe = [[NSXPCConnection alloc]
+            initWithMachServiceName:kQ3DeviceDBServiceName options:0];
+        probe.remoteObjectInterface =
+            [NSXPCInterface interfaceWithProtocol:@protocol(Q3XPCDeviceDB)];
+
+        __block BOOL probeOK = NO;
+        dispatch_semaphore_t sem = dispatch_semaphore_create(0);
+
+        probe.invalidationHandler = ^{ dispatch_semaphore_signal(sem); };
+        [probe resume];
+
+        [[probe remoteObjectProxyWithErrorHandler:^(NSError *err) {
+            dispatch_semaphore_signal(sem);
+        }] getListChangedWithReply:^(TQ3Boolean ch, TQ3Uns32 sn, TQ3Status st) {
+            probeOK = (st == kQ3Success);
+            dispatch_semaphore_signal(sem);
+        }];
+
+        dispatch_semaphore_wait(sem, dispatch_time(DISPATCH_TIME_NOW, 200 * NSEC_PER_MSEC));
+
+        if (probeOK)
+        {
+            probe.invalidationHandler = ^{
+                NSLog(@"Device DB connection (LaunchAgent) invalidated");
+                sDeviceDBConnection = nil;
+            };
+            sDeviceDBConnection = probe;
+
+            static dispatch_once_t atexitToken;
+            dispatch_once(&atexitToken, ^{ atexit(CC3OSX_CleanupXPCConnections); });
+
+#if Q3_DEBUG
+            NSLog(@"Connected to QuesaDeviceDB LaunchAgent via Mach service: %@",
+                  kQ3DeviceDBServiceName);
+#endif
+            *outConnection = sDeviceDBConnection;
+            return kQ3Success;
+        }
+
+        [probe invalidate];
+    }
+
+    // --- no external server found — become the server ---
+    initializeInProcessDeviceDB();
+
+    // Connect via the anonymous listener's endpoint (always works; the Mach-service
+    // listener is for cross-process clients and is started alongside it).
+    sDeviceDBConnection = [[NSXPCConnection alloc]
+        initWithListenerEndpoint:deviceDBListener.endpoint];
+    sDeviceDBConnection.remoteObjectInterface =
+        [NSXPCInterface interfaceWithProtocol:@protocol(Q3XPCDeviceDB)];
+    sDeviceDBConnection.interruptionHandler = ^{
+        NSLog(@"Device DB connection (in-process) interrupted");
+    };
+    sDeviceDBConnection.invalidationHandler = ^{
+        NSLog(@"Device DB connection (in-process) invalidated");
+        sDeviceDBConnection = nil;
+    };
+    [sDeviceDBConnection resume];
+
+#if Q3_DEBUG
+    NSLog(@"Connected to in-process device DB");
+#endif
+
+    *outConnection = sDeviceDBConnection;
     return kQ3Success;
 }
 
-// Get connection to a specific controller (using in-process anonymous endpoint)
+// Return a connection to a specific controller.
+//
+// In-process path  (sharedDeviceDB != nil): create an anonymous listener backed
+//   by the Q3DcontrollerXPC object and connect to its endpoint locally.
+// Cross-process path (sharedDeviceDB == nil): ask the device DB for the
+//   controller's endpoint via the Q3XPCDeviceDB protocol, then connect.
 static NSXPCConnection *connectionForController(NSString *controllerUUID)
 {
-    if (controllerConnections == nil)
-    {
+    if (!controllerConnections)
         controllerConnections = [NSMutableDictionary dictionary];
-    }
 
     NSXPCConnection *connection = controllerConnections[controllerUUID];
+    if (connection)
+        return connection;
 
-    if (connection == nil)
+    // --- obtain the controller's listener endpoint ---
+    NSXPCListenerEndpoint *endpoint = nil;
+
+    if (sharedDeviceDB)
     {
-        // Look up the in-process controller object from the shared device database
-        Q3DcontrollerXPC *controller = nil;
-        for (Q3DcontrollerXPC *c in sharedDeviceDB.controllerObjects)
+        // In-process: create (or reuse) an anonymous listener on the controller object.
+        if (!controllerListeners)
+            controllerListeners = [NSMutableDictionary dictionary];
+
+        NSXPCListener *listener = controllerListeners[controllerUUID];
+        if (!listener)
         {
-            if ([c.UUID isEqualToString:controllerUUID])
+            Q3DcontrollerXPC *controller = nil;
+            for (Q3DcontrollerXPC *c in sharedDeviceDB.controllerObjects)
             {
-                controller = c;
-                break;
+                if ([c.UUID isEqualToString:controllerUUID]) { controller = c; break; }
             }
+            if (!controller) return nil;
+
+            // The listener must outlive the connection — store it persistently.
+            listener = [NSXPCListener anonymousListener];
+            listener.delegate = (id<NSXPCListenerDelegate>)controller;
+            [listener resume];
+            controllerListeners[controllerUUID] = listener;
         }
+        endpoint = listener.endpoint;
+    }
+    else
+    {
+        // Cross-process: ask the device DB (running in another process) for the endpoint.
+        NSXPCConnection *dbConn = nil;
+        if (connectionToDeviceDB(&dbConn) != kQ3Success) return nil;
 
-        if (controller)
-        {
-            // Create anonymous listener for this controller and store it persistently.
-            // It must outlive the connection — a local ARC variable would be released
-            // when this function returns, invalidating the connection asynchronously.
-            NSXPCListener *controllerListener = [NSXPCListener anonymousListener];
-            controllerListener.delegate = (id<NSXPCListenerDelegate>)controller;
-            [controllerListener resume];
-            controllerListeners[controllerUUID] = controllerListener;
-
-            // Create connection using the anonymous endpoint (all in-process!)
-            connection = [[NSXPCConnection alloc]
-                initWithListenerEndpoint:controllerListener.endpoint];
-
-            connection.remoteObjectInterface =
-                [NSXPCInterface interfaceWithProtocol:@protocol(Q3XPCController)];
-
-            connection.interruptionHandler = ^{
-                NSLog(@"Controller connection interrupted: %@", controllerUUID);
-            };
-
-            connection.invalidationHandler = ^{
-                [controllerConnections removeObjectForKey:controllerUUID];
-                [controllerListeners removeObjectForKey:controllerUUID];
-            };
-
-            [connection resume];
-            controllerConnections[controllerUUID] = connection;
-
-#if Q3_DEBUG
-            NSLog(@"Created in-process connection to controller: %@", controllerUUID);
-#endif
-        }
+        __block NSXPCListenerEndpoint *ep = nil;
+        dispatch_semaphore_t sem = dispatch_semaphore_create(0);
+        [[dbConn remoteObjectProxyWithErrorHandler:^(NSError *err) {
+            dispatch_semaphore_signal(sem);
+        }] connectionForController:controllerUUID reply:^(NSXPCListenerEndpoint *e) {
+            ep = e;
+            dispatch_semaphore_signal(sem);
+        }];
+        dispatch_semaphore_wait(sem, DISPATCH_TIME_FOREVER);
+        endpoint = ep;
     }
 
+    if (!endpoint) return nil;
+
+    // --- build and cache the connection ---
+    connection = [[NSXPCConnection alloc] initWithListenerEndpoint:endpoint];
+    connection.remoteObjectInterface =
+        [NSXPCInterface interfaceWithProtocol:@protocol(Q3XPCController)];
+    connection.interruptionHandler = ^{
+        NSLog(@"Controller connection interrupted: %@", controllerUUID);
+    };
+    connection.invalidationHandler = ^{
+        [controllerConnections removeObjectForKey:controllerUUID];
+        [controllerListeners   removeObjectForKey:controllerUUID];
+    };
+    [connection resume];
+    controllerConnections[controllerUUID] = connection;
+
+#if Q3_DEBUG
+    NSLog(@"Created connection to controller: %@", controllerUUID);
+#endif
     return connection;
 }
 
@@ -510,16 +690,22 @@ CC3OSXController_New(const TQ3ControllerData *controllerData)
     NSXPCConnection *connection = nil;
     if (connectionToDeviceDB(&connection) == kQ3Success)
     {
-        // Create data dictionary for controller
         NSString *signature = controllerData->signature ?
             [NSString stringWithUTF8String:controllerData->signature] : @"";
 
+        // Function pointers are only valid in-process (sharedDeviceDB != nil).
+        // For the cross-process case they are sent as 0; the driver state XPC
+        // endpoint registered below is used for channel calls instead.
+        BOOL crossProcess = (sharedDeviceDB == nil);
+        uint64_t setPtr = crossProcess ? 0 : (uint64_t)(uintptr_t)controllerData->channelSetMethod;
+        uint64_t getPtr = crossProcess ? 0 : (uint64_t)(uintptr_t)controllerData->channelGetMethod;
+
         NSDictionary *dataDict = @{
-            @"signature": signature,
-            @"valueCount": @(controllerData->valueCount),
-            @"channelCount": @(controllerData->channelCount),
-            @"channelSetMethod": @((uint64_t)(uintptr_t)controllerData->channelSetMethod),
-            @"channelGetMethod": @((uint64_t)(uintptr_t)controllerData->channelGetMethod),
+            @"signature":         signature,
+            @"valueCount":        @(controllerData->valueCount),
+            @"channelCount":      @(controllerData->channelCount),
+            @"channelSetMethod":  @(setPtr),
+            @"channelGetMethod":  @(getPtr),
         };
 
         [[connection remoteObjectProxy] newController:dataDict
@@ -529,6 +715,45 @@ CC3OSXController_New(const TQ3ControllerData *controllerData)
         }];
 
         dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
+    }
+
+    if (!controllerRef)
+        return nullptr;
+
+    NSString *uuid = (__bridge NSString *)controllerRef;
+
+    // Cache channel count for use in CC3OSXControllerState_SaveAndReset.
+    if (!sCachedChannelCounts) sCachedChannelCounts = [NSMutableDictionary dictionary];
+    sCachedChannelCounts[uuid] = @(controllerData->channelCount);
+
+    // Cross-process: if this driver has channel methods, expose them via a
+    // per-controller anonymous XPC listener and register the endpoint with the DB.
+    if (sharedDeviceDB == nil &&
+        (controllerData->channelSetMethod || controllerData->channelGetMethod))
+    {
+        if (!driverStateObjects)   driverStateObjects   = [NSMutableDictionary dictionary];
+        if (!driverStateListeners) driverStateListeners = [NSMutableDictionary dictionary];
+
+        Q3DriverStateXPC *state = [[Q3DriverStateXPC alloc]
+            initWithChannelSetMethod:controllerData->channelSetMethod
+                    channelGetMethod:controllerData->channelGetMethod
+                       controllerRef:controllerRef];
+
+        NSXPCListener *listener = [NSXPCListener anonymousListener];
+        listener.delegate = state;
+        [listener resume];
+
+        driverStateObjects[uuid]   = state;
+        driverStateListeners[uuid] = listener;
+
+        // Register the endpoint with the DB (fire-and-forget is fine).
+        NSXPCConnection *dbConn = nil;
+        if (connectionToDeviceDB(&dbConn) == kQ3Success)
+        {
+            [[dbConn remoteObjectProxy] setDriverStateEndpoint:listener.endpoint
+                                                 forController:uuid
+                                                         reply:^{}];
+        }
     }
 
     return controllerRef;
@@ -552,6 +777,11 @@ CC3OSXController_Decommission(TQ3ControllerRef controllerRef)
             [controllerConnections removeObjectForKey:controllerUUID];
         }
     }
+
+    // Tear down driver state (if this process was acting as driver for that controller)
+    [driverStateListeners removeObjectForKey:controllerUUID];
+    [driverStateObjects   removeObjectForKey:controllerUUID];
+    [sCachedChannelCounts removeObjectForKey:controllerUUID];
 
     // Notify device DB and wait for completion
     NSXPCConnection *connection = nil;
@@ -679,9 +909,14 @@ CC3OSXController_SetTracker(TQ3ControllerRef controllerRef, TC3TrackerInstanceDa
     {
         TC3TrackerInstanceDataXPC *trackerXPC = (TC3TrackerInstanceDataXPC *)tracker;
         NSString *trackerUUID = trackerXPC ? trackerXPC->trackerUUID : nil;
+        // Provide the tracker's listener endpoint so cross-process controllers can
+        // reach back to the tracker living in this process.
+        NSXPCListenerEndpoint *trackerEndpoint = trackerUUID
+            ? Q3TrackerXPC_EndpointForUUID(trackerUUID) : nil;
         TQ3Boolean attachToSysCursor = (tracker == nullptr) ? kQ3True : kQ3False;
 
         [[connection remoteObjectProxy] setTracker:trackerUUID
+                                   trackerEndpoint:trackerEndpoint
                                  attachToSysCursor:attachToSysCursor
                                              reply:^(TQ3Status stat) {
             status = stat;
@@ -990,30 +1225,42 @@ CC3OSXControllerState_SaveAndReset(TC3ControllerStateInstanceDataPtr controllerS
     if (!controllerStateObject) return kQ3Failure;
 
     NSString *uuid = (__bridge NSString *)controllerStateObject->myController;
-    Q3DcontrollerXPC *ctrl = controllerObjectForUUID(uuid);
-    if (!ctrl) return kQ3Failure;
 
-    TQ3Uns32 channelCount = ctrl.channelCount;
+    // --- In-process path: direct function pointer calls ---
+    Q3DcontrollerXPC *ctrl = controllerObjectForUUID(uuid);
+    if (ctrl)
+    {
+        TQ3Uns32 channelCount = ctrl.channelCount;
+        if (channelCount > TC3_MAX_SAVED_CHANNELS) channelCount = TC3_MAX_SAVED_CHANNELS;
+        controllerStateObject->savedChannelCount = channelCount;
+
+        TQ3ChannelGetMethod getMethod = ctrl.channelGetMethod;
+        TQ3ChannelSetMethod setMethod = ctrl.channelSetMethod;
+        TQ3Uns32 zero = 0;
+        for (TQ3Uns32 i = 0; i < channelCount; i++)
+        {
+            TQ3Uns32 val = 0, size = sizeof(TQ3Uns32);
+            if (getMethod) getMethod(ctrl.controllerRef, i, &val, &size);
+            controllerStateObject->savedChannelData[i] = val;
+            if (setMethod) setMethod(ctrl.controllerRef, i, &zero, sizeof(TQ3Uns32));
+        }
+        return kQ3Success;
+    }
+
+    // --- Cross-process path: route through CC3OSXController_GetChannel/SetChannel ---
+    // Those calls traverse: client → LaunchAgent → driver state XPC → driver.
+    TQ3Uns32 channelCount = [sCachedChannelCounts[uuid] unsignedIntValue];
     if (channelCount > TC3_MAX_SAVED_CHANNELS) channelCount = TC3_MAX_SAVED_CHANNELS;
     controllerStateObject->savedChannelCount = channelCount;
-
-    TQ3ChannelGetMethod getMethod = ctrl.channelGetMethod;
-    TQ3ChannelSetMethod setMethod = ctrl.channelSetMethod;
 
     TQ3Uns32 zero = 0;
     for (TQ3Uns32 i = 0; i < channelCount; i++)
     {
-        TQ3Uns32 val = 0;
-        TQ3Uns32 size = sizeof(TQ3Uns32);
-        if (getMethod)
-            getMethod(ctrl.controllerRef, i, &val, &size);
+        TQ3Uns32 val = 0, size = sizeof(TQ3Uns32);
+        CC3OSXController_GetChannel(controllerStateObject->myController, i, &val, &size);
         controllerStateObject->savedChannelData[i] = val;
-
-        // Reset channel to 0
-        if (setMethod)
-            setMethod(ctrl.controllerRef, i, &zero, sizeof(TQ3Uns32));
+        CC3OSXController_SetChannel(controllerStateObject->myController, i, &zero, sizeof(TQ3Uns32));
     }
-
     return kQ3Success;
 }
 
@@ -1026,19 +1273,29 @@ CC3OSXControllerState_Restore(TC3ControllerStateInstanceDataPtr controllerStateO
     if (!controllerStateObject) return kQ3Failure;
 
     NSString *uuid = (__bridge NSString *)controllerStateObject->myController;
+
+    // --- In-process path ---
     Q3DcontrollerXPC *ctrl = controllerObjectForUUID(uuid);
-    if (!ctrl) return kQ3Failure;
+    if (ctrl)
+    {
+        TQ3ChannelSetMethod setMethod = ctrl.channelSetMethod;
+        if (!setMethod) return kQ3Success;
+        TQ3Uns32 channelCount = controllerStateObject->savedChannelCount;
+        for (TQ3Uns32 i = 0; i < channelCount; i++)
+        {
+            TQ3Uns32 val = controllerStateObject->savedChannelData[i];
+            setMethod(ctrl.controllerRef, i, &val, sizeof(TQ3Uns32));
+        }
+        return kQ3Success;
+    }
 
-    TQ3ChannelSetMethod setMethod = ctrl.channelSetMethod;
-    if (!setMethod) return kQ3Success;
-
+    // --- Cross-process path ---
     TQ3Uns32 channelCount = controllerStateObject->savedChannelCount;
     for (TQ3Uns32 i = 0; i < channelCount; i++)
     {
         TQ3Uns32 val = controllerStateObject->savedChannelData[i];
-        setMethod(ctrl.controllerRef, i, &val, sizeof(TQ3Uns32));
+        CC3OSXController_SetChannel(controllerStateObject->myController, i, &val, sizeof(TQ3Uns32));
     }
-
     return kQ3Success;
 }
 
@@ -1502,7 +1759,9 @@ CC3OSXTracker_GetEventCoordinates(TC3TrackerInstanceDataPtr trackerObject, TQ3Un
 static void CC3OSX_CleanupXPCConnections(void)
 {
     // Invalidate all controller connections
-    [controllerConnections enumerateKeysAndObjectsUsingBlock:^(NSString *key, NSXPCConnection *conn, BOOL *stop) {
+    [controllerConnections enumerateKeysAndObjectsUsingBlock:^(NSString *key,
+                                                                NSXPCConnection *conn,
+                                                                BOOL *stop) {
         [conn invalidate];
     }];
     [controllerConnections removeAllObjects];
@@ -1510,14 +1769,18 @@ static void CC3OSX_CleanupXPCConnections(void)
     // Release controller listeners (kept alive to support connections)
     [controllerListeners removeAllObjects];
 
-    // Stop device DB listener
+    // Tear down the device DB connection (client or in-process)
+    [sDeviceDBConnection invalidate];
+    sDeviceDBConnection = nil;
+
+    // Stop device DB listeners and release DB (only set in the hosting process)
+    [deviceDBMachListener invalidate];
+    deviceDBMachListener = nil;
     [deviceDBListener invalidate];
     deviceDBListener = nil;
-
-    // Release device DB
     sharedDeviceDB = nil;
 
 #if Q3_DEBUG
-    NSLog(@"Cleaned up in-process XPC connections");
+    NSLog(@"Cleaned up XPC connections");
 #endif
 }

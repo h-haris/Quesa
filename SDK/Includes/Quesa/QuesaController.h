@@ -1,8 +1,8 @@
 /*! @header QuesaController.h
         
 		<h4> Declares the Quesa controller interface </h4>
-		This interface is available in Quesa and has been partly implemented on the
-		MacOS X platform.<br><br>
+		This interface is available in Quesa and has been implemented on the
+		MacOS X platform (except the 3D system cursor, which is not supported).<br><br>
 		At first glance it seems that there is no distinction between controller driver and client in the Q3Controller API. 
 		Explanations are introduced to show on which side it is suitable to use a certain function. If not further noted, 
 		functions are suitable for usage on driver and client side.<br>
@@ -37,13 +37,57 @@
 		This command sets the global data section of the library "ControllerCore" to be shared. To activate the fix, place under 
 		MacOS 9 and earlier "QuickDraw&#153 3D mod" instead of "QuickDraw&#153 3D" inside your extensions folder and reboot.<br><br>
 		<em>Note: Long term stability is unknown. This bug was never confirmed and the fix was never submitted.</em>		
-		<h3> MacOS X </h3>
-		In the current approach under MacOS X deviceserver and driver run both in user space. Interprocess communication 
-		is done via the distributed object (PDO) mechanism but will be moved to XPC as PDO is depreacted.
-        They shall be started in following order: deviceserver, driver and the client
-		application.<br>
-		
-		
+		<h3> MacOS X — XPC implementation </h3>
+		The Distributed Objects (PDO) approach has been fully replaced by XPC. Two operating
+		modes are supported, selected automatically at runtime:
+
+		<h4> In-process mode (default, no installation required) </h4>
+		When no <tt>QuesaDeviceDB</tt> LaunchAgent is installed, all three roles — driver,
+		deviceserver, and client — coexist in the same process. Anonymous
+		<tt>NSXPCListener</tt>s wire them together internally. This mode requires no
+		configuration and is used by the unit test suite.
+
+		<h4> Cross-process mode (production) </h4>
+		When the <tt>QuesaDeviceDB</tt> LaunchAgent is installed and registered with launchd,
+		independent processes can participate:
+		<ul>
+		  <li><b>Device-server process</b> — the <tt>QuesaDeviceDB</tt> LaunchAgent hosts the
+		      controller database under the well-known Mach service name
+		      <tt>com.quesa.devicedb</tt>. launchd starts it on demand when the first
+		      connection arrives, and restarts it automatically if it crashes.</li>
+		  <li><b>Driver process</b> — any user-space application that calls
+		      <tt>Q3Controller_New</tt>. The Quesa framework detects the running LaunchAgent
+		      and registers the controller there. Channel-method callbacks
+		      (<tt>TQ3ChannelSetMethod</tt> / <tt>TQ3ChannelGetMethod</tt>) are exposed to the
+		      LaunchAgent via a per-controller anonymous XPC listener; the LaunchAgent calls back
+		      into the driver when a client invokes <tt>Q3Controller_SetChannel</tt> /
+		      <tt>Q3Controller_GetChannel</tt>.</li>
+		  <li><b>Client process</b> — any application that calls <tt>Q3Controller_Next</tt>
+		      and the tracker / value API. No special configuration is needed; the framework
+		      connects to the LaunchAgent transparently.</li>
+		</ul>
+		Multiple driver processes and multiple client processes can coexist simultaneously.
+
+		<h4> Production setup (one-time, per machine) </h4>
+		<ol>
+		  <li>Build the Framework-XPC target:
+		      <tt>xcodebuild -scheme Framework-XPC -configuration Release build</tt></li>
+		  <li>Build the LaunchAgent:
+		      <tt>cd QuesaDeviceDB &amp;&amp; cmake -B build &amp;&amp; cmake --build build</tt></li>
+		  <li>Install and register:
+		      <tt>./install_agent.sh</tt><br>
+		      This copies the binary to <tt>~/Library/Quesa/QuesaDeviceDB</tt>, writes
+		      <tt>~/Library/LaunchAgents/com.quesa.devicedb.plist</tt>, and loads the agent
+		      via <tt>launchctl bootstrap</tt>. The agent is per-user (LaunchAgent, not
+		      LaunchDaemon) so it runs with user credentials and has access to the
+		      user's IOKit / USB / HID stack — required for hardware drivers.</li>
+		</ol>
+		To uninstall: <tt>./install_agent.sh --uninstall</tt><br><br>
+		<b>Note:</b> The in-process unit tests (<tt>controller_gtest</tt>) require the
+		LaunchAgent to be <em>not</em> loaded. The cross-process integration tests
+		(<tt>run_xpc_integration.sh</tt>) manage the LaunchAgent lifecycle automatically.<br>
+
+
  */
 /*  NAME:
         QuesaController.h

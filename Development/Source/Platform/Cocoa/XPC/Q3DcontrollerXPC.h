@@ -61,11 +61,14 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, copy) NSString *signature;
 @property (nonatomic, assign) TQ3ControllerRef controllerRef;
 
-// XPC Connection to driver state
-@property (nonatomic, strong, nullable) NSXPCConnection *driverStateConnection;
+// XPC Connection to driver state (lazy-connected from driverStateEndpoint)
+@property (nonatomic, strong, nullable) NSXPCConnection       *driverStateConnection;
+// Endpoint supplied by the driver process so the DB can call back for channel ops
+@property (nonatomic, strong, nullable) NSXPCListenerEndpoint *driverStateEndpoint;
 
 // Tracker
 @property (nonatomic, copy, nullable) NSString *trackerUUID;
+@property (nonatomic, strong, nullable) NSXPCListenerEndpoint *trackerEndpoint;
 @property (nonatomic, strong, nullable) NSXPCConnection *trackerConnection;
 
 // Controller state

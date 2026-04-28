@@ -117,7 +117,24 @@
 
 #pragma mark - Private Setup Methods
 
-// setupDriverStateConnection removed — channel methods are now stored as direct function pointers
+- (void)setupDriverStateConnection
+{
+    if (!_driverStateEndpoint || _driverStateConnection)
+        return;
+
+    _driverStateConnection = [[NSXPCConnection alloc] initWithListenerEndpoint:_driverStateEndpoint];
+    _driverStateConnection.remoteObjectInterface =
+        [NSXPCInterface interfaceWithProtocol:@protocol(Q3XPCControllerDriverState)];
+
+    __weak NSXPCConnection *weakConn = _driverStateConnection;
+    _driverStateConnection.invalidationHandler = ^{
+        NSLog(@"Driver state connection invalidated for controller %@", self.UUID);
+        if (self.driverStateConnection == weakConn)
+            self.driverStateConnection = nil;
+    };
+
+    [_driverStateConnection resume];
+}
 
 - (void)setupTrackerConnection
 {
@@ -131,7 +148,9 @@
         _trackerConnection = nil;
     }
 
-    NSXPCListenerEndpoint *endpoint = Q3TrackerXPC_EndpointForUUID(trackerUUID);
+    // Prefer the endpoint delivered with setTracker: (works cross-process);
+    // fall back to in-process lookup for the single-process case.
+    NSXPCListenerEndpoint *endpoint = _trackerEndpoint ?: Q3TrackerXPC_EndpointForUUID(trackerUUID);
     if (!endpoint)
     {
         NSLog(@"setupTrackerConnection: no endpoint for tracker UUID %@", trackerUUID);
@@ -388,7 +407,10 @@
     reply(kQ3Success);
 }
 
-- (void)setTracker:(NSString *)aTrackerUUID attachToSysCursor:(TQ3Boolean)attachToSysCrsr reply:(void (^)(TQ3Status))reply
+- (void)setTracker:(NSString *)aTrackerUUID
+   trackerEndpoint:(NSXPCListenerEndpoint * _Nullable)anEndpoint
+ attachToSysCursor:(TQ3Boolean)attachToSysCrsr
+             reply:(void (^)(TQ3Status))reply
 {
     // Notify old tracker
     if (_trackerUUID && _trackerConnection)
@@ -401,8 +423,9 @@
         _trackerConnection = nil;
     }
     
-    _trackerUUID = [aTrackerUUID copy];
-    
+    _trackerUUID    = [aTrackerUUID copy];
+    _trackerEndpoint = anEndpoint;
+
     if (_trackerUUID)
     {
         [self setupTrackerConnection];
@@ -428,23 +451,50 @@
 
 - (void)setChannel:(TQ3Uns32)channel withData:(NSData *)data ofSize:(TQ3Uns32)dataSize reply:(void (^)(TQ3Status))reply
 {
+    // In-process: call the function pointer directly (valid in same address space).
     if (_channelSetMethod && data)
     {
         _channelSetMethod(_controllerRef, channel, data.bytes, dataSize);
+        reply(kQ3Success);
+        return;
     }
+
+    // Cross-process: forward to the driver state XPC connection.
+    [self setupDriverStateConnection];
+    if (_driverStateConnection && data)
+    {
+        [[_driverStateConnection remoteObjectProxy] setChannel:channel
+                                                      withData:data
+                                                        ofSize:dataSize
+                                                         reply:reply];
+        return;
+    }
+
     reply(kQ3Success);
 }
 
 - (void)getChannel:(TQ3Uns32)channel reply:(void (^)(NSData * _Nullable, TQ3Uns32, TQ3Status))reply
 {
-    uint8_t buf[256] = {0};
-    TQ3Uns32 size = sizeof(buf);
+    // In-process: call the function pointer directly.
     if (_channelGetMethod)
     {
-        _channelGetMethod(_controllerRef, channel, buf, &size);  // return value intentionally ignored
+        uint8_t buf[256] = {0};
+        TQ3Uns32 size = sizeof(buf);
+        _channelGetMethod(_controllerRef, channel, buf, &size);
+        // QD3D always overrides the status to kQ3Success
+        reply([NSData dataWithBytes:buf length:size], size, kQ3Success);
+        return;
     }
-    // QD3D always overrides the status to kQ3Success
-    reply([NSData dataWithBytes:buf length:size], size, kQ3Success);
+
+    // Cross-process: forward to the driver state XPC connection.
+    [self setupDriverStateConnection];
+    if (_driverStateConnection)
+    {
+        [[_driverStateConnection remoteObjectProxy] getChannel:channel reply:reply];
+        return;
+    }
+
+    reply(nil, 0, kQ3Success);
 }
 
 - (void)newStateWithReply:(void (^)(NSString * _Nullable, TQ3Status))reply

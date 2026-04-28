@@ -57,7 +57,11 @@
 #import <Foundation/Foundation.h>
 #endif
 
-@implementation Q3DdbXPC
+@implementation Q3DdbXPC {
+    // Keeps per-controller anonymous listeners alive for the lifetime of the DB.
+    // Required so that cross-process clients can reach individual controllers.
+    NSMutableDictionary<NSString *, NSXPCListener *> *_controllerEndpointListeners;
+}
 
 #pragma mark - Lifecycle
 
@@ -216,7 +220,7 @@
     if (foundOldTrackerAt != NSNotFound)
     {
         Q3DcontrollerXPC *theControllerObject = _controllerObjects[foundOldTrackerAt];
-        [theControllerObject setTracker:nil attachToSysCursor:kQ3True reply:^(TQ3Status status) {
+        [theControllerObject setTracker:nil trackerEndpoint:nil attachToSysCursor:kQ3True reply:^(TQ3Status status) {
             reply(status);
         }];
     }
@@ -235,23 +239,23 @@
 - (void)connectionForController:(NSString *)controllerUUID reply:(void (^)(NSXPCListenerEndpoint * _Nullable))reply
 {
     NSUInteger idx = [self dbIndexOfControllerUUID:controllerUUID];
-    
-    if (idx != NSNotFound)
-    {
-        // Create anonymous listener for this controller
-        NSXPCListener *anonymousListener = [NSXPCListener anonymousListener];
-        Q3DcontrollerXPC *controller = _controllerObjects[idx];
-        
-        anonymousListener.delegate = self;
-        // In a full implementation, you'd set up a delegate that exports the controller object
-        [anonymousListener resume];
-        
-        reply(anonymousListener.endpoint);
-    }
-    else
-    {
-        reply(nil);
-    }
+    if (idx == NSNotFound) { reply(nil); return; }
+
+    // Return an existing listener's endpoint if we already have one for this controller,
+    // so that successive calls don't create a new Mach port each time.
+    if (!_controllerEndpointListeners)
+        _controllerEndpointListeners = [NSMutableDictionary dictionary];
+
+    NSXPCListener *existing = _controllerEndpointListeners[controllerUUID];
+    if (existing) { reply(existing.endpoint); return; }
+
+    Q3DcontrollerXPC *controller = _controllerObjects[idx];
+    NSXPCListener *listener = [NSXPCListener anonymousListener];
+    listener.delegate = controller;          // exports Q3XPCController protocol
+    [listener resume];
+    _controllerEndpointListeners[controllerUUID] = listener;   // keep alive
+
+    reply(listener.endpoint);
 }
 
 - (void)newController:(NSDictionary *)controllerData reply:(void (^)(NSString * _Nullable))reply
@@ -327,6 +331,22 @@
     reply();
 }
 
+- (void)setDriverStateEndpoint:(NSXPCListenerEndpoint *)endpoint
+                 forController:(NSString *)controllerUUID
+                         reply:(void (^)(void))reply
+{
+    NSUInteger idx = [self dbIndexOfControllerUUID:controllerUUID];
+    if (idx != NSNotFound)
+    {
+        Q3DcontrollerXPC *controller = _controllerObjects[idx];
+        controller.driverStateEndpoint = endpoint;
+        // Invalidate any stale connection so it is re-created from the new endpoint.
+        [controller.driverStateConnection invalidate];
+        controller.driverStateConnection = nil;
+    }
+    reply();
+}
+
 - (void)newTrackerWithReply:(void (^)(NSString * _Nullable))reply
 {
     // Create a new tracker UUID
@@ -342,7 +362,7 @@
     if (foundTrackerAt != NSNotFound)
     {
         Q3DcontrollerXPC *theControllerObject = _controllerObjects[foundTrackerAt];
-        [theControllerObject setTracker:nil attachToSysCursor:kQ3True reply:^(TQ3Status status) {
+        [theControllerObject setTracker:nil trackerEndpoint:nil attachToSysCursor:kQ3True reply:^(TQ3Status status) {
             // Tracker removed
         }];
     }

@@ -93,6 +93,7 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)track2DCursorWithReply:(void (^)(TQ3Boolean trackSys2DCursor, TQ3Status status))reply;
 - (void)track3DCursorWithReply:(void (^)(TQ3Boolean trackSys3DCursor, TQ3Status status))reply;
 - (void)setTracker:(NSString * _Nullable)trackerUUID
+   trackerEndpoint:(NSXPCListenerEndpoint * _Nullable)trackerEndpoint
  attachToSysCursor:(TQ3Boolean)attachToSysCrsr
              reply:(void (^)(TQ3Status status))reply;
 
@@ -179,6 +180,13 @@ NS_ASSUME_NONNULL_BEGIN
 // Connection to specific controller
 - (void)connectionForController:(NSString *)controllerUUID
                           reply:(void (^)(NSXPCListenerEndpoint * _Nullable endpoint))reply;
+
+// Driver-state endpoint registration.
+// Called by a driver process after newController: to provide an XPC endpoint
+// that the device DB can call back into for SetChannel / GetChannel operations.
+- (void)setDriverStateEndpoint:(NSXPCListenerEndpoint *)endpoint
+                 forController:(NSString *)controllerUUID
+                         reply:(void (^)(void))reply;
 
 @end
 

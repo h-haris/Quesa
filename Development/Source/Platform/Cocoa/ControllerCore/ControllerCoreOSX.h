@@ -130,6 +130,13 @@ TQ3Status					CC3OSXTracker_MoveOrientation(TC3TrackerInstanceDataPtr trackerObj
 TQ3Status					CC3OSXTracker_SetEventCoordinates(TC3TrackerInstanceDataPtr trackerObject, TQ3Uns32 timeStamp, TQ3Uns32 buttons, const TQ3Point3D *position, const TQ3Quaternion *orientation);
 TQ3Status					CC3OSXTracker_GetEventCoordinates(TC3TrackerInstanceDataPtr trackerObject, TQ3Uns32 timeStamp, TQ3Uns32 *buttons, TQ3Point3D *position, TQ3Quaternion *orientation);
 
+// Device DB server entry point — called from the QuesaDeviceDB LaunchAgent.
+// Starts the in-process device database and runs the main run loop.
+// Does not return under normal operation.
+#if defined(QUESA_USE_XPC)
+void                        Q3XPC_StartDeviceDBServer(void);
+#endif
+
 //prototypes for CursorTracker
 TQ3Status					CC3OSXCursorTracker_PrepareTracking(void);
 TQ3Status					CC3OSXCursorTracker_SetTrackDeltas(TQ3Boolean trackDeltas);
