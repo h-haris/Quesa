@@ -173,6 +173,12 @@
     };
 
     [_trackerConnection resume];
+    // Probe the connection immediately to catch early invalidation with an error message
+    [[_trackerConnection remoteObjectProxyWithErrorHandler:^(NSError *err) {
+        NSLog(@"Tracker connection probe error for %@: %@", self.trackerUUID, err);
+    }] getActivationWithReply:^(TQ3Boolean active, TQ3Status status) {
+        NSLog(@"Tracker connection probe OK for %@: active=%d", self.trackerUUID, active);
+    }];
 }
 
 #pragma mark - Q3XPCController Protocol
@@ -232,10 +238,13 @@
 
         if (_trackerUUID && _trackerConnection)
         {
-            [[_trackerConnection remoteObjectProxy] changeButtonsWithController:_UUID
-                                                                        buttons:buttons
-                                                                     buttonMask:buttonMask
-                                                                          reply:^(TQ3Status status) {
+            [[_trackerConnection remoteObjectProxyWithErrorHandler:^(NSError *err) {
+                NSLog(@"[DB] setButtons tracker error: %@", err.localizedDescription);
+                reply(kQ3Success);
+            }] changeButtonsWithController:_UUID
+                                    buttons:buttons
+                                 buttonMask:buttonMask
+                                      reply:^(TQ3Status status) {
                 reply(kQ3Success);
             }];
             return;
@@ -256,7 +265,10 @@
     
     if (_trackerUUID && _trackerConnection)
     {
-        [[_trackerConnection remoteObjectProxy] getActivationWithReply:^(TQ3Boolean trackerActive, TQ3Status status) {
+        [[_trackerConnection remoteObjectProxyWithErrorHandler:^(NSError *err) {
+            NSLog(@"[DB] hasTracker tracker error: %@", err.localizedDescription);
+            reply(kQ3False, kQ3Success);
+        }] getActivationWithReply:^(TQ3Boolean trackerActive, TQ3Status status) {
             TQ3Boolean result = (trackerActive == kQ3True && self.isActive == kQ3True) ? kQ3True : kQ3False;
             reply(result, kQ3Success);
         }];
@@ -283,11 +295,15 @@
 {
     if (_trackerUUID && _trackerConnection)
     {
-        [[_trackerConnection remoteObjectProxy] getPositionWithReply:^(TQ3Uns32 serialNumber,
-                                                                        TQ3Point3D position,
-                                                                        TQ3Vector3D delta,
-                                                                        TQ3Boolean changed,
-                                                                        TQ3Status status) {
+        [[_trackerConnection remoteObjectProxyWithErrorHandler:^(NSError *err) {
+            NSLog(@"[DB] getTrackerPosition tracker error: %@", err.localizedDescription);
+            TQ3Point3D defaultPos = {0.0f, 0.0f, 0.0f};
+            reply(defaultPos, kQ3Success);
+        }] getPositionWithReply:^(TQ3Uns32 serialNumber,
+                                  TQ3Point3D position,
+                                  TQ3Vector3D delta,
+                                  TQ3Boolean changed,
+                                  TQ3Status status) {
             reply(position, status);
         }];
     }
@@ -302,9 +318,12 @@
 {
     if (_isActive == kQ3True && _trackerUUID && _trackerConnection)
     {
-        [[_trackerConnection remoteObjectProxy] setPositionWithController:_UUID
-                                                                 position:position
-                                                                    reply:reply];
+        [[_trackerConnection remoteObjectProxyWithErrorHandler:^(NSError *err) {
+            NSLog(@"[DB] setTrackerPosition tracker error: %@", err.localizedDescription);
+            reply(kQ3Success);
+        }] setPositionWithController:_UUID
+                             position:position
+                                reply:^(TQ3Status s) { reply(s); }];
     }
     else
     {
@@ -316,9 +335,12 @@
 {
     if (_isActive == kQ3True && _trackerUUID && _trackerConnection)
     {
-        [[_trackerConnection remoteObjectProxy] movePositionWithController:_UUID
-                                                                     delta:delta
-                                                                     reply:reply];
+        [[_trackerConnection remoteObjectProxyWithErrorHandler:^(NSError *err) {
+            NSLog(@"[DB] moveTrackerPosition tracker error: %@", err.localizedDescription);
+            reply(kQ3Success);
+        }] movePositionWithController:_UUID
+                                 delta:delta
+                                 reply:^(TQ3Status s) { reply(s); }];
     }
     else
     {
@@ -330,11 +352,15 @@
 {
     if (_trackerUUID && _trackerConnection)
     {
-        [[_trackerConnection remoteObjectProxy] getOrientationWithReply:^(TQ3Uns32 serialNumber,
-                                                                           TQ3Quaternion orientation,
-                                                                           TQ3Quaternion delta,
-                                                                           TQ3Boolean changed,
-                                                                           TQ3Status status) {
+        [[_trackerConnection remoteObjectProxyWithErrorHandler:^(NSError *err) {
+            NSLog(@"[DB] getTrackerOrientation tracker error: %@", err.localizedDescription);
+            TQ3Quaternion defaultOrient = {1.0f, 0.0f, 0.0f, 0.0f};
+            reply(defaultOrient, kQ3Success);
+        }] getOrientationWithReply:^(TQ3Uns32 serialNumber,
+                                     TQ3Quaternion orientation,
+                                     TQ3Quaternion delta,
+                                     TQ3Boolean changed,
+                                     TQ3Status status) {
             reply(orientation, status);
         }];
     }
@@ -349,9 +375,12 @@
 {
     if (_isActive == kQ3True && _trackerUUID && _trackerConnection)
     {
-        [[_trackerConnection remoteObjectProxy] setOrientationWithController:_UUID
-                                                                  orientation:orientation
-                                                                        reply:reply];
+        [[_trackerConnection remoteObjectProxyWithErrorHandler:^(NSError *err) {
+            NSLog(@"[DB] setTrackerOrientation tracker error: %@", err.localizedDescription);
+            reply(kQ3Success);
+        }] setOrientationWithController:_UUID
+                             orientation:orientation
+                                   reply:^(TQ3Status s) { reply(s); }];
     }
     else
     {
@@ -363,9 +392,12 @@
 {
     if (_isActive == kQ3True && _trackerUUID && _trackerConnection)
     {
-        [[_trackerConnection remoteObjectProxy] moveOrientationWithController:_UUID
-                                                                        delta:delta
-                                                                        reply:reply];
+        [[_trackerConnection remoteObjectProxyWithErrorHandler:^(NSError *err) {
+            NSLog(@"[DB] moveTrackerOrientation tracker error: %@", err.localizedDescription);
+            reply(kQ3Success);
+        }] moveOrientationWithController:_UUID
+                                   delta:delta
+                                   reply:^(TQ3Status s) { reply(s); }];
     }
     else
     {
@@ -412,9 +444,11 @@
  attachToSysCursor:(TQ3Boolean)attachToSysCrsr
              reply:(void (^)(TQ3Status))reply
 {
-    // Notify old tracker
+    NSLog(@"[DB] setTracker: uuid=%@ endpoint=%@ controller=%@", aTrackerUUID, anEndpoint, _UUID);
+    // Deactivate and notify old tracker before detaching
     if (_trackerUUID && _trackerConnection)
     {
+        [[_trackerConnection remoteObjectProxy] setActivation:kQ3False reply:^(TQ3Status s) {}];
         [[_trackerConnection remoteObjectProxy] callNotificationWithController:_UUID
                                                                          reply:^(TQ3Status status) {
             // Old tracker notified
@@ -422,20 +456,23 @@
         [_trackerConnection invalidate];
         _trackerConnection = nil;
     }
-    
+
     _trackerUUID    = [aTrackerUUID copy];
     _trackerEndpoint = anEndpoint;
 
     if (_trackerUUID)
     {
         [self setupTrackerConnection];
-        
-        // Notify new tracker
+
+        // Activate and notify new tracker
         if (_trackerConnection)
         {
-            [[_trackerConnection remoteObjectProxy] callNotificationWithController:_UUID
-                                                                             reply:^(TQ3Status status) {
-                reply(kQ3Success);
+            [[_trackerConnection remoteObjectProxy] setActivation:kQ3True
+                                                            reply:^(TQ3Status status) {
+                [[self->_trackerConnection remoteObjectProxy] callNotificationWithController:self->_UUID
+                                                                                       reply:^(TQ3Status s) {
+                    reply(kQ3Success);
+                }];
             }];
         }
         else

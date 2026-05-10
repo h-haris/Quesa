@@ -167,12 +167,22 @@ typedef struct {
 
 #pragma mark - Q3XPCTracker Protocol
 
+/// Dispatch the app-supplied tracker-notification callback to the main queue.
+/// All _notifyFunc calls must go through here: the callback typically calls
+/// Q3View_StartRendering which requires the main (OpenGL) thread.
+- (void)dispatchNotifyWithControllerUUID:(NSString *)uuid
+{
+    if (!_notifyFunc || !_trackerObject) return;
+    TQ3TrackerNotifyFunc fn  = _notifyFunc;
+    TQ3Object            obj = _trackerObject;
+    dispatch_async(dispatch_get_main_queue(), ^{
+        fn(obj, (__bridge TQ3ControllerRef)uuid);
+    });
+}
+
 - (void)callNotificationWithController:(NSString *)controllerUUID reply:(void (^)(TQ3Status))reply
 {
-    if (_notifyFunc && _trackerObject)
-    {
-        _notifyFunc(_trackerObject, (__bridge TQ3ControllerRef)controllerUUID);
-    }
+    [self dispatchNotifyWithControllerUUID:controllerUUID];
     reply(kQ3Success);
 }
 
@@ -194,12 +204,12 @@ typedef struct {
 {
     TQ3Uns32 newButtons = (_theButtons & ~aButtonMask) | (theButtons & aButtonMask);
     BOOL changed = (newButtons != _theButtons);
+    NSLog(@"[Tracker] changeButtons: old=0x%x new=0x%x mask=0x%x changed=%d active=%d",
+          (unsigned)_theButtons, (unsigned)newButtons, (unsigned)aButtonMask, changed, _isActive);
     _theButtons = newButtons;
 
-    if (changed && _notifyFunc && _trackerObject)
-    {
-        _notifyFunc(_trackerObject, (__bridge TQ3ControllerRef)controllerUUID);
-    }
+    if (changed)
+        [self dispatchNotifyWithControllerUUID:controllerUUID];
 
     reply(kQ3Success);
 }
@@ -224,12 +234,7 @@ typedef struct {
 {
     _position = aPosition;
     _positionSerialNumber++;
-
-    if (_notifyFunc && _trackerObject)
-    {
-        _notifyFunc(_trackerObject, (__bridge TQ3ControllerRef)controllerUUID);
-    }
-
+    [self dispatchNotifyWithControllerUUID:controllerUUID];
     reply(kQ3Success);
 }
 
@@ -241,12 +246,11 @@ typedef struct {
     _position.y += aDelta.y;
     _position.z += aDelta.z;
     _positionSerialNumber++;
-
-    if (_notifyFunc && _trackerObject)
-    {
-        _notifyFunc(_trackerObject, (__bridge TQ3ControllerRef)controllerUUID);
-    }
-
+    NSLog(@"[Tracker] movePosition delta=(%.3f,%.3f,%.3f) pos=(%.3f,%.3f,%.3f) sn=%u active=%d",
+          aDelta.x, aDelta.y, aDelta.z,
+          _position.x, _position.y, _position.z,
+          (unsigned)_positionSerialNumber, _isActive);
+    [self dispatchNotifyWithControllerUUID:controllerUUID];
     reply(kQ3Success);
 }
 
@@ -270,12 +274,7 @@ typedef struct {
 {
     _orientation = anOrientation;
     _orientationSerialNumber++;
-
-    if (_notifyFunc && _trackerObject)
-    {
-        _notifyFunc(_trackerObject, (__bridge TQ3ControllerRef)controllerUUID);
-    }
-
+    [self dispatchNotifyWithControllerUUID:controllerUUID];
     reply(kQ3Success);
 }
 
@@ -290,12 +289,7 @@ typedef struct {
     _orientation.y = aDelta.w*cur.y - aDelta.x*cur.z + aDelta.y*cur.w + aDelta.z*cur.x;
     _orientation.z = aDelta.w*cur.z + aDelta.x*cur.y - aDelta.y*cur.x + aDelta.z*cur.w;
     _orientationSerialNumber++;
-
-    if (_notifyFunc && _trackerObject)
-    {
-        _notifyFunc(_trackerObject, (__bridge TQ3ControllerRef)controllerUUID);
-    }
-
+    [self dispatchNotifyWithControllerUUID:controllerUUID];
     reply(kQ3Success);
 }
 
