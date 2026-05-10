@@ -201,8 +201,10 @@ typedef struct {
 {
     TQ3Uns32 newButtons = (_theButtons & ~aButtonMask) | (theButtons & aButtonMask);
     BOOL changed = (newButtons != _theButtons);
+#if Q3_DEBUG
     NSLog(@"[Tracker] changeButtons: old=0x%x new=0x%x mask=0x%x changed=%d active=%d",
           (unsigned)_theButtons, (unsigned)newButtons, (unsigned)aButtonMask, changed, _isActive);
+#endif
     _theButtons = newButtons;
 
     if (changed)
@@ -243,10 +245,12 @@ typedef struct {
     _position.y += aDelta.y;
     _position.z += aDelta.z;
     _positionSerialNumber++;
+#if Q3_DEBUG
     NSLog(@"[Tracker] movePosition delta=(%.3f,%.3f,%.3f) pos=(%.3f,%.3f,%.3f) sn=%u active=%d",
           aDelta.x, aDelta.y, aDelta.z,
           _position.x, _position.y, _position.z,
           (unsigned)_positionSerialNumber, _isActive);
+#endif
     [self dispatchNotifyWithControllerUUID:controllerUUID];
     reply(kQ3Success);
 }

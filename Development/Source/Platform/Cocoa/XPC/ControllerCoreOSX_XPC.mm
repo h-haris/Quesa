@@ -228,6 +228,7 @@ static void initializeInProcessDeviceDB(void)
 // Start the device database server and run the main run loop indefinitely.
 // Intended to be called from the QuesaDeviceDB LaunchAgent's main().
 // Does not return under normal operation.
+__attribute__((visibility("default")))
 void Q3XPC_StartDeviceDBServer(void)
 {
     initializeInProcessDeviceDB();
@@ -1556,6 +1557,21 @@ CC3OSXTracker_SetPosition(TC3TrackerInstanceDataPtr trackerObject, TQ3Controller
 {
     if (trackerObject && position)
     {
+        // NULL controllerRef means an app-initiated reset (no controller involved).
+        // Update the local Q3TrackerXPC object directly — skip connectionForController
+        // entirely to avoid a synchronous XPC round-trip on a nil UUID.
+        if (!controllerRef)
+        {
+            TC3TrackerInstanceDataXPC *trackerXPC = (TC3TrackerInstanceDataXPC *)trackerObject;
+            Q3TrackerXPC *xpcObj = (__bridge Q3TrackerXPC *)trackerXPC->trackerXPCObject;
+            if (xpcObj)
+            {
+                xpcObj.position = *position;
+                xpcObj.positionSerialNumber++;
+                return kQ3Success;
+            }
+            return kQ3Failure;
+        }
         NSString *controllerUUID = (__bridge NSString *)controllerRef;
         NSXPCConnection *connection = connectionForController(controllerUUID);
         if (connection)
@@ -1643,6 +1659,21 @@ CC3OSXTracker_SetOrientation(TC3TrackerInstanceDataPtr trackerObject, TQ3Control
 {
     if (trackerObject && orientation)
     {
+        // NULL controllerRef means an app-initiated reset (no controller involved).
+        // Update the local Q3TrackerXPC object directly — skip connectionForController
+        // entirely to avoid a synchronous XPC round-trip on a nil UUID.
+        if (!controllerRef)
+        {
+            TC3TrackerInstanceDataXPC *trackerXPC = (TC3TrackerInstanceDataXPC *)trackerObject;
+            Q3TrackerXPC *xpcObj = (__bridge Q3TrackerXPC *)trackerXPC->trackerXPCObject;
+            if (xpcObj)
+            {
+                xpcObj.orientation = *orientation;
+                xpcObj.orientationSerialNumber++;
+                return kQ3Success;
+            }
+            return kQ3Failure;
+        }
         NSString *controllerUUID = (__bridge NSString *)controllerRef;
         NSXPCConnection *connection = connectionForController(controllerUUID);
         if (connection)

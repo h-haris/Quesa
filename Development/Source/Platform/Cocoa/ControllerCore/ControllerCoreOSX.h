@@ -134,7 +134,7 @@ TQ3Status					CC3OSXTracker_GetEventCoordinates(TC3TrackerInstanceDataPtr tracke
 // Starts the in-process device database and runs the main run loop.
 // Does not return under normal operation.
 #if defined(QUESA_USE_XPC)
-void                        Q3XPC_StartDeviceDBServer(void);
+Q3_EXTERN_API_C ( void )    Q3XPC_StartDeviceDBServer(void);
 #endif
 
 //prototypes for CursorTracker
