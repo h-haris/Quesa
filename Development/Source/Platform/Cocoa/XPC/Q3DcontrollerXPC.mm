@@ -445,17 +445,6 @@
              reply:(void (^)(TQ3Status))reply
 {
     NSLog(@"[DB] setTracker: uuid=%@ endpoint=%@ controller=%@", aTrackerUUID, anEndpoint, _UUID);
-    // Deactivate and notify old tracker before detaching
-    if (_trackerUUID && _trackerConnection)
-    {
-        [[_trackerConnection remoteObjectProxy] setActivation:kQ3False reply:^(TQ3Status s) {}];
-        [[_trackerConnection remoteObjectProxy] callNotificationWithController:_UUID
-                                                                         reply:^(TQ3Status status) {
-            // Old tracker notified
-        }];
-        [_trackerConnection invalidate];
-        _trackerConnection = nil;
-    }
 
     _trackerUUID    = [aTrackerUUID copy];
     _trackerEndpoint = anEndpoint;
@@ -464,15 +453,14 @@
     {
         [self setupTrackerConnection];
 
-        // Activate and notify new tracker
+        // Notify new tracker without changing its activation state.
+        // QD3D oracle: SetTracker does not activate the tracker; the caller
+        // must explicitly call Q3Tracker_SetActivation(kQ3True) afterwards.
         if (_trackerConnection)
         {
-            [[_trackerConnection remoteObjectProxy] setActivation:kQ3True
-                                                            reply:^(TQ3Status status) {
-                [[self->_trackerConnection remoteObjectProxy] callNotificationWithController:self->_UUID
-                                                                                       reply:^(TQ3Status s) {
-                    reply(kQ3Success);
-                }];
+            [[_trackerConnection remoteObjectProxy] callNotificationWithController:self->_UUID
+                                                                             reply:^(TQ3Status s) {
+                reply(kQ3Success);
             }];
         }
         else

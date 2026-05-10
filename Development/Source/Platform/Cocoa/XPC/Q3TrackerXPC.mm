@@ -167,17 +167,14 @@ typedef struct {
 
 #pragma mark - Q3XPCTracker Protocol
 
-/// Dispatch the app-supplied tracker-notification callback to the main queue.
-/// All _notifyFunc calls must go through here: the callback typically calls
-/// Q3View_StartRendering which requires the main (OpenGL) thread.
+/// Call the app-supplied tracker-notification callback synchronously.
+/// Called from an XPC background queue; the XPC reply is sent only after
+/// this returns, so the semaphore in XPC_SYNC is signalled after the
+/// callback has completed — matching the synchronous QD3D oracle behaviour.
 - (void)dispatchNotifyWithControllerUUID:(NSString *)uuid
 {
     if (!_notifyFunc || !_trackerObject) return;
-    TQ3TrackerNotifyFunc fn  = _notifyFunc;
-    TQ3Object            obj = _trackerObject;
-    dispatch_async(dispatch_get_main_queue(), ^{
-        fn(obj, (__bridge TQ3ControllerRef)uuid);
-    });
+    _notifyFunc(_trackerObject, (__bridge TQ3ControllerRef)uuid);
 }
 
 - (void)callNotificationWithController:(NSString *)controllerUUID reply:(void (^)(TQ3Status))reply

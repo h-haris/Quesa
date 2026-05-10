@@ -1687,6 +1687,12 @@ CC3OSXTracker_MoveOrientation(TC3TrackerInstanceDataPtr trackerObject, TQ3Contro
 
 //=============================================================================
 //      CC3OSXTracker_SetEventCoordinates
+//
+// Event coordinates are stored in the tracker object, which always lives in
+// the client process.  Routing through the device DB (LaunchAgent) would fail
+// cross-process because the DB calls Q3TrackerXPC_ForUUID in its own process
+// where the tracker is not registered.  Use the local trackerXPCObject pointer
+// directly — the same pattern used by SetActivation, GetPosition, etc.
 //-----------------------------------------------------------------------------
 TQ3Status
 CC3OSXTracker_SetEventCoordinates(TC3TrackerInstanceDataPtr trackerObject, TQ3Uns32 timeStamp, TQ3Uns32 buttons, const TQ3Point3D *position, const TQ3Quaternion *orientation)
@@ -1694,27 +1700,14 @@ CC3OSXTracker_SetEventCoordinates(TC3TrackerInstanceDataPtr trackerObject, TQ3Un
     if (trackerObject)
     {
         TC3TrackerInstanceDataXPC *trackerXPC = (TC3TrackerInstanceDataXPC *)trackerObject;
-
-        __block TQ3Status status = kQ3Failure;
-
-        NSXPCConnection *connection = nil;
-        if (connectionToDeviceDB(&connection) == kQ3Success)
+        Q3TrackerXPC *xpcObj = (__bridge Q3TrackerXPC *)trackerXPC->trackerXPCObject;
+        if (xpcObj)
         {
-            TQ3Point3D pos = position ? *position : (TQ3Point3D){0, 0, 0};
-            TQ3Quaternion orient = orientation ? *orientation : (TQ3Quaternion){1, 0, 0, 0};
-
-            XPC_SYNC(^(dispatch_block_t done) {
-                [[connection remoteObjectProxy] setEventCoordinatesForTracker:trackerXPC->trackerUUID
-                                                                    timestamp:timeStamp
-                                                                      buttons:buttons
-                                                                     position:pos
-                                                                  orientation:orient
-                                                                        reply:^(TQ3Status stat) {
-                    status = stat;
-                    done();
-                }];
-            });
-            return status;
+            [xpcObj addEventTimestamp:timeStamp
+                              buttons:buttons
+                             position:position
+                          orientation:orientation];
+            return kQ3Success;
         }
     }
     return kQ3Failure;
@@ -1729,27 +1722,13 @@ CC3OSXTracker_GetEventCoordinates(TC3TrackerInstanceDataPtr trackerObject, TQ3Un
     if (trackerObject)
     {
         TC3TrackerInstanceDataXPC *trackerXPC = (TC3TrackerInstanceDataXPC *)trackerObject;
-
-        __block TQ3Status status = kQ3Failure;
-
-        NSXPCConnection *connection = nil;
-        if (connectionToDeviceDB(&connection) == kQ3Success)
+        Q3TrackerXPC *xpcObj = (__bridge Q3TrackerXPC *)trackerXPC->trackerXPCObject;
+        if (xpcObj)
         {
-            XPC_SYNC(^(dispatch_block_t done) {
-                [[connection remoteObjectProxy] getEventCoordinatesForTracker:trackerXPC->trackerUUID
-                                                                    timestamp:timeStamp
-                                                                        reply:^(TQ3Uns32 btns,
-                                                                               TQ3Point3D pos,
-                                                                               TQ3Quaternion orient,
-                                                                               TQ3Status stat) {
-                    if (buttons) *buttons = btns;
-                    if (position) *position = pos;
-                    if (orientation) *orientation = orient;
-                    status = stat;
-                    done();
-                }];
-            });
-            return status;
+            return [xpcObj getEventAtOrBeforeTimestamp:timeStamp
+                                               buttons:buttons
+                                              position:position
+                                           orientation:orientation];
         }
     }
     if (buttons) *buttons = 0;
