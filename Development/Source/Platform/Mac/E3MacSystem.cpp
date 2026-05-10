@@ -207,10 +207,14 @@ E3MacSystem_Initialise(void)
 
 #if QUESA_SUPPORT_CONTROLLER
 #if Q3_DEBUG
-    #warning start device server. What about the XPC broaker?
+    #warning start device server. What about the XPC broker?
 #endif
     //start the device server from inside first library instantiation!
+#if (QUESA_USE_XPC!=1)
     startDeviceDB();
+#else
+    #warning QUESA_USE_XPC set! DeviceDB not started (at least not in the library)!
+#endif
     //TODO: more error handling needed
     status = kQ3Success;
 #else

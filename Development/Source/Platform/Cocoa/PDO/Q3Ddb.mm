@@ -4,6 +4,9 @@
  DESCRIPTION:
     QuesaOSXDeviceServer - acts as registrar of 3D Controller Devices.
     Every 3D Controller Device shall be registered here
+    
+    NOTE: This file is for PDO (legacy) implementation only.
+          For XPC implementation, see Q3DdbXPC.mm
 
     COPYRIGHT:
         Copyright (c) 2011-2021, Quesa Developers. All rights reserved.
@@ -46,6 +49,11 @@
     ___________________________________________________________________________
  */
 
+// This entire file is only for PDO (non-XPC) builds
+#include "IPCConfiguration.h"
+
+#if (QUESA_USE_XPC != 1)
+
 #import "Q3Ddb.h"
 #import "Q3DcontrollerPDO.h"
 #import "IPCprotocolPDO.h"
@@ -60,7 +68,7 @@
 - (id)init {
     if (self = [super init]) {
         //init my own stuff
-        controllerListSerialNumber = 0;
+		_controllerListSerialNumber = 0;
     }
     return self;
 }
@@ -72,12 +80,12 @@
 
 - (void)registerVendConnection
 {
-    theConnection = [[NSConnection new] autorelease];
-    theConnection.rootObject = self;
+	_theConnection = [[NSConnection new] autorelease];
+	_theConnection.rootObject = self;
 
     //make name of ControllerDB public
-    [theConnection registerName:@kQuesa3DeviceServer];
-    [theConnection retain];
+	[_theConnection registerName:@kQuesa3DeviceServer];
+	[_theConnection retain];
 
     _controllerPDOs = [NSMutableArray arrayWithCapacity:2];
     [_controllerPDOs retain];
@@ -98,7 +106,7 @@
 
 
 - (void)incControllerListSerialNumber {
-    controllerListSerialNumber++;
+	_controllerListSerialNumber++;
 }
 
 
@@ -223,10 +231,10 @@
 {
     TQ3Status status = kQ3Success;
 
-    if (controllerListSerialNumber!=*serNum)
+	if (_controllerListSerialNumber!=*serNum)
     {
         *listChanged=kQ3True;
-        *serNum=controllerListSerialNumber;
+		*serNum=_controllerListSerialNumber;
     }
     else
     {
@@ -278,4 +286,6 @@ void startDeviceDB(void)
         [Q3DDeviceDb registerVendConnection];
     }
 }
+
+#endif // QUESA_USE_XPC != 1
 

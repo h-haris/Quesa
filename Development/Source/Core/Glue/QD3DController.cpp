@@ -375,7 +375,7 @@ Q3Controller_SetChannel(TQ3ControllerRef controllerRef, TQ3Uns32 channel, const 
 
 
 	// Call our implementation
-	return(E3Controller_SetChannel(controllerRef, channel, data, dataSize));
+	return E3Controller_SetChannel(controllerRef, channel, data, dataSize);
 }
 
 

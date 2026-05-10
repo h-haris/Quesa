@@ -9,6 +9,10 @@
  Under MacOS X the communication between driver, device server and client
  is implemented as IPC via PDOs. This header defines the used protocols.
  
+ NOTE: PDO (Portable Distributed Objects) is DEPRECATED.
+ This file is maintained for backward compatibility only.
+ New code should use IPCprotocolXPC.h instead.
+ 
     COPYRIGHT:
         Copyright (c) 2013-2021, Quesa Developers. All rights reserved.
 
@@ -52,10 +56,10 @@
 
 #import <Cocoa/Cocoa.h>
 
-#define kQuesa3DeviceServer             "com.quesa.osx.3device.server"
-#define kQuesa3DeviceController         "com.quesa.osx.3device.controller"
-#define kQuesa3DeviceControllerDriver   "com.quesa.osx.3device.controllerdriver"
-#define kQuesa3DeviceTracker            "com.quesa.osx.3device.tracker"
+#define kQuesa3DeviceServer             "com.quesa.osx.3ddevice.server"
+#define kQuesa3DeviceController         "com.quesa.osx.3ddevice.controller"
+#define kQuesa3DeviceControllerDriver   "com.quesa.osx.3ddevice.controllerdriver"
+#define kQuesa3DeviceTracker            "com.quesa.osx.3ddevice.tracker"
 
 typedef unsigned long long              TQ3ControllerRefCast;
 
