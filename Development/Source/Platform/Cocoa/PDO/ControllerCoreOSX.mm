@@ -78,6 +78,12 @@
 //      Include files
 //-----------------------------------------------------------------------------
 #include "E3Prefix.h"
+#include "IPCConfiguration.h"  // Includes either PDO or XPC protocol
+
+// Only compile this entire file for PDO builds
+// XPC builds use ControllerCoreOSX_XPC.mm instead
+#if (QUESA_USE_XPC != 1)
+
 #include "IPCprotocolPDO.h"
 #include "ControllerCoreOSX.h"
 #include "ControllerDriverCoreOSX.h"
@@ -1248,4 +1254,6 @@ CC3OSXCursorTracker_GetNotifyFunc(TQ3CursorTrackerNotifyFunc *notifyFunc)
     // To be implemented...
     return(kQ3Failure);
 }
+
+#endif // QUESA_USE_XPC != 1
 

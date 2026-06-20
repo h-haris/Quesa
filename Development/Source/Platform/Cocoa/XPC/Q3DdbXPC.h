@@ -1,11 +1,12 @@
 /*  NAME:
- ControllerCoreOSXinternals.h
+ Q3DdbXPC.h
 
  DESCRIPTION:
- Implementation of Quesa controller API calls.
+ Header for XPC-based Device Database implementation.
+ Uses anonymous NSXPCListeners for in-process communication.
 
     COPYRIGHT:
-        Copyright (c) 2013-2021, Quesa Developers. All rights reserved.
+        Copyright (c) 2011-2026, Quesa Developers. All rights reserved.
 
         For the current release of Quesa, please see:
 
@@ -13,7 +14,6 @@
 
         For the current release of Quesa including 3D device support,
         please see: <https://github.com/h-haris/Quesa>
-
 
         Redistribution and use in source and binary forms, with or without
         modification, are permitted provided that the following conditions
@@ -45,48 +45,47 @@
     ___________________________________________________________________________
  */
 
-#ifndef ControllerCoreOSX_ControllerCoreOSXinternals_h
-#define ControllerCoreOSX_ControllerCoreOSXinternals_h
+#import <Foundation/Foundation.h>
+#import "IPCprotocolXPC.h"
 
-//=============================================================================
-//      C++ preamble
-//-----------------------------------------------------------------------------
-#ifdef __cplusplus
-extern "C" {
-#endif
+@class Q3DcontrollerXPC;
 
-typedef struct TC3TrackerEvent
-{
-    TQ3Uns32        EventTimeStampKey;
+NS_ASSUME_NONNULL_BEGIN
 
-    TQ3Uns32        EventButtons;
-    TQ3Point3D      EventPosition;
-    TQ3Boolean      EventPositionIsNULL;
-    TQ3Quaternion   EventOrientation;
-    TQ3Boolean      EventOrientationIsNULL;
-} TC3TrackerEvent, *TC3TrackerEventPtr;
+/*!
+ * @class Q3DdbXPC
+ * @abstract Device database that manages controllers and trackers via in-process XPC.
+ * @discussion Uses anonymous NSXPCListeners for same-process communication.
+ *
+ * Usage:
+ *     Q3DdbXPC *db = [[Q3DdbXPC alloc] initForInProcess];
+ *     NSXPCListener *listener = [NSXPCListener anonymousListener];
+ *     listener.delegate = db;
+ *     [listener resume];
+ */
+@interface Q3DdbXPC : NSObject <NSXPCListenerDelegate, Q3XPCDeviceDB>
 
-typedef struct TC3TrackerInstanceData
-{
-    TrackerCoreOSX* instance;
-} TC3TrackerInstanceData;
+/// Array of controller objects managed by this database
+@property (nonatomic, strong) NSMutableArray<Q3DcontrollerXPC *> *controllerObjects;
 
-typedef struct TC3ControllerStateInstanceData
-{
-    TQ3ControllerRef    myController;
-    NSString            *ctrlStateUUIDString;
-} TC3ControllerStateInstanceData;
+/// Serial number incremented when controller list changes
+@property (nonatomic, assign) TQ3Uns32 controllerListSerialNumber;
 
-typedef struct TC3ControllerInstanceData
-{
-    TQ3ControllerData instanceData;//public instance data from Controller_New
-} TC3ControllerInstanceData, *TC3ControllerInstanceDataPtr;
+/*!
+ * @method initForInProcess
+ * @abstract Initialize for in-process use with anonymous listener
+ * @discussion Use this for MachXPC-style in-process communication
+ * @return Initialized instance ready for anonymous listener
+ */
+- (instancetype)initForInProcess;
 
-//=============================================================================
-//        C++ postamble
-//-----------------------------------------------------------------------------
-#ifdef __cplusplus
-}
-#endif
+/*!
+ * @method incControllerListSerialNumber
+ * @abstract Increment the controller list serial number
+ * @discussion Called when controllers are added/removed/changed
+ */
+- (void)incControllerListSerialNumber;
 
-#endif
+@end
+
+NS_ASSUME_NONNULL_END

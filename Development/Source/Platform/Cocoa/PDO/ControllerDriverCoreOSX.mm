@@ -47,6 +47,11 @@
 
 
 #include "E3Prefix.h"
+
+// XPC builds do not use ControllerDriverCoreOSX — channel methods are called
+// directly as function pointers stored in Q3DcontrollerXPC.
+#if (QUESA_USE_XPC != 1)
+
 #import "ControllerDriverCoreOSX.h"
 
 @implementation ControllerDriverCoreOSX
@@ -89,7 +94,7 @@
         CFStringAppend(ControllerDriverName,CFSTR(kQuesa3DeviceControllerDriver));
         CFStringAppend(ControllerDriverName,CFSTR("."));
         CFStringAppend(ControllerDriverName,DriverUUIDString);
-        _controllerDriverUUID = (NSString*)ControllerDriverName;
+		_controllerDriverUUID = (NSString*)CFBridgingRelease(ControllerDriverName);
         [_controllerDriverUUID retain];
 
         //vend IPCControllerDriver object
@@ -103,7 +108,7 @@
         CFStringAppend(ControllerName,CFSTR(kQuesa3DeviceController));
         CFStringAppend(ControllerName,CFSTR("."));
         CFStringAppend(ControllerName,DriverUUIDString);
-        _nameInDB = (NSString*)ControllerName;
+		_nameInDB = (NSString*)CFBridgingRelease(ControllerName);
         [_nameInDB retain];
         CFRelease(DriverUUIDString);
         CFRelease(DriverUUID);
@@ -134,7 +139,7 @@
 - (id) idForControllerRef:(TQ3ControllerRef) aControllerRef
 {
 #if Q3_DEBUG
-    NSLog(@"idForControllerRef: hunt for: %@\n",(NSString*)aControllerRef);
+	NSLog(@"idForControllerRef: hunt for: %@\n",(NSString*)CFBridgingRelease(aControllerRef));
 #endif
     if (self==aControllerRef)
         return _proxyCTRL;
@@ -162,9 +167,9 @@
 
         //call method
         if (theData)
-            status = _controllerData.channelSetMethod((TQ3ControllerRef)_nameInDB, channel, theData.bytes, dataSize);
+			status = _controllerData.channelSetMethod((TQ3ControllerRef)CFBridgingRetain(_nameInDB), channel, theData.bytes, dataSize);
         else //theData==NULL is valid!
-            status = _controllerData.channelSetMethod((TQ3ControllerRef)_nameInDB, channel, nullptr, dataSize);
+			status = _controllerData.channelSetMethod((TQ3ControllerRef)CFBridgingRetain(_nameInDB), channel, nullptr, dataSize);
     }
 
     return status;
@@ -199,7 +204,7 @@
         data = (void*)malloc(*dataSize);
 
         //call method
-        TQ3Status status = _controllerData.channelGetMethod((TQ3ControllerRef)_nameInDB, channel, data, dataSize);
+		TQ3Status status = _controllerData.channelGetMethod((TQ3ControllerRef)CFBridgingRetain(_nameInDB), channel, data, dataSize);
 
         //data
         *theData = [NSData dataWithBytes:data length:*dataSize];
@@ -316,3 +321,5 @@
 }
 
 @end
+
+#endif // QUESA_USE_XPC != 1

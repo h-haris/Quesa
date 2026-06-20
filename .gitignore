@@ -37,3 +37,7 @@ Development/Projects/Windows/Debug-NoOpenGL/
 Development/Projects/Windows/Release-NoOpenGL/
 SDK/Extras/VRML Reader/Projects/VRML-Reader Visual Studio/DebugNoGL/
 SDK/Extras/VRML Reader/Projects/VRML-Reader Visual Studio/ReleaseNoGL/
+
+*.md
+!README.md
+!SDK/Examples/FilamentViewer/README.md
